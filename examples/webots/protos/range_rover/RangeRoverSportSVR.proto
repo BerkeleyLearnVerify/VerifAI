@@ -1,0 +1,443 @@
+#VRML_SIM R2018b utf8
+# license: Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+# license url: https://cyberbotics.com/webots_assets_license
+# tags: static
+# Model of a Range Rover Sport SVR 2015
+
+PROTO RangeRoverSportSVR [
+  field     SFVec3f    translation       0 0.4 0
+  field     SFRotation rotation          0 1 0 0
+  field     SFColor    color             0.0 0.25 0.65
+  field     SFColor    secondaryColor    0.1 0.1 0.1
+  field     MFString   plate             "textures/plate.jpg"
+  field     SFString   engineSound       "sounds/engine.wav"
+  field     SFString   name              "vehicle"
+  field     SFString   controller        "void"
+  field     SFString   controllerArgs    ""
+  field     SFBool     synchronization   TRUE
+  field     MFNode     sensorsSlotFront  NULL
+  field     MFNode     sensorsSlotRear   NULL
+  field     MFNode     sensorsSlotTop    NULL
+  field     MFNode     sensorsSlotCenter NULL
+  field     SFBool     frontSpotLights   FALSE
+]
+{
+  %{ local frontSpotLights = fields.frontSpotLights.value }%
+  Car {
+    translation IS translation
+    rotation IS rotation
+    trackFront 1.64  # calibrated
+    trackRear 1.64  # calibrated
+    wheelbase 2.71  # calibrated
+    type "4x4"  # calibrated
+    engineType "combustion"  # calibrated
+    engineSound IS engineSound
+    brakeCoefficient 1000  # estimated roughly
+    time0To100 4.7  # calibrated
+    engineMaxTorque 680  # calibrated
+    engineMaxRPM 5500  # calibrated
+    gearRatio [  # calibrated: https://www.edmunds.com/land-rover/range-rover-sport/2015/road-test-specs/
+      -3 4.696 3.130 2.104 1.667 1.285 1.000 0.839 0.667
+    ]
+    wheelFrontLeft VehicleWheel {
+      name "front left wheel"
+      thickness 0.22
+      tireRadius 0.358
+      rimRadius 0.285
+      rimBeamWidth 0.07
+      centralInnerRadius 0.08
+      centralOuterRadius 0.12
+      rimBeamThickness 0.08
+      rimBeamOffset 0.065
+      contactMaterial "RangeRoverSportSVRWheels"
+      tireAppearance DEF RANGEROVER_TIRE_APPEARANCE Appearance {
+        material Material {
+        }
+        texture ImageTexture {
+          url [
+            "textures/tire_texture.jpg"
+          ]
+        }
+      }
+      rimAppearance DEF RANGEROVER_RIM_APPEARANCE Appearance {
+        material Material {
+          diffuseColor 0.7 0.7 0.7
+          specularColor 1 1 1
+        }
+      }
+    }
+    wheelFrontRight VehicleWheel {
+      name "front right wheel"
+      thickness 0.22
+      tireRadius 0.358
+      rimRadius 0.285
+      rimBeamWidth 0.07
+      centralInnerRadius 0.08
+      centralOuterRadius 0.12
+      rimBeamThickness 0.08
+      rimBeamOffset 0.065
+      contactMaterial "RangeRoverSportSVRWheels"
+      tireAppearance USE RANGEROVER_TIRE_APPEARANCE
+      rimAppearance USE RANGEROVER_RIM_APPEARANCE
+    }
+    wheelRearRight VehicleWheel {
+      name "rear right wheel"
+      thickness 0.22
+      tireRadius 0.358
+      rimRadius 0.285
+      rimBeamWidth 0.07
+      centralInnerRadius 0.08
+      centralOuterRadius 0.12
+      rimBeamThickness 0.08
+      rimBeamOffset 0.065
+      contactMaterial "RangeRoverSportSVRWheels"
+      tireAppearance USE RANGEROVER_TIRE_APPEARANCE
+      rimAppearance USE RANGEROVER_RIM_APPEARANCE
+    }
+    wheelRearLeft VehicleWheel {
+      name "rear left wheel"
+      thickness 0.22
+      tireRadius 0.358
+      rimRadius 0.285
+      rimBeamWidth 0.07
+      centralInnerRadius 0.08
+      centralOuterRadius 0.12
+      rimBeamThickness 0.08
+      rimBeamOffset 0.065
+      contactMaterial "RangeRoverSportSVRWheels"
+      tireAppearance USE RANGEROVER_TIRE_APPEARANCE
+      rimAppearance USE RANGEROVER_RIM_APPEARANCE
+    }
+    extensionSlot [
+      # Sensors slots
+      Transform {
+        translation 0 0.5 3.5
+        rotation 0 1 0 3.1415
+        children IS sensorsSlotFront
+      }
+      Transform {
+        translation 0 0.33 -1.06
+        children IS sensorsSlotRear
+      }
+      Transform {
+        translation 0 1.3 1.4
+        rotation 0 1 0 3.1415
+        children IS sensorsSlotTop
+      }
+      Transform {
+        rotation 0 1 0 3.1415
+        children IS sensorsSlotCenter
+      }
+      # lights
+      VehicleLights {
+        frontColor [
+          0.8 0.8 0.8
+        ]
+        front [
+          Group {
+            children [
+              %{ if frontSpotLights then }%
+                SpotLight {
+                  attenuation 0.2 0 0
+                  beamWidth 0.7
+                  cutOffAngle 0.8
+                  direction -0.2 -1 1
+                  location 0.52 1 4
+                  radius 20
+                  on TRUE
+                }
+                SpotLight {
+                  attenuation 0.2 0 0
+                  beamWidth 0.7
+                  cutOffAngle 0.8
+                  direction 0.2 -1 1
+                  location -0.52 1 4
+                  radius 20
+                }
+              %{ end }%
+              DEF HEADLIGHT Shape {
+                appearance Appearance {
+                  material Material {
+                    ambientIntensity 0.3
+                    diffuseColor 0.702 0.702 0.702
+                  }
+                }
+                geometry RangeRoverSportSVRFrontLightsMesh {
+                }
+              }
+            ]
+          }
+        ]
+        rear [
+          Shape {
+            appearance Appearance {
+              material Material {
+                ambientIntensity 0
+                diffuseColor 0.702 0.702 0.702
+                shininess 0.24
+                specularColor 0.4549 0.4549 0.4549
+              }
+            }
+            geometry RangeRoverSportSVRRearLightsMesh {
+            }
+          }
+        ]
+        rightIndicator [
+          DEF INDICATOR_RIGHT Shape {
+            appearance Appearance {
+              material Material {
+                ambientIntensity 0
+                diffuseColor 0.702 0.702 0.702
+                shininess 0.24
+                specularColor 0.4549 0.4549 0.4549
+              }
+            }
+            geometry RangeRoverSportSVRRightIndicatorMesh {
+            }
+          }
+        ]
+        leftIndicator [
+          DEF INDICATOR_LEFT Shape {
+            appearance Appearance {
+              material Material {
+                ambientIntensity 0
+                diffuseColor 0.702 0.702 0.702
+                shininess 0.24
+                specularColor 0.4549 0.4549 0.4549
+              }
+            }
+            geometry RangeRoverSportSVRLeftIndicatorMesh {
+            }
+          }
+        ]
+        braking [
+          DEF BRAKE_LIGHT Shape {
+            appearance DEF BREAKING_LIGHT_APP Appearance {
+              material Material {
+                ambientIntensity 0.4
+                diffuseColor 0.560784 0.113725 0.113725
+                specularColor 0.4549 0.4549 0.4549
+              }
+            }
+            geometry RangeRoverSportSVRBrakingLightsMesh {
+            }
+          }
+        ]
+      }
+      # vehicle shape
+      DEF COACHWORK_PRIMARY Shape {
+        appearance Appearance {
+          material Material {
+            diffuseColor IS color
+            specularColor 0.4 0.4 0.4
+          }
+        }
+        geometry RangeRoverSportSVRCoachworkPrimaryMesh {
+        }
+      }
+      DEF COACHWORK_SECONDARY Shape {
+        appearance Appearance {
+          material Material {
+            diffuseColor IS secondaryColor
+            specularColor 0.2 0.2 0.2
+          }
+        }
+        geometry RangeRoverSportSVRCoachworkSecondaryMesh {
+        }
+      }
+      DEF COACHWORK_DETAILS Shape {
+        appearance Appearance {
+          material Material {
+          }
+          texture ImageTexture {
+            url [
+              "textures/range_rover_details.png"
+            ]
+          }
+        }
+        geometry RangeRoverSportSVRCoachworkDetailsMesh {
+        }
+      }
+      DEF BOTTOM Shape {
+        appearance Appearance {
+          material Material {
+            diffuseColor 0.1 0.1 0.1
+            specularColor 0.1 0.1 0.1
+          }
+        }
+        geometry RangeRoverSportSVRBottomMesh {
+        }
+      }
+      DEF WINDOWS Shape {
+        appearance Appearance {
+          material Material {
+            ambientIntensity 0
+            diffuseColor 0.372549 0.556863 0.552941
+            specularColor 0.321569 0.478431 0.47451
+          }
+        }
+        geometry RangeRoverSportSVRWindowsMesh {
+        }
+      }
+      DEF LEFT_MIRROR Shape {
+        appearance DEF MIRROR_APP Appearance {
+          material Material {
+            diffuseColor 0.603922 0.603922 0.603922
+            specularColor 0.396078 0.409804 0.466667
+          }
+        }
+        geometry RangeRoverSportSVRLeftMirrorMesh {
+        }
+      }
+      DEF RIGHT_MIRROR Shape {
+        appearance USE MIRROR_APP
+        geometry RangeRoverSportSVRRightMirrorMesh {
+        }
+      }
+      DEF FRONT_PLATE Transform {
+        translation 0 0.28 3.51
+        rotation 0 1 0 3.1416
+        scale 1.2 1.2 3.1
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+              }
+              texture ImageTexture {
+                url IS plate
+              }
+            }
+            geometry IndexedFaceSet {
+              coord Coordinate {
+                point [
+                  0.24 0.068 -0.01
+                  0.24 0 -0.01
+                  -0.24 0 -0.01
+                  -0.24 0.068 -0.01
+                  0.24 0.068 0
+                  0.24 0 0
+                  -0.24 0 0
+                  -0.24 0.068 0
+                ]
+              }
+              texCoord TextureCoordinate {
+                point [
+                  0 0
+                  0 1
+                  1 1
+                  1 0
+                  0.5 0.5
+                ]
+              }
+              coordIndex [
+                3, 0, 1, 2, -1, 0, 3, 7, 4, -1
+                2, 6, 7, 3, -1, 0, 4, 5, 1, -1
+                6, 2, 1, 5, -1
+              ]
+              texCoordIndex [
+                2, 1, 0, 3, -1
+                4, 4, 4, 4, -1
+                4, 4, 4, 4, -1
+                4, 4, 4, 4, -1
+                4, 4, 4, 4, -1
+              ]
+            }
+          }
+        ]
+      }
+      DEF REAR_PLATE Transform {
+        translation 0 0.56 -0.96
+        rotation 0 1 0 3.1416
+        scale 0.8 0.8 1
+        children [
+          Transform {
+            rotation 1 0 0 -0.19
+            children [
+              Shape {
+                appearance Appearance {
+                  material Material {
+                  }
+                  texture ImageTexture {
+                    url IS plate
+                  }
+                }
+                geometry IndexedFaceSet {
+                  coord Coordinate {
+                    point [
+                      0.261 0.123 0.015
+                      0.261 0 0.015
+                      -0.261 0 0.015
+                      -0.261 0.123 0.015
+                      0.261 0.123 0
+                      0.261 0 0
+                      -0.261 0 0
+                      -0.261 0.123 0
+                    ]
+                  }
+                  texCoord TextureCoordinate {
+                    point [
+                      0 0
+                      0 1
+                      1 1
+                      1 0
+                      0.5 0.5
+                    ]
+                  }
+                  coordIndex [
+                    3, 2, 1, 0, -1, 0, 4, 7, 3, -1
+                    2, 3, 7, 6, -1, 0, 1, 5, 4, -1
+                    6, 5, 1, 2, -1
+                  ]
+                  texCoordIndex [
+                    1, 0, 3, 2, -1
+                    4, 4, 4, 4, -1
+                    4, 4, 4, 4, -1
+                    4, 4, 4, 4, -1
+                    4, 4, 4, 4, -1
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    name IS name
+    model "Range Rover SVR"
+    controller IS controller
+    controllerArgs IS controllerArgs
+    synchronization IS synchronization
+    recognitionColors [
+      %{= fields.color.value.r }% %{= fields.color.value.g }% %{= fields.color.value.b }%
+      %{= fields.secondaryColor.value.r }% %{= fields.secondaryColor.value.g }% %{= fields.secondaryColor.value.b }%
+    ]
+    boundingObject Group {
+      children [
+        DEF LOWER_BOX Transform {
+          translation 0 0.35 1.25
+          rotation 1 0 0 0.02
+          children [
+            Box {
+              size 1.8 0.8 4.5
+            }
+          ]
+        }
+        DEF CENTRAL_BOX Transform {
+          translation 0 0.85 0.6
+          children [
+            Box {
+              size 1.5 0.75 2.7
+            }
+          ]
+        }
+      ]
+    }
+    physics Physics {
+      density -1
+      mass 2700  # calibrated
+      centerOfMass [
+        0 0.2 1.6 # estimated roughly
+      ]
+    }
+  }
+}

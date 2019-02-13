@@ -1,0 +1,10 @@
+Webots Proto Cache File version 1.3
+protoFileHash: 54738eff7611a2fe52b48476470d2d11
+containsDevices: 0
+baseType: Slot
+slotType: truck\strailer\ssimple
+parameters: name,texture,rotation,wheelBoundingObject,frontRightWheelAngularVelocity,frontLeftWheelAngularVelocity,centerRightWheelAngularVelocity,centerLeftWheelAngularVelocity,rearRightWheelAngularVelocity,rearLeftWheelAngularVelocity
+tags: 
+license:  Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+licenseUrl:  https://cyberbotics.com/webots_assets_license
+info: A\ssimple\snon-controllable\struck\strailer\smodel\swithout\sphysics\sproperties.\n

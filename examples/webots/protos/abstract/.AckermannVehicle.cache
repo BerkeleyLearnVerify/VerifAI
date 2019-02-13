@@ -1,0 +1,10 @@
+Webots Proto Cache File version 1.3
+protoFileHash: 6500d3a46a377525f69f134554137421
+containsDevices: 1
+baseType: Robot
+slotType: 
+parameters: translation,rotation,name,model,controller,controllerArgs,synchronization,trackFront,trackRear,wheelbase,minSteeringAngle,maxSteeringAngle,suspensionFrontSpringConstant,suspensionFrontDampingConstant,suspensionRearSpringConstant,suspensionRearDampingConstant,wheelsDampingConstant,maxSteeringTorque,extensionSlot,boundingObject,physics,radarCrossSection,recognitionColors,wheelFrontRight,wheelFrontLeft,wheelRearRight,wheelRearLeft,axisDevicesFrontRight,axisDevicesFrontLeft,axisDevicesRearRight,axisDevicesRearLeft,customData,window
+tags: static
+license:  Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+licenseUrl:  https://cyberbotics.com/webots_assets_license
+info: Generic\smodel\sof\san\sAckerman\svehicle.\sPositions\sand\sjoints\sof\sthe\swheels\sare\sset\sautomatically\nusing\s'trackFont',\s'trackRear'\sand\s'wheelbase'\sfields\nThis\smodel\swas\ssponsored\sby\sthe\sCTI\sproject\sRO2IVSim\s(http://transport.epfl.ch/simulator-for-mobile-robots-and-intelligent-vehicles).\n

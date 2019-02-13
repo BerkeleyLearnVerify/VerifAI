@@ -1,0 +1,10 @@
+Webots Proto Cache File version 1.3
+protoFileHash: 950fec4e4a439123934f1a4b93180db3
+containsDevices: 0
+baseType: Robot
+slotType: 
+parameters: translation,rotation,color,recognitionColors,plate,name,controller,controllerArgs,sensorsSlotFront,sensorsSlotRear,sensorsSlotTop,sensorsSlotCenter,wheelBoundingObject,frontRightWheelAngularVelocity,frontLeftWheelAngularVelocity,rearRightWheelAngularVelocity,rearLeftWheelAngularVelocity
+tags: 
+license:  Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+licenseUrl:  https://cyberbotics.com/webots_assets_license
+info: Simple\skinematic\smodel\sof\sthe\sLincoln\sMKZ\s2017\sto\sbe\smoved\swith\sa\sSupervisor.\n

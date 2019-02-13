@@ -1,0 +1,10 @@
+Webots Proto Cache File version 1.3
+protoFileHash: e69f0311bc76dfaaae538f69df458d4c
+containsDevices: 1
+baseType: Group
+slotType: 
+parameters: front,frontColor,rightIndicator,leftIndicator,indicatorColor,antifog,antifogColor,braking,brakingColor,rear,rearColor,backwards,backwardsColor
+tags: 
+license:  Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+licenseUrl:  https://cyberbotics.com/webots_assets_license
+info: Set\sof\slights\sfound\sin\sa\sstandard\svehicle:\sfront,\sright\sand\sleft\sindicators,\santifog,\sbraking,\srear\sand\sbackwards\nThis\smodel\swas\ssponsored\sby\sthe\sCTI\sproject\sRO2IVSim\s(http://transport.epfl.ch/simulator-for-mobile-robots-and-intelligent-vehicles).\n

@@ -1,0 +1,10 @@
+Webots Proto Cache File version 1.3
+protoFileHash: 1620d520d987ca3028c484b214c25e58
+containsDevices: 0
+baseType: Shape
+slotType: 
+parameters: innerWindowTransparency,innerWindowDust
+tags: hidden
+license:  Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+licenseUrl:  https://cyberbotics.com/webots_assets_license
+info: 

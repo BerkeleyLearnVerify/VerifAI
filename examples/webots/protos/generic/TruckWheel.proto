@@ -1,0 +1,37 @@
+#VRML_SIM R2018b utf8
+# license: Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+# license url: https://cyberbotics.com/webots_assets_license
+# Model of a truck wheel using the generic VehicleWheel proto
+
+PROTO TruckWheel [
+  field SFString name           "truck wheel"
+  field SFNode   physics        NULL
+  field SFBool   boundingObject TRUE
+]
+{
+  VehicleWheel {
+    name IS name
+    thickness 0.4
+    tireRadius 0.5
+    subdivision 36
+    edgeSubdivision 3
+    rimRadius 0.35
+    rimBeamNumber 6
+    rimBeamWidth 0.15
+    centralInnerRadius 0.14
+    centralOuterRadius 0.2
+    rimBeamThickness 0.3
+    contactMaterial "TruckWheels"
+    tireAppearance Appearance {
+      material Material {
+      }
+      texture ImageTexture {
+        url [
+          "textures/tire_texture.jpg"
+        ]
+      }
+    }
+    physics IS physics
+    boundingObject IS boundingObject
+  }
+}

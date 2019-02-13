@@ -1,0 +1,10 @@
+Webots Proto Cache File version 1.3
+protoFileHash: 4f1fb58768cc06aa18fc76d4b2c55fcc
+containsDevices: 1
+baseType: Slot
+slotType: truck\strailer
+parameters: name,color
+tags: 
+license:  Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+licenseUrl:  https://cyberbotics.com/webots_assets_license
+info: A\snon-controllable\struck\stank\smodel\swith\sphysics\sproperties.\n

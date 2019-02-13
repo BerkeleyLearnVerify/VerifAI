@@ -1,0 +1,10 @@
+Webots Proto Cache File version 1.3
+protoFileHash: 9044149c32d6b3fc4bfbf8b1d3113ab5
+containsDevices: 0
+baseType: Slot
+slotType: vehicle\swheel
+parameters: name,thickness,tireRadius,subdivision,curvatureFactor,edgeSubdivision,rimRadius,rimBeamNumber,rimBeamWidth,centralInnerRadius,centralOuterRadius,rimBeamThickness,rimBeamOffset,contactMaterial,tireAppearance,rimAppearance,physics,boundingObject,logoSlot
+tags: static
+license:  Copyright Cyberbotics Ltd. Licensed for use only with Webots.
+licenseUrl:  https://cyberbotics.com/webots_assets_license
+info: Generic\smodel\sof\sa\svehicle\swheel\simplemented\sat\sthe\sSolid-node\slevel.\nThe\sdimensions\sof\sthe\swheel\scan\sbe\sset\swith\sthe\sparmameters\s'thickness'\sand\s'tireRadius'.\nThe\squality\sof\sthe\scylinder\sapproximation\scan\sbe\sset\swith\sthe\sparameter\s'subdivision'.\nThe\ssubdivision\sand\ssize\sof\sthe\sround\sedges\sof\sthe\stire\scan\sbe\sset\swith\sthe\sparameters\s'curvatureFactor'\sand\s'edgeSubdivision'.\nThe\ssize,\sshape\sand\sposition\sof\sthe\srim\scan\sbe\sset\swith\sthe\sparameters\s'rimRadius'\s'rimBeamNumber'\s'rimBeamWidth'\s'rimBeamThickness'\s'rimBeamOffset'.\nFinally\sthe\ssize\sof\sthe\scentral\spart\sof\sthe\srim\scan\sbe\sset\swith\sthe\sparameters\s'centralInnerRadius'\sand\s'centralOuterRadius'.\nThis\smodel\swas\ssponsored\sby\sthe\sCTI\sproject\sRO2IVSim\s(http://transport.epfl.ch/simulator-for-mobile-robots-and-intelligent-vehicles).\n
