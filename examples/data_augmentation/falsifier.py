@@ -54,6 +54,7 @@ falsifier.run_falsifier()
 analysis_params = DotMap()
 analysis_params.k_closest_params.k = 4
 analysis_params.random_params.count = 4
+analysis_params.pca_params.n_components = 2
 analysis_params.pca = True
 falsifier.analyze_error_table(analysis_params=analysis_params)
 lib = getLib()
