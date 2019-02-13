@@ -54,8 +54,8 @@ $ pip install Gpy/
 **Sample space:** Initial x-position, angle of rotation, and cruising speed. 
 
 **Relevant files:**
-1. `verifai/simulators/car_simulator/lanekeeping_LQR/lanekeeping_falsifier.py` : Defines the sample space and type of falsifier (sampler and number of iterations)
-2.  `verifai/simulators/car_simulator/lanekeeping_LQR/lanekeeping_simulation.py` : Defines the controller and the simulation environment
+1. `verifai/simulators/car_simulator/examples/lanekeeping_LQR/lanekeeping_falsifier.py` : Defines the sample space and type of falsifier (sampler and number of iterations)
+2.  `verifai/simulators/car_simulator/examples/lanekeeping_LQR/lanekeeping_simulation.py` : Defines the controller and the simulation environment
 
 **Running the falsifier:** To run this example open two terminal shells and go to `cd verifai/simulators/car_simulator` in each of them. Then in first one run `python examples/lanekeeping_LQR/lanekeeping_falsifier.py` and wait till you see "Initialized sampler" in the terminal; then run `python examples/lanekeeping_LQR/lanekeeping_simulation.py` in the other one.
 
