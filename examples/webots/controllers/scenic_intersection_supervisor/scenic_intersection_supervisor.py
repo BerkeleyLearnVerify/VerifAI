@@ -130,7 +130,7 @@ class scenic_intersection(webots_task):
 
 PORT = 8888
 BUFSIZE = 4096
-N_SIM_STEPS = 500
+N_SIM_STEPS = 300
 supervisor = Supervisor()
 simulation_data = DotMap()
 simulation_data.port = PORT
