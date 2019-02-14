@@ -18,7 +18,10 @@ Several use cases are illustrated with examples, including temporal-logic falsif
 model-based systematic fuzz testing, parameter synthesis, counterexample analysis,
 and data set augmentation.
 
-If you have any problesm using VerifAI, please contact Shromona at [shromona.ghosh@berkeley.edu](mailto:shromona.ghosh@berkeley.edu) or submit an issue to the GitHub repository.
+Here is the associated paper [Verifai: A Toolkit for the Design and Analysis of Artificial Intelligence-Based Systems]
+(https://arxiv.org/pdf/1902.04245.pdf). 
+
+If you have any problesm using VerifAI, please contact Shromona Ghosh at [shromona.ghosh@berkeley.edu](mailto:shromona.ghosh@berkeley.edu) or Tommaso Dreossi at [dreossi@berkeley.edu](mailto:dreossi@berkeley.edu) or submit an issue to the GitHub repository.
 
 
 # Installation
