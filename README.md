@@ -38,6 +38,7 @@ Some features of **verifai** require additional packages (the tool will prompt y
 * Bayesian Optimization sampler: `GPy` and `GPyOpt` (for Python 3.7, see note below);
 * Examples using neural networks: `tensorflow`, `opencv` and `PIL`;
 * Examples using OpenAI Gym: `gym` and `baselines`;
+* Examples using Scenic: [Scenic](https://github.com/BerkeleyLearnVerify/Scenic.git)
 
 Note that the package for [GPy](https://gpy.readthedocs.io/en/deploy/) on PyPI currently does not work with Python 3.7. If necessary, you can build it from source as follows:
 
@@ -182,7 +183,7 @@ To run these examples you need to download and install <a href="https://www.cybe
 We do not recommend Webots 2019 (even though it is a free software) since we found its performance very slow in machines without GPUs (personal laptops). Further Webots 2019 needs python 3.7 which does not yet support tensorflow and we could only recreate a subset of our examples (those without NN) for it. 
 
 ### Scene Generation using Scenic
-In this example we use the probabilistic-programming language Scenic to generate scenes where a road is obstructed by a broken car behind traffic cones. The scene we would like to generate is made up of an ego car (in red) and a broken car (in silver) parked behind three traffic cones.
+In this example we use the probabilistic-programming language [Scenic](https://github.com/BerkeleyLearnVerify/Scenic.git) to generate scenes where a road is obstructed by a broken car behind traffic cones. The scene we would like to generate is made up of an ego car (in red) and a broken car (in silver) parked behind three traffic cones.
 
 **Task:** Generate scenes using Scenic
 
@@ -234,7 +235,7 @@ Each simulation run takes about 16 seconds in the simulation time; but may take 
 **Expected Output:** You should see a table **Unsafe Samples** the collection of all samples generated that caused the ego car to crash into the cones in the terminal where you ran `python cones_lanechange_falsifier.py`.
 
 ### Fuzz testing using Scenic
-In this example we use Scenic to initial conditions to recreate collision scenarios at an intersection. In this example, the ego car (in green) if going straight through an intersection. The front view of the ego car is obstructed by a set of cars (in silver) which are stopped at the intersection. A human car (in red) attempts to the take a left turn at the intersection. In this scenario, the camera of both the ego car and the human car are obstructed by the silver cars standing at the intersection. We use scenic to sample the initial positions and orientations of the ego car, human car and couple of the standing cars at the intersection. 
+In this example we use [Scenic](https://github.com/BerkeleyLearnVerify/Scenic.git) to initial conditions to recreate collision scenarios at an intersection. In this example, the ego car (in green) if going straight through an intersection. The front view of the ego car is obstructed by a set of cars (in silver) which are stopped at the intersection. A human car (in red) attempts to the take a left turn at the intersection. In this scenario, the camera of both the ego car and the human car are obstructed by the silver cars standing at the intersection. We use scenic to sample the initial positions and orientations of the ego car, human car and couple of the standing cars at the intersection. 
 
 To reduce the chances of collision, we designed a controller for the ego car which utilizes the information coming from a "smart intersection". The smart intersection sends a warning to the ego car, when the human car approaches the intersection. Based on how early the warning comes in, we reduce the number of collision scenarios. 
 
