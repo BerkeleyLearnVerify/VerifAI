@@ -1,2 +1,2 @@
-from .openai_gym import *
-from .webots import *
+from verifai.simulators.openai_gym import *
+from verifai.simulators.webots import *
