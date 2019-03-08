@@ -13,6 +13,7 @@ class ClientWebots(Client):
 
     def run_client(self):
         try:
+            self.initialize()
             sample = self.receive()
             sim = self.simulate(sample)
             self.send(sim)
@@ -22,5 +23,3 @@ class ClientWebots(Client):
         except:
             print("No new sample received.")
             return False
-
-
