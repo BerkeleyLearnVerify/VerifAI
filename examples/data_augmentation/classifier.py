@@ -45,8 +45,8 @@ classifier_data.bufsize = BUFSIZE
 classifier_data.graph_path = './data/car_detector/checkpoint/car-detector-model.meta'
 classifier_data.checkpoint_path = './data/car_detector/checkpoint/'
 
+client_task = Classifier(classifier_data)
 while True:
-	client_task = Classifier(classifier_data)
 	if not client_task.run_client():
 		print("End of all classifier calls")
 		break
