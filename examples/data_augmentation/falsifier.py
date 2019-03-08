@@ -39,22 +39,19 @@ MAXREQS = 5
 BUFSIZE = 4096
 
 falsifier_params = DotMap()
-falsifier_params.port = PORT
 falsifier_params.n_iters = MAX_ITERS
-falsifier_params.maxreqs = MAXREQS
-falsifier_params.bufsize = BUFSIZE
 falsifier_params.compute_error_table = True
 falsifier_params.fal_thres = 0.5
 
-falsifier = generic_falsifier(sampler=sampler,
-                             monitor=confidence_spec(), falsifier_params=falsifier_params)
+server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
 
+falsifier = generic_falsifier(sampler=sampler, server_options=server_options,
+                             monitor=confidence_spec(), falsifier_params=falsifier_params)
 falsifier.run_falsifier()
 
 analysis_params = DotMap()
 analysis_params.k_closest_params.k = 4
 analysis_params.random_params.count = 4
-analysis_params.pca_params.n_components = 2
 analysis_params.pca = True
 falsifier.analyze_error_table(analysis_params=analysis_params)
 lib = getLib()
@@ -75,6 +72,7 @@ for i, sample in enumerate(falsifier.error_analysis.k_closest_samples):
     print(sample)
     img, _ = genImage(lib, sample)
     img.save("counterexample_images/kclosest_" + str(i) + ".png")
+
 print("PCA analysis")
 print("PCA pivot: ", falsifier.error_analysis.pca['pivot'])
 print("Directions: ", falsifier.error_analysis.pca['directions'])
