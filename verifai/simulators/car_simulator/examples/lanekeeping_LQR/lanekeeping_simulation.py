@@ -90,17 +90,8 @@ simulation_data.port = PORT
 simulation_data.bufsize = BUFSIZE
 simulation_data.simulation = lanekeeping_simulator
 
+client_task = ClientCar(simulation_data)
 while True:
-    client_task = ClientCar(simulation_data)
     if not client_task.run_client():
         print("End of all simulations")
         break
-
-
-
-
-
-
-
-
-
