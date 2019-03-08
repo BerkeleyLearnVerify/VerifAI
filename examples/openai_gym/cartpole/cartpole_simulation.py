@@ -66,10 +66,8 @@ baseline_params = DotMap()
 baseline_params.num_timesteps = 1e5
 simulation_data.task = cartpole_standing(baselines_params=baseline_params)
 
+client_task = ClientGym(simulation_data)
 while True:
-    client_task = ClientGym(simulation_data)
     if not client_task.run_client():
         print("End of all cartpole simulations")
         break
-
-
