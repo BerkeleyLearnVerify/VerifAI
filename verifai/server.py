@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import socket
 import dill
 from dotmap import DotMap
@@ -7,101 +6,87 @@ from verifai.features.features import *
 from verifai.samplers.feature_sampler import *
 import functools
 
-def default_sampler_params(sampler_type, param_name=None):
+def default_sampler_params(sampler_type):
     if sampler_type == 'random':
         return
     if sampler_type == 'halton':
-        sampler_params = DotMap()
-        sampler_params.sample_index = 0
-        sampler_params.bases_skipped = 0
-        return sampler_params if param_name is None else sampler_params[param_name]
+        return DotMap(sample_index =0, bases_skipped=0)
     if sampler_type == 'ce':
-        sampler_params = DotMap()
-        sampler_params.alpha = 0.9
-        sampler_params.thres = 0.2
-        sampler_params.cont.buckets = np.array([5])
-        sampler_params.cont.dist = None
-        sampler_params.disc.dist = None
-        if param_name is None:
-            return sampler_params
-        else:
-            if type(param_name) is list:
-                return sampler_params[param_name[0]][param_name[1]]
-            else:
-                return sampler_params[param_name]
+        cont = DotMap(buckets=np.array([5]), dist=None)
+        disc = DotMap(dist=None)
+        return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
     if sampler_type == 'bo':
-        sampler_params = DotMap()
-        sampler_params.init_num = 5
-        return sampler_params if param_name is None else sampler_params[param_name]
+        return DotMap(init_num=5)
 
-
-
-def choose_sampler(sample_space, sampler_type, sampler_params=None, sampler_func=None):
+def choose_sampler(sample_space, sampler_type,
+                   sampler_params=None, sampler_func=None):
     if sampler_type == 'random':
-        return 'random', FeatureSampler.samplerFor(sample_space)
+        return 'random', FeatureSampler.randomSamplerFor(sample_space)
 
     if sampler_type == 'halton':
         if sampler_params is None:
-            sampler_params = default_sampler_params('halton')
+            halton_params = default_sampler_params('halton')
         else:
-            if 'sample_index' not in sampler_params:
-                sampler_params.sample_index = default_sampler_params('halton', 'sample_index')
-            if 'bases_skipped' not in sampler_params:
-                sampler_params.bases_skipped = default_sampler_params('halton', 'bases_skipped')
+            halton_params = default_sampler_params('halton')
+            halton_params.update(sampler_params)
 
-        return 'halton', FeatureSampler.haltonSamplerFor(sample_space,
-                                                         halton_params=sampler_params)
+        sampler = FeatureSampler.haltonSamplerFor(sample_space,
+                                                  halton_params=halton_params)
+        return 'halton', sampler
     if sampler_type == 'ce':
         assert sampler_func is not None
         if sampler_params is None:
-            sampler_params = default_sampler_params('ce')
+            ce_params = default_sampler_params('ce')
         else:
-            if 'alpha' not in sampler_params:
-                sampler_params.alpha = default_sampler_params('ce', 'alpha')
-            if 'thres' not in sampler_params:
-                sampler_params.thres = default_sampler_params('ce', 'thres')
-            if 'cont' not in sampler_params or 'buckets' not in sampler_params.cont:
-                sampler_params.cont.buckets = default_sampler_params('ce', ['cont', 'buckets'])
-            if 'cont' not in sampler_params or 'dist' not in sampler_params.cont:
-                sampler_params.cont.dist = default_sampler_params('ce', ['cont', 'dist'])
-            if 'disc' not in sampler_params:
-                sampler_params.disc.dist = default_sampler_params('ce', ['disc', 'dist'])
-        sampler_params.f = sampler_func
-        return 'ce', FeatureSampler.crossEntropySamplerFor(sample_space,
-                                                        ce_params=sampler_params)
+            ce_params = default_sampler_params('ce')
+            if 'cont' in sampler_params:
+                if 'bucket' in sampler_params.cont:
+                    ce_params.cont.buckets = sampler_params.cont.buckets
+                if 'dist' in sampler_params.cont:
+                    ce_params.cont.dist = sampler_params.cont.dist
+            if 'dist' in sampler_params.disc:
+                ce_params.disc.dist = sampler_params.disc.dist
+            if 'alpha' in sampler_params:
+                ce_params.alpha = sampler_params.alpha
+            if 'thres' in sampler_params:
+                ce_params.thres = sampler_params.thres
+        ce_params.f = sampler_func
+        sampler = FeatureSampler.crossEntropySamplerFor(
+            sample_space, ce_params=ce_params)
+        return 'ce', sampler
 
     if sampler_type == 'bo':
         assert sampler_func is not None
         if sampler_params is None:
-            sampler_params = default_sampler_params('bo')
+            bo_params = default_sampler_params('bo')
         else:
-            if 'init_num' not in sampler_params:
-                sampler_params.init_num = default_sampler_params('bo', 'init_num')
-        sampler_params.f = sampler_func
-        return 'bo', FeatureSampler.bayesianOptimizationSamplerFor(sample_space,
-                                                                    BO_params=sampler_params)
+            bo_params = default_sampler_params('bo')
+            bo_params.update(sampler_params)
+        bo_params.f = sampler_func
+        sampler = FeatureSampler.bayesianOptimizationSamplerFor(
+            sample_space, BO_params=bo_params)
+        return 'bo', sampler
 
-
-class Server(ABC):
-
-    def __init__(self, sampling_data):
-
-        self.port = sampling_data.port
-        self.bufsize = sampling_data.bufsize
-        self.maxreqs = sampling_data.maxreqs
+class Server:
+    def __init__(self, sampling_data, monitor, options={}):
+        defaults = DotMap(port=8888, bufsize=4096, maxreqs=5)
+        defaults.update(options)
+        self.monitor = monitor
+        self.port = defaults.port
+        self.bufsize = defaults.bufsize
+        self.maxreqs = defaults.maxreqs
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = socket._LOCALHOST
+        self.host = '127.0.0.1'
         self.socket.bind((self.host, self.port))
-        self.socket.listen(sampling_data.maxreqs)
-
+        self.socket.listen(self.maxreqs)
 
         if sampling_data.sampler is not None:
-            self.sampler_type = 'random' \
-                if sampling_data.sampler_type is None else sampling_data.sampler_type
+            self.sampler_type = ('random' if sampling_data.sampler_type is None
+                                 else sampling_data.sampler_type)
             self.sampler = sampling_data.sampler
-            self.sample_space = self.sampler.space \
-                if sampling_data.sample_space is None else sampling_data.sample_space
-
+            self.sample_space = (self.sampler.space
+                                 if sampling_data.sample_space is None
+                                 else sampling_data.sample_space)
         elif sampling_data.sampler_type is None:
             feature_space = {}
             for space_name in sampling_data.sample_space:
@@ -117,16 +102,16 @@ class Server(ABC):
                 space = sampling_data.sample_space[space_name]
                 feature_space[space_name] = Feature(space)
             self.sample_space = FeatureSpace(feature_space)
-            self.sampler_type, self.sampler = choose_sampler(sample_space = self.sample_space,
-                                                             sampler_type=sampling_data.sampler_type,
-                                                             sampler_params=None if 'sampler_params' not in
-                                                             sampling_data else sampling_data.sampler_params,
-                                                             sampler_func=sampling_data.sampler_func
-                                                             if 'sampler_func' in sampling_data else None)
+            params = (None if 'sampler_params' not in sampling_data
+                      else sampling_data.sampler_params)
+            self.sampler_type, self.sampler = choose_sampler(
+                sample_space=self.sample_space,
+                sampler_type=sampling_data.sampler_type,
+                sampler_params=params,
+                sampler_func=self.evaluate_sample
+            )
 
         print("Initialized sampler")
-
-
 
     def listen(self):
         client_socket, addr = self.socket.accept()
@@ -139,12 +124,18 @@ class Server(ABC):
             if not msg:
                 break
             data.append(msg)
-        simulation_data = dill.loads(b"".join(data))
+        simulation_data = self.decode(b"".join(data))
         return simulation_data
 
     def send(self, sample):
-        msg = dill.dumps(sample)
+        msg = self.encode(sample)
         self.client_socket.send(msg)
+
+    def encode(self, sample):
+        return dill.dumps(sample)
+
+    def decode(self, data):
+        return dill.loads(data)
 
     def close_connection(self):
         self.client_socket.close()
@@ -155,51 +146,19 @@ class Server(ABC):
     def flatten_sample(self, sample):
         return self.sampler.space.flatten(sample)
 
-
-    @abstractmethod
-    def run_server(self):
-        print("Implement in child class")
-        pass
-
-class SamplingServer(Server):
-    def __init__(self, sampling_data, monitor):
-        super().__init__(sampling_data)
-        self.monitor = monitor
-
-    def run_server(self):
-        sample = self.get_sample()
+    @functools.lru_cache(maxsize=1)
+    def evaluate_sample(self, sample):
         self.listen()
         self.send(sample)
         simulation_data = self.receive()
         self.close_connection()
-        if self.monitor is None:
-            return sample, 0
-        return sample, self.monitor.evaluate(simulation_data)
-
-
-
-class ActiveServer(Server):
-    def __init__(self, sampling_data, monitor, sampler_func=None):
-        self.monitor = monitor
-        if sampler_func is None:
-            self.sampler_func = self.build_active_sampling_func(self.monitor)
-        else:
-            self.sampler_func = sampler_func
-        sampling_data.sampler_func = self.sampler_func
-        super().__init__(sampling_data)
-
-    def build_active_sampling_func(self, monitor):
-        @functools.lru_cache(maxsize=1)
-        def sampling_func(sample):
-            self.listen()
-            self.send(sample)
-            simulation_data = self.receive()
-            self.close_connection()
-            return monitor.evaluate(simulation_data)
-        return sampling_func
+        value = (0 if self.monitor is None
+                 else self.monitor.evaluate(simulation_data))
+        return value
 
     def run_server(self):
         sample = self.get_sample()
-        return sample, self.sampler_func(sample)
+        value = self.evaluate_sample(sample)
+        return sample, value
 
 
