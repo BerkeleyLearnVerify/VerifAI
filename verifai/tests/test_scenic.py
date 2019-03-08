@@ -1,9 +1,6 @@
 
 import pytest
 
-# Skip tests if Scenic is not installed
-pytest.importorskip('scenic')
-
 from verifai.samplers.scenic_sampler import ScenicSampler
 
 def test_objects():
@@ -28,6 +25,16 @@ def test_params():
     x = sample.params.x
     assert type(x) is float
     assert 3 <= x <= 5
+
+def test_lists():
+    sampler = ScenicSampler.fromScenicCode(
+        'ego = Object with foo [1, -1, 3.3]',
+        maxIterations=1
+    )
+    sample = sampler.nextSample()
+    foo = sample.objects.object0.foo
+    assert type(foo) is tuple
+    assert foo == pytest.approx((1, -1, 3.3))
 
 def test_webots_mars(pathToLocalFile):
     path = pathToLocalFile('scenic_mars.sc')
