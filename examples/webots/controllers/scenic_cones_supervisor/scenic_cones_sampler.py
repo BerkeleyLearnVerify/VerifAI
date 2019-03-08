@@ -12,15 +12,15 @@ MAXREQS = 5
 BUFSIZE = 4096
 
 falsifier_params = DotMap()
-falsifier_params.port = PORT
 falsifier_params.n_iters = MAX_ITERS
-falsifier_params.maxreqs = MAXREQS
-falsifier_params.bufsize = BUFSIZE
 falsifier_params.save_error_table = False
 falsifier_params.save_good_samples = False
 
+server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
+
 falsifier = generic_falsifier(sampler=sampler, sampler_type='scenic',
-                              falsifier_params=falsifier_params)
+                              falsifier_params=falsifier_params,
+                              server_options=server_options)
 
 falsifier.run_falsifier()
 
