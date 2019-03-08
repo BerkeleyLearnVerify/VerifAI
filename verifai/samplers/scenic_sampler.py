@@ -1,12 +1,7 @@
 
 """Interface to Scenic."""
 
-try:
-    import scenic
-except ModuleNotFoundError:
-    import sys
-    sys.exit('this functionality requires Scenic to be installed')
-
+import scenic
 from scenic.core.distributions import needsSampling, Options
 from scenic.core.vectors import Vector
 from scenic.core.type_support import canCoerceType, coerce, underlyingType
@@ -31,6 +26,8 @@ def convertToVerifaiType(value, strict=True):
     ty = underlyingType(value)
     if ty is float or ty is int:
         return float(value)
+    elif ty is list or ty is tuple:
+        return tuple(convertToVerifaiType(e, strict=strict) for e in value)
     elif canCoerceType(ty, Vector):
         return tuple(coerce(value, Vector))
     elif ty is GTACarModel:
@@ -70,8 +67,7 @@ def domainForValue(value):
     if not needsSampling(value):
         # We can handle constants of unknown types, but when possible we
         # convert the value to a Verifai type.
-        if domain is not None:
-            value = convertToVerifaiType(value)
+        value = convertToVerifaiType(value, strict=False)
         return Constant(value)
     return domain
 
