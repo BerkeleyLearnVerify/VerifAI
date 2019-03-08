@@ -8,8 +8,10 @@ class Client(ABC):
     def __init__(self, port, bufsize):
         self.port = port
         self.bufsize = bufsize
+
+    def initialize(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = socket._LOCALHOST
+        self.host = '127.0.0.1'
         try:
             self.socket.connect((self.host, self.port))
         except:
@@ -31,6 +33,7 @@ class Client(ABC):
         
     def run_client(self):
         try:
+            self.initialize()
             sample = self.receive()
             sim = self.simulate(sample)
             self.send(sim)
