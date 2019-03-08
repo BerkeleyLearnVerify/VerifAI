@@ -25,11 +25,13 @@ If you have any problems using VerifAI, please contact Shromona Ghosh at [shromo
 
 # Installation
 
-`$ python setup.py install`
+`$ pip install .`
 
 or as a developer:
 
-`$ python setup.py develop`
+`$ pip install -e .`
+
+You need to ensure that your your pip version is >= 18.1. 
 
 Verifai requires at least **Python 3.6**. We recommend using 3.6 since [TensorFlow](https://www.tensorflow.org) does not currently support Python 3.7.
 
