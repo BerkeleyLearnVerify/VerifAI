@@ -716,5 +716,5 @@ Supervisor {
     }
   ]
   name "Driver"
-  controller "driver"
+  controller "verifai_supervisor"
 }
