@@ -117,3 +117,6 @@ venv.bak/
 dmypy.json
 
 *.cproject
+
+#Webot R2018b
+*.signature
