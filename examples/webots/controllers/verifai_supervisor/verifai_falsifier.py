@@ -3,31 +3,20 @@ from verifai.features.features import *
 from dotmap import DotMap
 
 control_params = Struct({
-        'x_init': Box([-0.05, 0.05]),
-        'cruising_speed': Box([10.0, 20.0]),
-        'reaction_time': Box([0.7, 1.00])
-    })
-env_params = Struct({
-        'broken_car_color': Box([0.5, 1], [0.25, 0.75], [0, 0.5]),
-        'broken_car_rotation': Box([5.70, 6.28])
-    })
-cones_config = Struct({
-        'traffic_cones_pos_noise': Box([-0.25, 0.25], [-0.25, 0.25], [-0.25, 0.25]),
-        'traffic_cones_down_0': Categorical(*np.arange(5)),
-        'traffic_cones_down_1': Categorical(*np.arange(5)),
-        'traffic_cones_down_2': Categorical(*np.arange(5))
+        'ROBOT1pos': Box([-0.7, 0.1], [-0.5, 0.3]),
+        'ROBOT2pos': Box([-0.1, 0.7], [ 0.1, 0.9]),
+        'ROBOT3pos': Box([-0.4, 0.4], [-0.4, 0.4])
     })
 
-sample_space = {'control_params':control_params, 'env_params':env_params,
-                'cones_config':cones_config}
+sample_space = {'control_params':control_params}
 
 SAMPLERTYPE = 'ce'
-MAX_ITERS = 20
+MAX_ITERS = 10
 PORT = 8888
 MAXREQS = 5
 BUFSIZE = 4096
 
-specification = ["G(collisioncone0 & collisioncone1 & collisioncone2)"]
+specification = ["G(collision)"]
 
 falsifier_params = DotMap()
 falsifier_params.n_iters = MAX_ITERS

@@ -69,7 +69,7 @@ class Driver (Supervisor):
             ' G for knowing the (x,z) position of ROBOT1'
         )
 
-
-controller = Driver()
-controller.initialization()
-controller.run()
+if __name__ == '__main__':
+    controller = Driver()
+    controller.initialization()
+    controller.run()
