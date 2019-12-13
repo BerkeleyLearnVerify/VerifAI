@@ -5,25 +5,28 @@
 - [Installation](#installation)
 - [Case Studies](#case-studies)
 
-# About verifai
+# About VerifAI
 
-We present **verifai**, a software toolkit for the formal design and analysis of 
+We present **VerifAI**, a software toolkit for the formal design and analysis of 
 systems that include artificial intelligence (AI) and machine learning (ML)
-components. **verifai** particularly seeks to address challenges with applying
+components. **VerifAI** particularly seeks to address challenges with applying
 formal methods to perception and ML components, including those based on 
 neural networks, and to model and analyze
 system behavior in the presence of environment uncertainty.
-**verifai** centers on simulation guided by formal models and specifications. 
+**VerifAI** centers on simulation guided by formal models and specifications. 
 Several use cases are illustrated with examples, including temporal-logic falsification,
 model-based systematic fuzz testing, parameter synthesis, counterexample analysis,
 and data set augmentation.
 
-Here is the associated paper [Verifai](https://arxiv.org/pdf/1902.04245.pdf):A Toolkit for the Design and Analysis of Artificial Intelligence-Based Systems. 
+Here is the associated paper [VerifAI](https://doi.org/10.1007/978-3-030-25540-4_25): A Toolkit for the Formal Design and Analysis of Artificial Intelligence-Based Systems. (arXiv version [here](https://arxiv.org/pdf/1902.04245.pdf))
 
-If you have any problems using VerifAI, please contact Shromona Ghosh at [shromona.ghosh@berkeley.edu](mailto:shromona.ghosh@berkeley.edu) or Tommaso Dreossi at [dreossi@berkeley.edu](mailto:dreossi@berkeley.edu) or submit an issue to the GitHub repository.
+If you have any problems using VerifAI, please contact Shromona Ghosh at [shromona.ghosh@berkeley.edu](mailto:shromona.ghosh@berkeley.edu) or Daniel Fremont at [dfremont@berkeley.edu](mailto:dfremont@berkeley.edu), or submit an issue to the GitHub repository.
 
 
 # Installation
+
+VerifAI requires at least **Python 3.6**.
+To install, just run this command from the top-level directory:
 
 `$ pip install .`
 
@@ -33,9 +36,7 @@ or as a developer:
 
 You need to ensure that your your pip version is >= 18.1. 
 
-Verifai requires at least **Python 3.6**. We recommend using 3.6 since [TensorFlow](https://www.tensorflow.org) does not currently support Python 3.7.
-
-Some features of **verifai** require additional packages (the tool will prompt you if they are needed but not installed):
+Some features of **VerifAI** require additional packages (the tool will prompt you if they are needed but not installed):
 
 * Bayesian Optimization sampler: `GPy` and `GPyOpt` (for Python 3.7, see note below);
 * Examples using neural networks: `tensorflow`, `opencv` and `PIL`;
@@ -52,7 +53,7 @@ $ pip install Gpy/
 
 # Case Studies
 ## Lane keeping with inbuilt simulator
-**verifai** comes with an inbuilt simulator developed from <a href="https://github.com/dsadigh/driving-interactions">this</a> car simulator. In this example we have a car (in red) whose task is to stay within its lane using an LQR controller. 
+**VerifAI** comes with an inbuilt simulator developed from <a href="https://github.com/dsadigh/driving-interactions">this</a> car simulator. In this example we have a car (in red) whose task is to stay within its lane using an LQR controller. 
 
 **Task:** Falsify the LQR lane keeping controller
 
@@ -126,7 +127,7 @@ In this example we want to test the robustness of a controllers to changes in mo
 
 We use <a href="https://github.com/openai/baselines">OpenAI baselines</a> to train a NN to control the cartpole . We train a NN using Proximal Policy Optimization algorithms (<a href="https://arxiv.org/abs/1707.06347">PPO</a>) with 100000 training episodes.
 
-We use the reward function as the specification for testing; i.e., if the reward is positive for all the environments the controller is safe. For the cartpole, the specification is: the maximum variation of the pole from the center should be less than 12 degree and maximum variation of the initial position should be less than 2.4m. To test the controller we loosen the training thresholds for angle, by 0.01 radians, and the x variation, by 0.1m, to get the testing thresholds. To capture this we define a specification using metric temporal logic <a href="https://github.com/mvcisback/py-metric-temporal-logic">python library</a> which **verifai** can convert into a monitor internally. 
+We use the reward function as the specification for testing; i.e., if the reward is positive for all the environments the controller is safe. For the cartpole, the specification is: the maximum variation of the pole from the center should be less than 12 degree and maximum variation of the initial position should be less than 2.4m. To test the controller we loosen the training thresholds for angle, by 0.01 radians, and the x variation, by 0.1m, to get the testing thresholds. To capture this we define a specification using metric temporal logic <a href="https://github.com/mvcisback/py-metric-temporal-logic">python library</a> which **VerifAI** can convert into a monitor internally. 
 
 
 **Task:** Test the robustness of the NN controller trained using PPO 
@@ -180,9 +181,9 @@ The falsifier runs for 20 iterations, you can change this by modifying `MAX_ITER
 **Expected Output:** You should see a table **Hyper-parameters leading to good controllers** containing all sampled hyperparamaters which build NN which can safely control the mountaincar in the terminal where you ran `python mountaincar_falsifier.py`.
 
 ## Webots examples
-To run these examples you need to download and install <a href="https://www.cyberbotics.com">Webots</a> 2018 from <a href="https://www.cyberbotics.com/archive/index.php">here</a>. Webots 2018 is not a free software, however you can get a 30 free trial. While choosing license please select PRO license. When you open Webots the first time go to `Webots->Preferences` changes `Startup Mode` to Pause.
+To run these examples you need to download and install <a href="https://www.cyberbotics.com">Webots</a> 2018 from <a href="https://github.com/cyberbotics/webots/releases/download/R2019a/webots-R2018b.dmg">here</a>. Webots 2018 is not free software, however you can get a 30-day free trial. While choosing license please select PRO license. When you open Webots for the first time go to `Webots->Preferences` and change `Startup Mode` to Pause.
 
-We do not recommend Webots 2019 (even though it is a free software) since we found its performance very slow in machines without GPUs (personal laptops). Further Webots 2019 needs python 3.7 which does not yet support tensorflow and we could only recreate a subset of our examples (those without NN) for it. 
+We do not currently support using Webots 2019 (even though it is free software), since we found its performance to be very poor on machines without GPUs (e.g. personal laptops).
 
 ### Scene Generation using Scenic
 In this example we use the probabilistic-programming language [Scenic](https://github.com/BerkeleyLearnVerify/Scenic.git) to generate scenes where a road is obstructed by a broken car behind traffic cones. The scene we would like to generate is made up of an ego car (in red) and a broken car (in silver) parked behind three traffic cones.
