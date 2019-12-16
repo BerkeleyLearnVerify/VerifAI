@@ -1,4 +1,4 @@
-#VRML_SIM R2018b utf8
+#VRML_SIM R2019b utf8
 WorldInfo {
   info [
     "World generated using the Open Street Map to Webots importer"
@@ -30,20 +30,80 @@ GenericTrafficLight {
   state "green"
 }
 DEF waiting_car0 ToyotaPrius {
-  translation -15.999993573012816 -0.07580898091469374 30.004062988009306
-  rotation 1.227696792006769e-5 0.9998810967581954 0.015420512147926026 -3.1400001429152837
+  hidden position_0_0 -3.0241764648053504e-10
+  hidden position2_0_0 -5.7343452811942086e-05
+  hidden position_0_1 3.016064095522075e-10
+  hidden position2_0_1 -5.734344925745205e-05
+  hidden position_0_2 -0.001225518566976706
+  hidden position_0_3 -0.0012255185102175636
+  hidden linearVelocity_0 -2.2476579849458653e-06 -0.029846328423517032 -0.0014120411869877837
+  hidden angularVelocity_0 0.002720801350295127 1.4197062485726323e-10 -4.335913173271751e-06
+  hidden rotation_1 -5.273795552305495e-06 -0.9999999999860936 1.5120882323816475e-10 5.734345540021415e-05
+  hidden linearVelocity_1 6.262743746652921e-06 0.3754645962054629 0.004257942952566964
+  hidden angularVelocity_1 0.004512782462557763 6.917206434707081e-09 -6.889470419238983e-06
+  hidden rotation_2 -5.259648894004987e-06 0.9999999999861681 -1.5080320477401787e-10 5.734344765583885e-05
+  hidden linearVelocity_2 7.300432143890756e-06 0.3754645796250034 0.004257941089375436
+  hidden angularVelocity_2 0.004512781395692007 -6.61529002292498e-09 -7.489567087639662e-06
+  hidden rotation_3 0 -0.9999999999999999 0 0.0012255185669351383
+  hidden linearVelocity_3 2.0050920635488386e-05 0.4854974306580426 0.013011503798854792
+  hidden angularVelocity_3 0.04101820862041363 1.4117620334370772e-07 -6.493867450013154e-05
+  hidden rotation_4 0 1 0 0.0012255185100432935
+  hidden linearVelocity_4 2.1395481417726377e-05 0.4854974139720326 0.013011501094720554
+  hidden angularVelocity_4 0.04101820559493607 -1.404129185825331e-07 -6.572460592634195e-05
+  translation -15.99999366435969 -0.07687670849554516 30.004005611739487
+  rotation 1.2311671056456567e-05 0.9998804245110701 0.01546403983391741 -3.140000143982932
   color 0.6 0.6 0.6
   name "vehicle(2)"
 }
 DEF waiting_car1 ToyotaPrius {
-  translation -15.999993573012818 -0.07580898091468703 37.00406298800931
-  rotation 1.2276967916895736e-5 0.9998810967581955 0.01542051214792396 -3.1400001429152837
+  hidden position_0_0 -3.0241764648053504e-10
+  hidden position2_0_0 -5.7343452811942086e-05
+  hidden position_0_1 3.01606330622251e-10
+  hidden position2_0_1 -5.734344925745205e-05
+  hidden position_0_2 -0.0012255185669764691
+  hidden position_0_3 -0.0012255185102172462
+  hidden linearVelocity_0 -2.2476579809873055e-06 -0.029846328423517195 -0.0014120411869866238
+  hidden angularVelocity_0 0.0027208013502992533 1.419710548768323e-10 -4.335913187713983e-06
+  hidden rotation_1 -5.273795552305495e-06 -0.9999999999860936 1.5120882323816475e-10 5.734345540021415e-05
+  hidden linearVelocity_1 6.262743749407384e-06 0.37546459620549655 0.004257942952568783
+  hidden angularVelocity_1 0.004512782462562283 6.91720892404318e-09 -6.889470427270687e-06
+  hidden rotation_2 -5.2596475175625585e-06 0.9999999999861681 -1.508031653090396e-10 5.734344765583885e-05
+  hidden linearVelocity_2 7.300432146903457e-06 0.3754645796249943 0.0042579410893756635
+  hidden angularVelocity_2 0.004512781395704438 -6.615287031230323e-09 -7.489567107717008e-06
+  hidden rotation_3 0 -1 0 0.0012255185669351383
+  hidden linearVelocity_3 2.0050920636563193e-05 0.48549743065804896 0.013011503798853739
+  hidden angularVelocity_3 0.041018208620410355 1.4117620401115282e-07 -6.493867451219413e-05
+  hidden rotation_4 0 1 0 0.0012255185100432935
+  hidden linearVelocity_4 2.13954814228815e-05 0.485497413971998 0.013011501094718656
+  hidden angularVelocity_4 0.04101820559493024 -1.4041291790334012e-07 -6.572460595046314e-05
+  translation -15.999993664359693 -0.07687670849553857 37.00400561173949
+  rotation 1.2311671053515718e-05 0.9998804245110702 0.015464039833915415 -3.140000143982932
   color 0.6 0.6 0.6
   name "vehicle(3)"
 }
 DEF EgoCar ToyotaPrius {
-  translation -9.540550379029465 -0.1718292633484465 75.74495616571565
-  rotation -0.0001783542600721344 0.9997431466802684 0.022662940135678017 3.1364656820253543
+  hidden position_0_0 -6.465758772833397e-08
+  hidden position2_0_0 0.008027097981200545
+  hidden position_0_1 -6.386514606049332e-08
+  hidden position2_0_1 0.008027427411064785
+  hidden position_0_2 0.0013666809739868234
+  hidden position_0_3 0.0013711531920527805
+  hidden linearVelocity_0 0.0001287180764206709 0.049785645523095966 -0.03823700183317831
+  hidden angularVelocity_0 0.003692776378265556 1.4527286682110424e-05 5.230500859510105e-05
+  hidden rotation_1 -8.054871224537969e-06 0.9999999999675591 -3.2328793863118223e-08 0.008027097981481305
+  hidden linearVelocity_1 0.0002230814793018112 0.4965764691845798 -0.05497459141385844
+  hidden angularVelocity_1 -0.24715094404903562 -4.6947080671449985e-05 -0.001192302413007784
+  hidden rotation_2 7.955824429681864e-06 -0.9999999999683519 -3.193257302923606e-08 0.008027427411256395
+  hidden linearVelocity_2 0.00022432561001144082 0.4961153399681826 -0.05498591351760024
+  hidden angularVelocity_2 -0.24716123597514353 -4.509985472586338e-05 -0.00119295008056778
+  hidden rotation_3 0 1 0 0.0013666809741160542
+  hidden linearVelocity_3 -1.3267964061526527e-05 0.6719395828401794 -0.012376637358539607
+  hidden angularVelocity_3 -0.03901563384219324 3.8472484734738024e-06 -0.0001291748893917215
+  hidden rotation_4 0 -1 0 0.0013711531922134706
+  hidden linearVelocity_4 -1.1380156309662936e-05 0.6714640726935249 -0.012420961065154931
+  hidden angularVelocity_4 -0.03915538398916694 4.127086964465453e-06 -0.00013084430851285849
+  translation -9.540545393874154 -0.17038876172245054 75.74371382309955
+  rotation -0.00017903419472701788 0.9997418057376007 0.022722011514795977 3.136466163644486
   color 0.06541542687113756 0.5018081940947585 0.25099565117875944
   controller "smart_brake"
   sensorsSlotFront [
@@ -903,7 +963,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -231.263346 0 -0.266208
@@ -926,9 +985,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 139.819155 0.01 94.250523
@@ -938,7 +995,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     0.586828 0 -67.022793
@@ -952,9 +1008,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -27.517311 0.01 100.075052
@@ -964,7 +1018,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -137.826274 0 0.234744
@@ -978,9 +1031,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 233.771463 0.01 -124.372225
@@ -990,7 +1041,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -190.155647 0 -1.287804
@@ -1004,9 +1054,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -151.907763 0.01 17.349601
@@ -1017,7 +1065,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -0.893006 0 -63.067198
@@ -1037,9 +1084,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -200.441864 0.01 -116.249178
@@ -1049,7 +1094,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1064,9 +1108,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -17.91223 0.01 17.299711
@@ -1078,13 +1120,6 @@ Road {
   numberOfLanes 6
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.486321 0 -25.44977
@@ -1105,6 +1140,13 @@ Road {
   ]
   splineSubdivision 0
   turnLanesBackward "left||"
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+    TRUE
+  ]
 }
 Road {
   translation -18.273699 0.01 52.862367
@@ -1116,13 +1158,6 @@ Road {
   numberOfLanes 6
   numberOfForwardLanes 4
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.248407 0 -27.52507
@@ -1143,22 +1178,89 @@ Road {
   ]
   splineSubdivision 0
   turnLanesForward "left|||"
+  dashedLine [
+    TRUE
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 DEF waiting_car3 ToyotaPrius {
-  translation -12.659992735904261 -0.07580898508529517 30.005114169534636
-  rotation 1.2276967918779675e-5 0.9998810967581954 0.015420512147926082 -3.140000142915285
+  hidden position_0_0 -3.0241764648053504e-10
+  hidden position2_0_0 -5.7343452768421344e-05
+  hidden position_0_1 3.016063562094477e-10
+  hidden position2_0_1 -5.734344921393131e-05
+  hidden position_0_2 -0.0012255185627855379
+  hidden position_0_3 -0.0012255185060263951
+  hidden linearVelocity_0 -2.2476578843077523e-06 -0.029846323903955824 -0.001412041123442507
+  hidden angularVelocity_0 0.0027208018670262335 1.419705278033811e-10 -4.335913990002906e-06
+  hidden rotation_1 -5.273795556308035e-06 -0.9999999999860936 1.5120882323816475e-10 5.734345540021415e-05
+  hidden linearVelocity_1 6.262743999089438e-06 0.37546460575632506 0.004257943113885631
+  hidden angularVelocity_1 0.004512782977922111 6.917205959571705e-09 -6.889471228993871e-06
+  hidden rotation_2 -5.259647967763946e-06 0.9999999999861678 -1.508031781026379e-10 5.734344765583885e-05
+  hidden linearVelocity_2 7.3004324051908485e-06 0.37546458917587106 0.004257941250694103
+  hidden angularVelocity_2 0.004512781911057482 -6.615288063806668e-09 -7.489567905339509e-06
+  hidden rotation_3 0 -1 0 0.0012255185629490854
+  hidden linearVelocity_3 2.0050920821266418e-05 0.48549743910559395 0.013011503921214125
+  hidden angularVelocity_3 0.041018209006170925 1.4117620290707187e-07 -6.493867509637893e-05
+  hidden rotation_4 0 1 0 0.0012255185060572407
+  hidden linearVelocity_4 2.1395481619041368e-05 0.4854974224195713 0.013011501217080255
+  hidden angularVelocity_4 0.04101820598069333 -1.4041291813771509e-07 -6.572460653055855e-05
+  translation -12.659992827251138 -0.07687671254291391 30.005056793264533
+  rotation 1.2311671061651496e-05 0.9998804245109422 0.015464039842184182 -3.1400001439829333
   color 0.6 0.6 0.6
   name "vehicle(4)"
 }
 DEF waiting_car4 ToyotaPrius {
-  translation -12.669992723220796 -0.07580898514847692 37.005130096527445
-  rotation 1.2276967920455685e-5 0.9998810967581955 0.015420512147923926 -3.1400001429152837
+  hidden position_0_0 -3.0241764648053504e-10
+  hidden position2_0_0 -5.7343452767533165e-05
+  hidden position_0_1 3.016063607630968e-10
+  hidden position2_0_1 -5.734344921304313e-05
+  hidden position_0_2 -0.001225518562721656
+  hidden position_0_3 -0.001225518505962574
+  hidden linearVelocity_0 -2.247657879606137e-06 -0.02984632383548017 -0.001412041122478645
+  hidden angularVelocity_0 0.002720801874859534 1.4197060792507462e-10 -4.335914024688087e-06
+  hidden rotation_1 -5.2737955563897205e-06 -0.9999999999860936 1.5120882323816475e-10 5.734345540021415e-05
+  hidden linearVelocity_1 6.262744005331999e-06 0.37546460590105385 0.004257943116330807
+  hidden angularVelocity_1 0.004512782985737369 6.917205948944552e-09 -6.889471259515465e-06
+  hidden rotation_2 -5.259648047255514e-06 0.9999999999861682 -1.508031803794625e-10 5.734344765583885e-05
+  hidden linearVelocity_2 7.3004324152678996e-06 0.37546458932057436 0.004257941253140416
+  hidden angularVelocity_2 0.004512781918872737 -6.615288532212171e-09 -7.4895679398782056e-06
+  hidden rotation_3 0 -1 0 0.001225518562586717
+  hidden linearVelocity_3 2.0050920826414603e-05 0.4854974392335717 0.013011503923065606
+  hidden angularVelocity_3 0.04101820901200793 1.4117620285135103e-07 -6.493867511323224e-05
+  hidden rotation_4 0 1 0 0.0012255185060572407
+  hidden linearVelocity_4 2.139548162388974e-05 0.48549742254753714 0.013011501218932024
+  hidden angularVelocity_4 0.041018205986532205 -1.404129181523225e-07 -6.572460655544546e-05
+  translation -12.669992814567673 -0.07687671260422874 37.00507272025734
+  rotation 1.2311671063782597e-05 0.9998804245109404 0.015464039842307348 -3.140000143982932
   color 0.6 0.6 0.6
   name "vehicle(5)"
 }
 DEF waiting_car5 ToyotaPrius {
-  translation -12.769992596386164 -0.07580898578038593 42.00528936645552
-  rotation 1.2276967920455685e-5 0.9998810967581955 0.015420512147923926 -3.1400001429152837
+  hidden position_0_0 -3.0241764648053504e-10
+  hidden position2_0_0 -5.7343452761315916e-05
+  hidden position_0_1 3.0160640478170493e-10
+  hidden position2_0_1 -5.73434492059377e-05
+  hidden position_0_2 -0.0012255185620866447
+  hidden position_0_3 -0.0012255185053275243
+  hidden linearVelocity_0 -2.2476578642764077e-06 -0.029846323150698576 -0.001412041112850634
+  hidden angularVelocity_0 0.0027208019531521164 1.4197080937005002e-10 -4.335914149323042e-06
+  hidden rotation_1 -5.273795556961512e-06 -0.9999999999860936 1.5120882323816475e-10 5.734345540021415e-05
+  hidden linearVelocity_1 6.262744042792479e-06 0.3754646073481618 0.004257943140773477
+  hidden angularVelocity_1 0.004512783063826721 6.917206228394091e-09 -6.889471375989752e-06
+  hidden rotation_2 -5.259648815538218e-06 0.9999999999861681 -1.5080320238876658e-10 5.734344765583885e-05
+  hidden linearVelocity_2 7.300432452588934e-06 0.3754645907676787 0.004257941277581949
+  hidden angularVelocity_2 0.00451278199695756 -6.6152898170605825e-09 -7.489568060362836e-06
+  hidden rotation_3 0 -1 0 0.0012255185622243486
+  hidden linearVelocity_3 2.0050920855606282e-05 0.4854974405135036 0.013011503941605013
+  hidden angularVelocity_3 0.041018209070456405 1.4117620298279053e-07 -6.4938675209776e-05
+  hidden rotation_4 0 1 0 0.0012255185053325038
+  hidden linearVelocity_4 2.1395481656025923e-05 0.4854974238274654 0.013011501237471076
+  hidden angularVelocity_4 0.0410182060449795 -1.4041291788602234e-07 -6.572460665198041e-05
+  translation -12.769992687733039 -0.07687671321746614 42.005231990185365
+  rotation 1.2311671064779113e-05 0.9998804245109209 0.01546403984355988 -3.1400001439829324
   color 0.6 0.6 0.6
   name "vehicle(6)"
 }
@@ -1169,7 +1271,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1180,9 +1281,7 @@ Road {
     -23.388068 0 -43.37087
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 0.24258 0.01 -233.683014
@@ -1192,7 +1291,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1207,9 +1305,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 152.555728 0.01 -252.730583
@@ -1220,7 +1316,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1240,9 +1335,7 @@ Road {
     -3.118768
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 111.472176 0.01 247.828431
@@ -1252,7 +1345,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1263,9 +1355,7 @@ Road {
     -3.13284
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -11.012448 0.01 136.243811
@@ -1276,7 +1366,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1294,9 +1383,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 1.015299 0.01 136.413063
@@ -1307,7 +1394,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1321,9 +1407,7 @@ Road {
     -1.563988
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 46.390127 0.01 25.812263
@@ -1334,7 +1418,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1355,9 +1438,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 101.090184 0.01 29.544736
@@ -1368,7 +1449,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1386,9 +1466,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 101.510481 0.01 119.129663
@@ -1399,7 +1477,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1420,9 +1497,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 180.291161 0.01 -13.548959
@@ -1433,7 +1508,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1451,9 +1525,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 110.686695 0.01 11.433056
@@ -1464,7 +1536,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1482,9 +1553,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 39.316934 0.01 -37.408157
@@ -1494,7 +1563,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1509,9 +1577,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 110.686695 0.01 11.433056
@@ -1522,7 +1588,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1540,9 +1605,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 180.752508 0.01 -31.186182
@@ -1553,7 +1616,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1571,9 +1633,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 42.501163 0.01 10.304274
@@ -1584,7 +1644,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1602,9 +1661,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -80.975894 0.01 -262.079653
@@ -1613,7 +1670,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1630,9 +1686,7 @@ Road {
     0.092105 0 24.594317
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -23.808441 0.01 -193.924103
@@ -1643,7 +1697,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1661,9 +1714,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -34.660506 0.01 -193.749117
@@ -1673,7 +1724,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1684,9 +1734,7 @@ Road {
     1.554673
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 159.069714 0.01 -198.064374
@@ -1697,7 +1745,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1714,9 +1761,7 @@ Road {
     1.632405
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -24.00008 0.01 -161.763458
@@ -1727,7 +1772,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1757,9 +1801,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 198.749867 0.01 -266.274899
@@ -1768,7 +1810,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1782,9 +1823,7 @@ Road {
     -10.887475 0 -0.161905
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -22.398582 0.01 248.18772
@@ -1795,12 +1834,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.935122 0 -54.484787
@@ -1816,6 +1849,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -17.387353 0.01 -8.1
@@ -1827,12 +1866,6 @@ Road {
   numberOfLanes 6
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.521751 0 -27.88227
@@ -1852,6 +1885,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -25.421797 0.01 -49.620086
@@ -1862,7 +1901,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -123.416075 0 -0.113224
@@ -1882,9 +1920,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -156.87692 0.01 -49.741229
@@ -1894,7 +1930,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -24.889775 0 -0.026196
@@ -1907,9 +1942,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -18.668318 0.01 94
@@ -1921,12 +1954,6 @@ Road {
   numberOfLanes 6
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.376097 0 -41.13945
@@ -1945,6 +1972,12 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -221.845006 0.01 -123.198877
@@ -1955,7 +1988,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -1973,9 +2005,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -200.563097 0.01 -107.999959
@@ -1986,7 +2016,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2009,9 +2038,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -28.509483 0.01 21.32201
@@ -2021,7 +2048,6 @@ Road {
   endJunction "3590609565"
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -74.821562 0 0.02694
@@ -2042,9 +2068,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -155.870661 0.01 21.370936
@@ -2054,7 +2078,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -87.561583 0 0.04212
@@ -2088,9 +2111,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -14.916204 0.01 -213.60096
@@ -2102,14 +2123,6 @@ Road {
   numberOfLanes 7
   numberOfForwardLanes 5
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.030907 0 -5.322879
@@ -2132,6 +2145,14 @@ Road {
   ]
   splineSubdivision 0
   turnLanesForward "left|left|||"
+  dashedLine [
+    TRUE
+    TRUE
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -14.75025 0.01 -238.243694
@@ -2142,14 +2163,6 @@ Road {
   numberOfLanes 7
   numberOfForwardLanes 5
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.24779 0 -34.066243
@@ -2168,6 +2181,14 @@ Road {
   ]
   splineSubdivision 0
   turnLanesForward "left|left|||"
+  dashedLine [
+    TRUE
+    TRUE
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation 256.093875 0.01 231.332177
@@ -2177,7 +2198,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2192,9 +2212,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 252.093533 0.01 221.672925
@@ -2205,7 +2223,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2227,9 +2244,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 107.577085 0.01 220.817093
@@ -2239,7 +2254,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2254,9 +2268,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 111.615422 0.01 231.463557
@@ -2267,7 +2279,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2285,9 +2296,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 111.590824 0.01 216.821133
@@ -2298,7 +2307,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2320,9 +2328,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -21.273598 0.01 185.66686
@@ -2334,12 +2340,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     1.370033 0 -45.529041
@@ -2365,6 +2365,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -19.662619 0.01 132.102953
@@ -2376,12 +2382,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.837502 0 -28.025454
@@ -2407,6 +2407,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation 101.090184 0.01 29.544736
@@ -2417,7 +2423,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2435,9 +2440,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 95.381196 0.01 116.292896
@@ -2448,7 +2451,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2466,9 +2468,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 97.135062 0.01 22.164387
@@ -2479,7 +2479,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -46.669818 0 -0.342087
@@ -2499,9 +2498,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 232.377374 0.01 -22.606209
@@ -2511,7 +2508,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -47.997736 0 0.142154
@@ -2524,9 +2520,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 176.349393 0.01 -22.181061
@@ -2537,7 +2531,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -6.735746 0 0.455308
@@ -2563,9 +2556,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 180.752508 0.01 -31.186182
@@ -2576,7 +2567,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2597,9 +2587,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 107.720829 0.01 -77.065304
@@ -2610,7 +2598,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2634,9 +2621,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 43.265973 0.01 -33.337213
@@ -2647,7 +2632,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -2665,9 +2649,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 123.63566 0.01 15.44676
@@ -2678,7 +2660,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -9.20879 0 4.386477
@@ -2698,9 +2679,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 106.561574 0.01 21.333226
@@ -2711,7 +2690,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -1.437444 0 0.228793
@@ -2731,9 +2709,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 38.288323 0.01 21.727423
@@ -2743,7 +2719,6 @@ Road {
   endJunction "41638531"
   numberOfLanes 1
   speedLimit 13.888889
-  dashedLine []
   wayPoints [
     0 0 0
     -45.738089 0 -0.332569
@@ -2763,9 +2738,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation -15.012408 0.01 -198.084694
@@ -2777,12 +2750,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.083935 0 -13.477444
@@ -2801,6 +2768,12 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -15.429414 0.01 -130.073617
@@ -2812,12 +2785,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.176632 0 -27.630278
@@ -2843,6 +2810,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -15.206844 0.01 -165.742239
@@ -2854,12 +2827,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.145366 0 -24.304126
@@ -2885,6 +2852,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -16.581727 0.01 -53.630792
@@ -2896,12 +2869,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.553691 0 -35.810224
@@ -2927,6 +2894,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation -15.900485 0.01 -97.478481
@@ -2938,12 +2911,6 @@ Road {
   numberOfLanes 5
   numberOfForwardLanes 3
   speedLimit 17.8816
-  dashedLine [
-    TRUE
-    TRUE
-    FALSE
-    TRUE
-  ]
   wayPoints [
     0 0 0
     0.382743 0 -24.557223
@@ -2969,6 +2936,12 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    FALSE
+    TRUE
+  ]
 }
 Road {
   translation 256.122993 0.01 217.677501
@@ -2979,7 +2952,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -3006,9 +2978,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 Road {
   translation 107.453061 0.01 137.318622
@@ -3019,7 +2989,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 27.777778
-  dashedLine []
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -3037,9 +3006,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 SimpleBuilding {
   translation 132.86 0 -220.22
@@ -3818,8 +3785,28 @@ DEF parking Transform {
   ]
 }
 DEF TurningCar ToyotaPrius {
-  translation -19.62744033529152 -0.14851552057729372 -14.710252376283716
-  rotation 0.9766572567191999 0.20785835694129903 -0.054180313282504826 -0.03757356433157045
+  hidden position_0_0 5.415087638079541e-08
+  hidden position2_0_0 0.008037837459725854
+  hidden position_0_1 5.8442892344864575e-08
+  hidden position2_0_1 0.00803642961473577
+  hidden position_0_2 0.0024537989404689576
+  hidden position_0_3 0.002431265911602632
+  hidden linearVelocity_0 0.00036703458826093066 0.03904750334080483 0.03873788508547057
+  hidden angularVelocity_0 -0.013003470006828678 -7.528201004304332e-05 -0.00099529010011474
+  hidden rotation_1 6.736959425658276e-06 0.9999999999773065 2.7075438189783277e-08 0.008037837459914222
+  hidden linearVelocity_1 -0.00042160046923901006 0.5006627698420626 0.058389406315683116
+  hidden angularVelocity_1 0.2381695981278591 0.00047188953567165213 0.001107462294652766
+  hidden rotation_2 -7.2722067639581845e-06 -0.999999999973557 2.9221446171659595e-08 0.00803642961494076
+  hidden linearVelocity_2 -0.0004265681154238301 0.5064088616017235 0.058306016279942016
+  hidden angularVelocity_2 0.2381255759054123 0.0004736357827623803 0.0011102751842642553
+  hidden rotation_3 0 1 0 0.002453798940414969
+  hidden linearVelocity_3 -0.00020115132692887983 0.6209323938925445 0.020196347046773897
+  hidden angularVelocity_3 0.0636737162169767 9.237029343780823e-05 -0.00020228927753212792
+  hidden rotation_4 0 -1 0 0.0024312659116312936
+  hidden linearVelocity_4 -0.000205490847293035 0.6267282020621479 0.019972938123099186
+  hidden angularVelocity_4 0.06296955394300202 9.139482889279201e-05 -0.00020430229225426821
+  translation -19.62743018271648 -0.1478043150551407 -14.708951240347613
+  rotation 0.9771941790130394 0.20567726636982842 -0.052805289523554594 -0.03797886900631581
   color 0.9862516212710766 0.007125963225757229 0.027435721370260166
   name "vehicle(1)"
   controller "turning_car_guideway"
@@ -3830,8 +3817,10 @@ DEF TurningCar ToyotaPrius {
     }
   ]
 }
-Supervisor {
+Robot {
+  name "supervisor"
   controller "scenic_intersection_supervisor"
+  supervisor TRUE
 }
 GenericTrafficLight {
   translation -7 0 17
