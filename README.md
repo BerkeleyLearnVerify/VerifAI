@@ -1,3 +1,4 @@
+[![Documentation Status](https://readthedocs.org/projects/verifai/badge/?version=latest)](https://verifai.readthedocs.io/en/latest/?badge=latest)
 
 
 # Table of Contents
