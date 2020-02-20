@@ -106,10 +106,12 @@ class falsifier(ABC):
             i += 1
 
 class generic_falsifier(falsifier):
+    ''' This is an API to specify falsifier of interest '''
     def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,
                  falsifier_params=None, server_options = {}):
         if monitor is None:
             class monitor(specification_monitor):
+                ''' Defines the monitor given a specification '''
                 def __init__(self):
                     def specification(traj):
                         return np.inf
@@ -121,6 +123,7 @@ class generic_falsifier(falsifier):
                          server_options=server_options)
 
 class mtl_falsifier(generic_falsifier):
+    ''' Defines falsifier leveraging mtl specification '''
     def __init__(self, specification, sampler_type = None, sample_space=None, sampler=None,
                  falsifier_params=None, server_options = {}):
         monitor = mtl_specification(specification=specification)
