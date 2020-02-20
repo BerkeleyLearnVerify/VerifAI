@@ -31,9 +31,15 @@ release = '1.0.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+	'recommonmark',
 	'sphinx.ext.autodoc',
    	'sphinx_autodoc_typehints',
 ]
+
+source_suffix = {
+	'.rst': 'restructuredtext',
+	'.md': 'markdown',
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
