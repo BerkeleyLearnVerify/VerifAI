@@ -9,6 +9,7 @@ Welcome to VerifAI's documentation!
 .. toctree::
    :maxdepth: 2
 
+   basic_usage
    tutorial
 
 
