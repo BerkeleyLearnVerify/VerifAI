@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "verifai"
+version = "0.1.0"
+description = "VerifAI is a software toolkit for the formal design and analysis of systems that include artificial intelligence (AI) and machine learning (ML) components"
+repository = "https://github.com/BerkeleyLearnVerify/VerifAI"
+license = "BSD-3-Clause"
+authors = ["Edward Kim"]
+documentation = "https://verifai.readthedocs.io"
+
+[tool.poetry.dependencies]
+python = "^3.6.8"
+numpy = "^1.18.2"
+scipy = "^1.4.1"
+dotmap = "^1.3.13"
+metric-temporal-logic = "^0.1.5"
+matplotlib = "^3.2.1"
+easydict = "^1.9"
+joblib = "^0.14.1"
+dill = "^0.3.1"
+future = "^0.18.2"
+pandas = "^1.0.3"
+scikit-learn = "^0.22.2"
+scenic = { git = "https://github.com/BerkeleyLearnVerify/Scenic.git", branch = "master" }
+
+[tool.poetry.dev-dependencies]
+gym = "^0.17.1"
+tensorflow = "1.8"
+baselines = "^0.1.5"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
