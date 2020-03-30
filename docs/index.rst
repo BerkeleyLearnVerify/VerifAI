@@ -3,13 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+############################################
 Welcome to VerifAI's documentation!
-===================================
+############################################
+
 
 .. toctree::
    :maxdepth: 2
 
    basic_usage
+   feature_api
+   samplers
    tutorial
 
 
@@ -20,12 +24,5 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-API
----
 
-.. automodule:: verifai.falsifier
-
-.. autoclass:: verifai.falsifier.falsifier
-
-.. autoclass:: verifai.falsifier.generic_falsifier
 

@@ -849,16 +849,18 @@ class Feature:
     Instance variables:
     domain -- a Domain object specifying the Feature's possible values;
     distribution -- optional object specifying distribution of values;
-    lengthDomain -- if not None, this Feature is actually a list of
-        features, with possible lengths given by this Domain;
+    lengthDomain -- if not None, this Feature is actually a list of features, with possible lengths given by this Domain;
     lengthDistribution -- optional distribution over lengths;
     distanceMetric -- if not None, custom distance metric.
-
+    """
+    """
     # Feature consisting of list of 10 cars
+
     carDomain = Struct({
-        'position': Array(Real(), [3]),
-        'heading': Box((0, math.pi))
+    'position': Array(Real(), [3]),
+    'heading': Box((0, math.pi))
     })
+
     Feature(Array(carDomain, [10]))
     # Feature consisting of list of 1-10 cars
     carDist = Uniform(range(1, 11))
@@ -923,12 +925,12 @@ class Feature:
 ### Feature spaces
 
 class FeatureSpace:
-    """A space consisting of named features.
-
+    """A space consisting of named features."""
+    """
     FeatureSpace({
-        'weather': Feature(DiscreteBox([0, 12])),
-        'egoCar': Feature(carDomain),
-        'traffic': Feature(Array(carDomain, [4]))
+    'weather': Feature(DiscreteBox([0, 12])),
+    'egoCar': Feature(carDomain),
+    'traffic': Feature(Array(carDomain, [4]))
     })
     """
 
