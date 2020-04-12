@@ -1,3 +1,4 @@
+.. _Feature APIs:
 
 #################################
 Feature APIs in VerifAI
