@@ -1,5 +1,6 @@
 absl-py==0.9.0
 alabaster==0.7.12
+antlr4-python3-runtime==4.8
 astor==0.8.1
 attrs==19.3.0
 babel==2.8.0
@@ -49,14 +50,17 @@ protobuf==3.11.3
 pyglet==1.5.0
 pygments==2.6.1
 pyparsing==2.4.7
+pypoly2tri==0.0.3
 python-dateutil==2.8.1
 python-utils==2.4.0
 pytz==2019.3
 pyzmq==19.0.0
 recommonmark==0.6.0
 requests==2.23.0
+-e git+https://github.com/BerkeleyLearnVerify/Scenic.git@3dee38244ad9b25565584babcf369d4148c40d75#egg=scenic
 scikit-learn==0.22.2.post1
 scipy==1.4.1
+shapely==1.7.0
 singledispatch==3.4.0.3
 six==1.14.0
 snowballstemmer==2.0.0

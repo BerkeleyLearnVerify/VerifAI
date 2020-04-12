@@ -20,13 +20,13 @@ dill = "^0.3.1"
 future = "^0.18.2"
 pandas = "^1.0.3"
 scikit-learn = "^0.22.2"
-# scenic = { git = "https://github.com/BerkeleyLearnVerify/Scenic.git", branch = "master" }
-
+scenic = { git = "https://github.com/BerkeleyLearnVerify/Scenic.git", branch = "master" }
 GPy = "^1.9.9"
 GPyOpt = "^1.2.6"
+
 [tool.poetry.dev-dependencies]
 gym = "^0.17.1"
-tensorflow = "1.8"
+tensorflow = "~1.8.0"
 baselines = "^0.1.5"
 alabaster = "^0.7.12"
 sphinx = "^2.4.4"
