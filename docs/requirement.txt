@@ -37,6 +37,7 @@ markdown==3.2.1
 markupsafe==1.1.1
 matplotlib==3.2.1
 metric-temporal-logic==0.1.7
+mpi4py==3.0.3
 numpy==1.18.2
 opencv-python==4.2.0.34
 packaging==20.3
@@ -74,7 +75,6 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
 tensorboard==1.8.0
-tensorflow==1.8.0
 termcolor==1.1.0
 tqdm==4.45.0
 urllib3==1.25.8
