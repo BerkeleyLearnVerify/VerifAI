@@ -11,7 +11,7 @@ We present VerifAI, a software toolkit for the formal design and analysis of sys
 
 Here is the associated paper `VerifAI <https://link.springer.com/chapter/10.1007%2F978-3-030-25540-4_25>`_: A Toolkit for the Formal Design and Analysis of Artificial Intelligence-Based Systems. (arXiv version `here <https://arxiv.org/pdf/1902.04245.pdf>`_)
 
-If you have any problems using VerifAI, please contact Shromona Ghosh at shromona.ghosh@berkeley.edu or Daniel Fremont at dfremont@ucsc.edu, or submit an issue to the GitHub repository.
+If you have any problems using VerifAI, please contact Daniel Fremont at dfremont@ucsc.edu or Edward Kim at ek65@berkeley.edu, or submit an issue to the GitHub repository.
 
 
 Table of Contents
