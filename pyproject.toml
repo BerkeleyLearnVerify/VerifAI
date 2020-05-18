@@ -24,11 +24,18 @@ scenic = "^1.1.0-beta.1"
 
 [tool.poetry.dev-dependencies]
 gym = "^0.17.1"
+tensorflow = "~1.8.0"
+baselines = "^0.1.5"
 alabaster = "^0.7.12"
 sphinx = "^2.4.4"
 sphinx-autodoc-typehints = "^1.10.3"
 sphinx-rtd-theme = "^0.4.3"
 recommonmark = "^0.6.0"
+opencv-python = "^4.2.0"
+Pillow = "^7.0.0"
+funcy = "^1.14"
+GPy = "^1.9.9"
+GPyOpt = "^1.2.6"
 
 
 [build-system]
