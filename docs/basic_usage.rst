@@ -59,7 +59,7 @@ Method 2: Using Scenic
 	path_to_scenic_script = 'lane_cones.sc'
 	scenic_sampler = ScenicSampler.fromScenario(path_to_scenic_script)
 
-Scenic sampler, by default, does random sampling. However, users can refer to this link to configure scenic script with other samplers. 
+Scenic sampler, by default, does random sampling. However, users can refer to this `link <https://scenic-lang.readthedocs.io/en/1.1.0/_autosummary/_autosummary/scenic.core.external_params.html>`_ to configure scenic script with other samplers. 
 
 Constructing a Monitor 
 ====================================================================
