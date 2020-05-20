@@ -1,4 +1,14 @@
 # Tutorial / Case Studies
+
+This page describes how to run many of the examples included in the VerifAI repository, which illustrate the main use cases of VerifAI.
+After cloning the repository, you can install all the extra dependencies needed for the examples by running:
+
+```
+poetry install -E examples
+```
+
+(Note: some of the examples require TensorFlow version 1, which does not support Python 3.8.)
+
 ## Lane keeping with inbuilt simulator
 **VerifAI** comes with an inbuilt simulator developed from <a href="https://github.com/dsadigh/driving-interactions">this</a> car simulator. In this example we have a car (in red) whose task is to stay within its lane using an LQR controller. 
 
@@ -33,10 +43,6 @@ We re-create the data augmentation example from <a href="https://arxiv.org/abs/1
 1. `examples/data_augmenatation/falsifier.py` : Defines the sample space and type of falsifier (sampler and number of iterations)
 2.  `examples/data_augmentation/classifier.py` : Interface to the picture renderer and instantiate the NN
 
-To run this example, you need to install tensorflow. We suggest installing version 1.8 since we trained our network using this version.
-`$ pip install tensorflow=1.8`
-You also need to install openCV `$pip install opencv_python` and PIL `$pip install pillow`
-
 **Running the falsifier:** Open two terminal shells and go to `cd data_augmentation` in each of them. Then in first one run `python falsifier.py` and wait till you see "Initialized sampler" in the terminal; then run `python classifier.py` in other one.
 
 The falsifier runs for 20 iterations, you can change this by modifying `MAX_ITERS` in `examples/data_augmenatation/falsifier.py`. At the end of the runs, you should see "End of all classifier calls" in the terminal where you ran `python classifier.py`.
@@ -55,13 +61,6 @@ This is followed by the PCA analysis results, we report the pivot and the 2 prin
 The images in the two counterexample sets will pop up at the end of the run. The images are saved in the `counterexample_images` folder. The images with the prefix "random_" are from the random samples counterexample set and those with the prefix "kclosest_" are from the k closest counterexample set. 
 
 ## OpenAI Gym examples
-To run these examples, you need to install OpenAI gym, 
-`$ pip install gym`, 
-and openAI baselines,
-
-`$ git clone https://github.com/openai/baselines.git`
-`$ cd baselines`
-`$ pip install -e .`
 
 ### Cartpole
 In this example we want to test the robustness of a controllers to changes in model parameters and initial states of the cartpole from <a href="https://gym.openai.com">openAI gym</a>.
@@ -133,7 +132,7 @@ To run these examples you need to download and install <a href="https://www.cybe
 We do not currently support using Webots 2019 (even though it is free software), since we found its performance to be very poor on machines without GPUs (e.g. personal laptops).
 
 ### Scene Generation using Scenic
-In this example we use the probabilistic-programming language [Scenic](https://github.com/BerkeleyLearnVerify/Scenic.git) to generate scenes where a road is obstructed by a broken car behind traffic cones. The scene we would like to generate is made up of an ego car (in red) and a broken car (in silver) parked behind three traffic cones.
+In this example we use the probabilistic programming language [Scenic](https://github.com/BerkeleyLearnVerify/Scenic) to generate scenes where a road is obstructed by a broken car behind traffic cones. The scene we would like to generate is made up of an ego car (in red) and a broken car (in silver) parked behind three traffic cones.
 
 **Task:** Generate scenes using Scenic
 
@@ -168,10 +167,6 @@ The controller in the ego car relies on a NN we trained to detect the cones and 
 1. `examples/webots/controllers/cones_lanechange_supervisor/cones_lanechange_falsifier.py` : Defines the sample space and type of falsifier (sampler and number of iterations)
 2. `examples/webots/controllers/cones_lanechange_supervisor/cones_lanechange_supervisor.py` : Interface to webots
 4.  `examples/webots/worlds/shattuck_buildings_falsif.wbt` : Webots world of downtown Berkeley 
-
-To run this example, you need to install tensorflow. We suggest installing version 1.8 since we trained our network using this version.
-`$ pip install tensorflow=1.8`
-You also need to install openCV `$pip install opencv_python` and PIL `$pip install pillow`
 
 **Running the falsifier:** 
 During the running of the falsifier you should the samples and the associated value of the specification satisfaction (rho). Rho is the quantitative satisfaction.

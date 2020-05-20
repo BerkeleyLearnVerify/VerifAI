@@ -12,18 +12,14 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../verifai'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'VerifAI'
-copyright = '2020, Daniel Fremont'
-author = 'Daniel Fremont'
-
-# The full version, including alpha/beta/rc tags
-release = '1.0.0'
-
+copyright = '2020, Daniel J. Fremont, Shromona Ghosh, Edward Kim, and Sanjit A. Seshia.'
+author = 'Tommaso Dreossi, Daniel J. Fremont, Shromona Ghosh, Edward Kim, Hadi Ravanbaksh, Marcell Vazquez-Chanlatte, and Sanjit A. Seshia'
 
 # -- General configuration ---------------------------------------------------
 
@@ -34,7 +30,9 @@ extensions = [
 	'recommonmark',
 	'sphinx.ext.autodoc',
 	'sphinx.ext.autosummary',
-   	'sphinx_autodoc_typehints',
+	'sphinx_autodoc_typehints',
+	'sphinx.ext.napoleon',
+	'sphinx.ext.viewcode',
 ]
 
 source_suffix = {
@@ -50,6 +48,15 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+default_role = 'any'
+
+add_module_names = False
+autosummary_generate = True
+autodoc_inherit_docstrings = False
+autodoc_member_order = 'bysource'
+napoleon_numpy_docstring = False
+napoleon_use_rtype = False
+napoleon_use_ivar = True
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -2,26 +2,25 @@
 Getting Started with VerifAI
 ############################################
 
-To install VerifAI as a python package from PyPi, execute
+VerifAI requires **Python 3.6** or newer.
+To install VerifAI from PyPI, execute::
 
-.. code:: python
-	
 	pip install verifai
 
-or as a developer:
+Alternatively, you can download or clone the `VerifAI repository <https://github.com/BerkelelyLearnVerify/VerifAI>`_, which also contains the examples used in the :doc:`tutorial <tutorial>`.
+Install `Poetry <https://python-poetry.org/>`_ and then run::
 
-.. code:: python
-	
-	pip install --pre verifai
+	poetry install
 
-You need to ensure that your your pip version is >= 18.1
+This will install VerifAI into your current virtual environment (or create a new one if needed).
+If you will be developing VerifAI, add the ``-E dev`` option when invoking Poetry.
 
-Some features of VerifAI require additional packages (the tool will prompt you if they are needed but not installed):
+Some features of VerifAI require additional packages: the tool will prompt you if they are needed but not installed.
 
-Note that the package for GPy on PyPI currently does not work with Python 3.7. If necessary, you can build it from source as follows:
+.. note::
 
-.. code:: python
+	In the past, the ``GPy`` package did not always install correctly through the automated process. If necessary, you can build it from source as follows::
 
-	git clone https://github.com/SheffieldML/GPy
-	find Gpy -name '*.pyx' -exec cython {} \
-	pip install Gpy/
+		git clone https://github.com/SheffieldML/GPy
+		find GPy -name '*.pyx' -exec cython {} \
+		pip install GPy/

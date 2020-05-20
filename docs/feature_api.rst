@@ -10,6 +10,8 @@ Feature APIs in VerifAI
 
 .. autoclass:: verifai.features.FeatureSpace
 
+.. autoclass:: verifai.features.Domain
+
 .. autoclass:: verifai.features.Constant
 
 .. autoclass:: verifai.features.Categorical
