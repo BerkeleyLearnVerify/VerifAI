@@ -61,6 +61,7 @@ This is followed by the PCA analysis results, we report the pivot and the 2 prin
 The images in the two counterexample sets will pop up at the end of the run. The images are saved in the `counterexample_images` folder. The images with the prefix "random_" are from the random samples counterexample set and those with the prefix "kclosest_" are from the k closest counterexample set. 
 
 ## OpenAI Gym examples
+To run the following two examples, please install "baselines" from it <a href="https://github.com/openai/baselines">source</a>. We used baseline version 0.1.6 (with latest commit ea25b9e on Jan 31). pip install for baselines will NOT work. If you are using poetry, please activate your virtual environment first by executing "poetry shell," before you install baselines.
 
 ### Cartpole
 In this example we want to test the robustness of a controllers to changes in model parameters and initial states of the cartpole from <a href="https://gym.openai.com">openAI gym</a>.
