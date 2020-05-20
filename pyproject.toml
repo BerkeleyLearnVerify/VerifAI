@@ -45,7 +45,6 @@ GPyOpt = {version = "^1.2.6", optional = true}
 
 tensorflow = {version = "^1.8.0", optional = true}
 gym = {version = "^0.17.1", optional = true}
-baselines = {version = "^0.1.5", optional = true}
 
 opencv-python = {version = "^4.2.0", optional = true}
 Pillow = {version = "^7.0.0", optional = true}
@@ -63,7 +62,6 @@ bayesopt = ["GPy", "GPyOpt"]
 examples = [
 	"tensorflow",
 	"gym",
-	"baselines",
 	"opencv-python",
 	"Pillow"
 ]
