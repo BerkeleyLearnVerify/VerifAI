@@ -30,7 +30,7 @@ sampler = FeatureSampler.randomSamplerFor(space)
 class confidence_spec(specification_monitor):
     def __init__(self):
         def specification(traj):
-            return traj['yTrue'] == traj['yPred']
+            return bool(traj['yTrue'] == traj['yPred'])
         super().__init__(specification)
 
 
