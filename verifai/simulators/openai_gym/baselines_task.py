@@ -92,12 +92,10 @@ class control_task:
             return i == self.time_horizon
 
     def use_sample(self, sample):
-        print("Define in child task")
-        pass
+        raise NotImplementedError("Define in child task")
 
     def trajectory_definition(self):
-        print("Define in child task")
-        pass
+        raise NotImplementedError("Define in child task")
 
     def run_task_retrain(self, sample):
         with tf.Session() as sess:

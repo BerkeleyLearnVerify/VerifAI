@@ -22,7 +22,7 @@ webotsModelDomain = Categorical(*webotsCarModels)
 colorDomain = Box((0, 1), (0, 1), (0, 1))
 
 def convertToVerifaiType(value, strict=True):
-    """Attempt to convert a Scenic value to a type known to Verifai"""
+    """Attempt to convert a Scenic value to a type known to VerifAI"""
     ty = underlyingType(value)
     if ty is float or ty is int:
         return float(value)
@@ -66,7 +66,7 @@ def domainForValue(value):
         domain = None   # no corresponding Domain known
     if not needsSampling(value):
         # We can handle constants of unknown types, but when possible we
-        # convert the value to a Verifai type.
+        # convert the value to a VerifAI type.
         value = convertToVerifaiType(value, strict=False)
         return Constant(value)
     return domain
@@ -81,21 +81,26 @@ def pointForValue(dom, scenicValue):
         value = convertToVerifaiType(scenicValue, strict=False)
         assert value in dom.values
         return value
-    elif dom is scalarDomain:
+    elif dom == scalarDomain:
         if not isinstance(scenicValue, (float, int)):
             raise RuntimeError(
                 f'could not coerce Scenic value {scenicValue} to scalar')
         return coerce(scenicValue, float)
-    elif dom is vectorDomain:
+    elif dom == vectorDomain:
         return tuple(coerce(scenicValue, Vector))
-    elif dom is colorDomain:
-        assert isinstance(scenicValue, tuple)
+    elif dom == colorDomain:
+        assert isinstance(scenicValue, (tuple, list))
         assert len(scenicValue) == 3
         return scenicValue
     else:
         raise RuntimeError(
             f'Scenic value {scenicValue} has unexpected domain {dom}')
 
+# global parameters not included when sampling
+ignoredParameters = {
+    'externalSampler', 'externalSamplerRejectionFeedback',
+    'verifaiSamplerType', 'verifaiSamplerParams',
+}
 # properties not included when sampling
 defaultIgnoredProperties = {
     'viewAngle', 'visibleDistance', 'cameraOffset',
@@ -109,7 +114,8 @@ normalizedProperties = {
 }
 # hard-coded Domains for certain properties
 specialDomainProperties = {
-    'webotsType': Categorical(*(model.name for model in webotsCarModels))
+    'webotsType': Categorical(*(model.name for model in webotsCarModels)),
+    'color': colorDomain,   # to allow CarColors, tuples, or lists
 }
 
 def domainForObject(obj, ignoredProperties):
@@ -151,7 +157,7 @@ def pointForObject(dom, obj):
     return dom.makePoint(*values)
 
 def spaceForScenario(scenario, ignoredProperties):
-    """Construct a FeatureSpace for the given Scenic Scenario"""
+    """Construct a FeatureSpace for the given Scenic Scenario."""
     # create domains for objects
     assert scenario.egoObject is scenario.objects[0]
     doms = (domainForObject(obj, ignoredProperties)
@@ -160,38 +166,27 @@ def spaceForScenario(scenario, ignoredProperties):
 
     # create domains for global parameters
     paramDoms = {}
+    quotedParams = {}
     for param, value in scenario.params.items():
+        if param in ignoredParameters:
+            continue
         dom = domainForValue(value)
         if dom is None:
             ty = underlyingType(value)
             print(f'WARNING: skipping param "{param}" of unknown type {ty}')
         else:
+            if not param.isidentifier():    # munge quoted parameter names
+                newparam = 'quoted_param' + str(len(quotedParams))
+                quotedParams[newparam] = param
+                param = newparam
             paramDoms[param] = dom
     params = Struct(paramDoms)
 
-    return FeatureSpace({
+    space = FeatureSpace({
         'objects': Feature(objects),
         'params': Feature(params)
     })
-
-def pointForScene(space, scene):
-    """Convert a sampled Scenic Scene to a point in the Scenario's space"""
-    lengths, dom = space.domains
-    assert lengths is None
-    assert scene.egoObject is scene.objects[0]
-    objDomain = dom.domainNamed['objects']
-    assert len(objDomain.domains) == len(scene.objects)
-    objects = (pointForObject(subdom, obj)
-               for subdom, obj in zip(objDomain.domains, scene.objects))
-    objPoint = objDomain.makePoint(*objects)
-
-    paramDomain = dom.domainNamed['params']
-    params = {}
-    for param, subdom in paramDomain.domainNamed.items():
-        params[param] = pointForValue(subdom, scene.params[param])
-    paramPoint = paramDomain.makePoint(**params)
-
-    return space.makePoint(objects=objPoint, params=paramPoint)
+    return space, quotedParams
 
 class ScenicSampler(FeatureSampler):
     """Samples from the induced distribution of a Scenic scenario.
@@ -206,7 +201,7 @@ class ScenicSampler(FeatureSampler):
         self.maxIterations = 2000 if maxIterations is None else maxIterations
         if ignoredProperties is None:
             ignoredProperties = defaultIgnoredProperties
-        space = spaceForScenario(scenario, ignoredProperties)
+        space, self.quotedParams = spaceForScenario(scenario, ignoredProperties)
         super().__init__(space)
 
     @classmethod
@@ -223,7 +218,36 @@ class ScenicSampler(FeatureSampler):
         return cls(scenario, maxIterations=maxIterations,
                    ignoredProperties=ignoredProperties)
 
-    def nextSample(self):
+    def nextSample(self, feedback=None):
         scene, iterations = self.scenario.generate(
-            maxIterations=self.maxIterations)
-        return pointForScene(self.space, scene)
+            maxIterations=self.maxIterations, feedback=feedback)
+        return self.pointForScene(scene)
+
+    def pointForScene(self, scene):
+        """Convert a sampled Scenic Scene to a point in the Scenario's space."""
+        lengths, dom = self.space.domains
+        assert lengths is None
+        assert scene.egoObject is scene.objects[0]
+        objDomain = dom.domainNamed['objects']
+        assert len(objDomain.domains) == len(scene.objects)
+        objects = (pointForObject(subdom, obj)
+                   for subdom, obj in zip(objDomain.domains, scene.objects))
+        objPoint = objDomain.makePoint(*objects)
+
+        paramDomain = dom.domainNamed['params']
+        params = {}
+        for param, subdom in paramDomain.domainNamed.items():
+            originalName = self.quotedParams.get(param, param)
+            params[param] = pointForValue(subdom, scene.params[originalName])
+        paramPoint = paramDomain.makePoint(**params)
+
+        return self.space.makePoint(objects=objPoint, params=paramPoint)
+
+    def paramDictForSample(self, sample):
+        """Recover the dict of global parameters from a ScenicSampler sample."""
+        params = sample.params._asdict()
+        corrected = {}
+        for newName, quotedParam in self.quotedParams.items():
+            corrected[quotedParam] = params.pop(newName)
+        corrected.update(params)
+        return corrected

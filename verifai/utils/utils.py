@@ -1,5 +1,11 @@
 """Assorted utility functions"""
 
+### Exceptions
+
+class RejectionException(Exception):
+    """Exception raised during sampling if the sample should be rejected."""
+    pass
+
 ### Python conveniences
 
 def cached(oldMethod):

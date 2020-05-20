@@ -48,3 +48,5 @@ print(falsifier.safe_table.table)
 
 # To save all samples: uncomment this
 # pickle.dump(falsifier.samples, open("generated_samples.pickle", "wb"))
+
+

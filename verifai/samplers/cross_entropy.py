@@ -8,7 +8,6 @@ from verifai.samplers.random_sampler import RandomSampler
 class CrossEntropySampler(DomainSampler):
     def __init__(self, domain, ce_params):
         super().__init__(domain)
-        self.f = ce_params.f
         self.alpha = ce_params.alpha
         self.thres = ce_params.thres
         self.cont_buckets = ce_params.cont.buckets
@@ -17,33 +16,46 @@ class CrossEntropySampler(DomainSampler):
         self.cont_ce = lambda domain: ContinuousCrossEntropySampler(domain=domain,
                                                      buckets=self.cont_buckets,
                                                      dist=self.cont_dist,
-                                                     alpha=self.alpha)
+                                                     alpha=self.alpha,
+                                                     thres=self.thres)
         self.disc_ce = lambda domain: DiscreteCrossEntropySampler(domain=domain,
                                                    dist=self.disc_dist,
-                                                   alpha=self.alpha)
+                                                   alpha=self.alpha,
+                                                   thres=self.thres)
         partition = (
-            (lambda d: d.standardizedDimension, self.cont_ce),
+            (lambda d: d.standardizedDimension > 0, self.cont_ce),
             (lambda d: d.standardizedIntervals, self.disc_ce)
         )
         self.split_sampler = SplitSampler.fromPartition(domain,
                                                         partition,
                                                         RandomSampler)
+        self.cont_sampler, self.disc_sampler = None, None
+        self.rand_sampler = None
+        for subsampler in self.split_sampler.samplers:
+            if isinstance(subsampler, ContinuousCrossEntropySampler):
+                assert self.cont_sampler is None
+                self.cont_sampler = subsampler
+            elif isinstance(subsampler, DiscreteCrossEntropySampler):
+                assert self.disc_sampler is None
+                self.disc_sampler = subsampler
+            else:
+                assert isinstance(subsampler, RandomSampler)
+                assert self.rand_sampler is None
+                self.rand_sampler = subsampler
 
-    def nextSample(self):
-        current_sample = self.split_sampler.nextSample()
-        f_val = self.f(current_sample)
-        if f_val < self.thres:
-            for sampler in self.split_sampler.samplers:
-                sampler.update_dist()
-        return current_sample
+    def nextSample(self, feedback=None):
+        return self.split_sampler.nextSample(feedback)
 
 class ContinuousCrossEntropySampler(BoxSampler):
-    def __init__(self, domain, alpha, buckets=np.array([10]), dist=None):
+    def __init__(self, domain, alpha, thres,
+                 buckets=10, dist=None):
         super().__init__(domain)
-        if len(buckets) > 1:
+        if isinstance(buckets, int):
+            buckets = np.ones(self.dimension) * buckets
+        elif len(buckets) > 1:
             assert len(buckets) == self.dimension
         else:
-            buckets = np.ones(self.dimension)*buckets[0]
+            buckets = np.ones(self.dimension) * buckets[0]
         if dist is not None:
             assert (len(dist) == len(buckets))
         if dist is None:
@@ -51,8 +63,14 @@ class ContinuousCrossEntropySampler(BoxSampler):
         self.buckets = buckets
         self.dist = dist
         self.alpha = alpha
+        self.thres = thres
+        self.current_sample = None
 
-    def nextVector(self):
+    def nextVector(self, feedback=None):
+        if feedback is None:
+            assert self.current_sample is None
+        elif feedback < self.thres:
+            self.update_dist()
         bucket_samples = np.array([np.random.choice(int(b), p=self.dist[i])
                                    for i, b in enumerate(self.buckets)])
         self.current_sample = bucket_samples
@@ -67,24 +85,30 @@ class ContinuousCrossEntropySampler(BoxSampler):
 
 
 class DiscreteCrossEntropySampler(DiscreteBoxSampler):
-    def __init__(self, domain, alpha, dist=None):
+    def __init__(self, domain, alpha, thres, dist=None):
         super().__init__(domain)
         if dist is not None:
             assert (len(dist) == len(domain.standardizedIntervals))
         if dist is None:
-            dist = np.array([np.ones(right-left)/(right-left) for
+            dist = np.array([np.ones(right-left+1)/(right-left+1) for
                              left, right in domain.standardizedIntervals])
         self.dist = dist
         self.alpha = alpha
+        self.thres = thres
+        self.current_sample = None
 
-    def nextVector(self):
+    def nextVector(self, feedback=None):
+        if feedback is None:
+            assert self.current_sample is None
+        elif feedback < self.thres:
+            self.update_dist()
         self.current_sample=\
-            tuple(left + np.random.choice(right-left, p=self.dist[i])
+            tuple(left + np.random.choice(right-left+1, p=self.dist[i])
                      for i, (left, right) in enumerate(self.domain.standardizedIntervals))
         return self.current_sample
 
     def update_dist(self):
-        update_dist = np.array([np.zeros(right-left)
+        update_dist = np.array([np.zeros(right-left+1)
                                 for left, right in self.domain.standardizedIntervals])
         for i, (ud, b) in enumerate(zip(update_dist, self.current_sample)):
             left, _ = self.domain.standardizedIntervals[i]

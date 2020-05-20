@@ -12,14 +12,14 @@ def default_sampler_params(sampler_type):
     if sampler_type == 'halton':
         return DotMap(sample_index =0, bases_skipped=0)
     if sampler_type == 'ce':
-        cont = DotMap(buckets=np.array([5]), dist=None)
+        cont = DotMap(buckets=5, dist=None)
         disc = DotMap(dist=None)
         return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
     if sampler_type == 'bo':
         return DotMap(init_num=5)
 
 def choose_sampler(sample_space, sampler_type,
-                   sampler_params=None, sampler_func=None):
+                   sampler_params=None):
     if sampler_type == 'random':
         return 'random', FeatureSampler.randomSamplerFor(sample_space)
 
@@ -34,13 +34,12 @@ def choose_sampler(sample_space, sampler_type,
                                                   halton_params=halton_params)
         return 'halton', sampler
     if sampler_type == 'ce':
-        assert sampler_func is not None
         if sampler_params is None:
             ce_params = default_sampler_params('ce')
         else:
             ce_params = default_sampler_params('ce')
             if 'cont' in sampler_params:
-                if 'bucket' in sampler_params.cont:
+                if 'buckets' in sampler_params.cont:
                     ce_params.cont.buckets = sampler_params.cont.buckets
                 if 'dist' in sampler_params.cont:
                     ce_params.cont.dist = sampler_params.cont.dist
@@ -50,19 +49,16 @@ def choose_sampler(sample_space, sampler_type,
                 ce_params.alpha = sampler_params.alpha
             if 'thres' in sampler_params:
                 ce_params.thres = sampler_params.thres
-        ce_params.f = sampler_func
         sampler = FeatureSampler.crossEntropySamplerFor(
             sample_space, ce_params=ce_params)
         return 'ce', sampler
 
     if sampler_type == 'bo':
-        assert sampler_func is not None
         if sampler_params is None:
             bo_params = default_sampler_params('bo')
         else:
             bo_params = default_sampler_params('bo')
             bo_params.update(sampler_params)
-        bo_params.f = sampler_func
         sampler = FeatureSampler.bayesianOptimizationSamplerFor(
             sample_space, BO_params=bo_params)
         return 'bo', sampler
@@ -72,6 +68,7 @@ class Server:
         defaults = DotMap(port=8888, bufsize=4096, maxreqs=5)
         defaults.update(options)
         self.monitor = monitor
+        self.lastValue = None
         self.port = defaults.port
         self.bufsize = defaults.bufsize
         self.maxreqs = defaults.maxreqs
@@ -87,6 +84,7 @@ class Server:
             self.sample_space = (self.sampler.space
                                  if sampling_data.sample_space is None
                                  else sampling_data.sample_space)
+
         elif sampling_data.sampler_type is None:
             feature_space = {}
             for space_name in sampling_data.sample_space:
@@ -107,8 +105,7 @@ class Server:
             self.sampler_type, self.sampler = choose_sampler(
                 sample_space=self.sample_space,
                 sampler_type=sampling_data.sampler_type,
-                sampler_params=params,
-                sampler_func=self.evaluate_sample
+                sampler_params=params
             )
 
         print("Initialized sampler")
@@ -130,6 +127,7 @@ class Server:
     def send(self, sample):
         msg = self.encode(sample)
         self.client_socket.send(msg)
+        self.client_socket.shutdown(socket.SHUT_WR)
 
     def encode(self, sample):
         return dill.dumps(sample)
@@ -137,16 +135,18 @@ class Server:
     def decode(self, data):
         return dill.loads(data)
 
+    def terminate(self):
+        self.socket.close()
+        
     def close_connection(self):
         self.client_socket.close()
 
-    def get_sample(self):
-        return self.sampler.nextSample()
+    def get_sample(self, feedback):
+        return self.sampler.nextSample(feedback)
 
     def flatten_sample(self, sample):
         return self.sampler.space.flatten(sample)
 
-    @functools.lru_cache(maxsize=1)
     def evaluate_sample(self, sample):
         self.listen()
         self.send(sample)
@@ -157,8 +157,6 @@ class Server:
         return value
 
     def run_server(self):
-        sample = self.get_sample()
-        value = self.evaluate_sample(sample)
-        return sample, value
-
-
+        sample = self.get_sample(self.lastValue)
+        self.lastValue = self.evaluate_sample(sample)
+        return sample, self.lastValue

@@ -17,7 +17,8 @@ carDomain = Struct({
 
 space = FeatureSpace({
     'backgroundID': Feature(Categorical(*np.arange(0, 35))),
-    'cars': Feature(carDomain, lengthDomain=DiscreteBox([1, 2])),
+    #'cars': Feature(carDomain, lengthDomain=DiscreteBox([1, 2])),
+    'cars': Feature(Array(carDomain, (2,))),
     'brightness': Feature(Box([0.5, 1])),
     'sharpness': Feature(Box([0, 1])),
     'contrast': Feature(Box([0.5, 1.5])),
@@ -33,7 +34,7 @@ class confidence_spec(specification_monitor):
         super().__init__(specification)
 
 
-MAX_ITERS = 20
+MAX_ITERS = 40
 PORT = 8888
 MAXREQS = 5
 BUFSIZE = 4096
@@ -53,6 +54,7 @@ analysis_params = DotMap()
 analysis_params.k_closest_params.k = 4
 analysis_params.random_params.count = 4
 analysis_params.pca = True
+analysis_params.k_clusters_params.k = 4
 falsifier.analyze_error_table(analysis_params=analysis_params)
 lib = getLib()
 
@@ -72,6 +74,14 @@ for i, sample in enumerate(falsifier.error_analysis.k_closest_samples):
     print(sample)
     img, _ = genImage(lib, sample)
     img.save("counterexample_images/kclosest_" + str(i) + ".png")
+
+print("k means clustering centroids from error table")
+print("Centroids for the categorical parts of the sample")
+print(falsifier.error_analysis.k_clusters.keys())
+
+print("Centroids for the numerical parts of the sample for each discrete cluster")
+for k in falsifier.error_analysis.k_clusters.keys():
+    print(falsifier.error_analysis.k_clusters[k])
 
 print("PCA analysis")
 print("PCA pivot: ", falsifier.error_analysis.pca['pivot'])

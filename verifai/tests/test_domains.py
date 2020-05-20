@@ -40,6 +40,11 @@ def test_constant_flatten():
     point = dom.uniformPoint()
     checkFlattening(dom, point, expectedLength=0)
 
+def test_constant_equality():
+    dom1 = Constant(4)
+    dom2 = Constant(4)
+    assert set([dom1]) == set([dom2])
+
 def test_categorical_empty():
     with pytest.raises(RuntimeError):
         Categorical()
@@ -77,7 +82,7 @@ def test_categorical_flatten():
 def test_categorical_standardize():
     vals = (1, 4, 9, 16, 25, 36)
     cat = Categorical(*vals)
-    assert cat.standardizedDimension == 0
+    assert cat.standardizedDimension == -1
     maxIndex = len(vals) - 1
     assert cat.standardizedIntervals == ((0, maxIndex),)
     for point in cat:
@@ -87,6 +92,11 @@ def test_categorical_standardize():
         assert 0 <= stand[0] <= maxIndex
         unstand = cat.unstandardize(stand)
         assert point == unstand
+
+def test_categorical_equality():
+    dom1 = Categorical(4, 'blob')
+    dom2 = Categorical(4, 'blob')
+    assert set([dom1]) == set([dom2])
 
 ### Box and DiscreteBox
 
@@ -147,10 +157,15 @@ def test_box_standardize():
         unstand = box.unstandardize(stand)
         assert point == unstand
 
+def test_box_equality():
+    dom1 = Box((-3, 5))
+    dom2 = Box((-3, 5))
+    assert set([dom1]) == set([dom2])
+
 def test_discrete_box_standardize():
     intervals = ((0, 1), (0, 5), (-3, 3))
     box = DiscreteBox(*intervals)
-    assert box.standardizedDimension == 0
+    assert box.standardizedDimension == -1
     assert box.standardizedIntervals == intervals
     for point in box:
         stand = box.standardize(point)
@@ -161,6 +176,11 @@ def test_discrete_box_standardize():
             assert left <= coord <= right
         unstand = box.unstandardize(stand)
         assert point == unstand
+
+def test_discrete_box_equality():
+    dom1 = DiscreteBox((-3, 5))
+    dom2 = DiscreteBox((-3, 5))
+    assert set([dom1]) == set([dom2])
 
 ### Arrays
 
@@ -276,7 +296,7 @@ def test_array_discrete_standardize():
     interval = (-1, 1)
     box = DiscreteBox(interval)
     array = Array(box, (5, 2, 3))
-    assert array.standardizedDimension == 0
+    assert array.standardizedDimension == -1
     assert array.standardizedIntervals == tuple(interval for i in range(30))
     for i in range(10):
         point = array.uniformPoint()
@@ -287,6 +307,11 @@ def test_array_discrete_standardize():
             assert -1 <= coord <= 1
         unstand = array.unstandardize(stand)
         assert point == unstand
+
+def test_array_equality():
+    dom1 = Array(Box((-3, 5)), (6, 2))
+    dom2 = Array(Box((-3, 5)), (6, 2))
+    assert set([dom1]) == set([dom2])
 
 def test_array_of_arrays():
     box = Box((-1, 1))
@@ -401,7 +426,7 @@ def test_struct_standardize_discrete():
     intervals = ((0, 1), (0, 5), (-3, 3))
     box = DiscreteBox(*intervals)
     struct = Struct({ 'a': box, 'b': box })
-    assert struct.standardizedDimension == 0
+    assert struct.standardizedDimension == -1
     assert struct.standardizedIntervals == intervals * 2
     for i in range(10):
         point = struct.uniformPoint()
@@ -413,6 +438,16 @@ def test_struct_standardize_discrete():
             assert left <= coord <= right
         unstand = struct.unstandardize(stand)
         assert point == unstand
+
+def test_struct_standardize_mixed():
+    struct = Struct({ 'a': DiscreteBox((0, 1)), 'b': Box((0, 1)) })
+    assert struct.standardizedDimension == -1
+    assert struct.standardizedIntervals == ()
+
+def test_struct_equality():
+    dom1 = Struct({'a': Box((-3, 5)), 'b': Box((0, 1)) })
+    dom2 = Struct({'b': Box((0, 1)), 'a': Box((-3, 5)) })
+    assert set([dom1]) == set([dom2])
 
 def test_array_of_structs():
     box = Box((-1, 1))
@@ -510,3 +545,10 @@ def test_partition_array_struct():
             assert set(element._fields) == { 'a', 'b' }
             assert -1 <= element.a[0] <= 1
             assert 4 <= element.b[0] <= 5
+
+def test_partition_array_empty():
+    struct = Struct({ 'a': Box((-1, 1)), 'b': DiscreteBox((4, 5)) })
+    array = Array(struct, (5, 0))
+    left, right = array.partition(lambda d: d.standardizedDimension > 0)
+    assert left == None
+    assert right == array

@@ -4,12 +4,10 @@ class webots_task():
         self.supervisor = supervisor
 
     def use_sample(self, sample):
-        print("Define in child class")
-        pass
+        raise NotImplementedError("Define in child class")
 
     def run_task(self, sample):
-        print("Define in child class")
-        pass
+        raise NotImplementedError("Define in child class")
 
     def close(self):
         self.supervisor.simulationReset()

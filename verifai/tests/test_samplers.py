@@ -1,9 +1,12 @@
 import math
 import itertools
+import os.path
 
 from verifai.features import (Struct, Array, Box, DiscreteBox,
                               Feature, FeatureSpace)
 from verifai.samplers import RandomSampler, FeatureSampler
+
+## Random sampling
 
 def test_domain_random():
     carDomain = Struct({
@@ -71,3 +74,17 @@ def test_space_random():
 
     check([sampler.nextSample() for i in range(100)])
     check(list(itertools.islice(sampler, 100)))
+
+def test_random_restore(tmpdir):
+    space = FeatureSpace({
+        'a': Feature(DiscreteBox([0, 12])),
+        'b': Feature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2)))
+    })
+    sampler = FeatureSampler.randomSamplerFor(space)
+
+    path = os.path.join(tmpdir, 'blah.dat')
+    sampler.saveToFile(path)
+    sample1 = sampler.nextSample()
+    sampler = FeatureSampler.restoreFromFile(path)
+    sample2 = sampler.nextSample()
+    assert sample1 == sample2

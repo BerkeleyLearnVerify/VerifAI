@@ -12,14 +12,6 @@ class ClientWebots(Client):
         return self.task.run_task(sample)
 
     def run_client(self):
-        try:
-            self.initialize()
-            sample = self.receive()
-            sim = self.simulate(sample)
-            self.send(sim)
-            self.close()
+        success = super().run_client()
+        if success:
             self.task.close()
-            return True
-        except:
-            print("No new sample received.")
-            return False

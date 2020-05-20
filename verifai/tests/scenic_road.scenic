@@ -2,7 +2,7 @@
 from scenic.simulators.webots.road.world import setLocalWorld
 setLocalWorld(__file__, 'road.wbt')
 
-from scenic.simulators.webots.road.road_model import *
+from scenic.simulators.webots.road.model import *
 
 # Pick location for blockage
 curb = Uniform(*workspace.slowCurbs)
@@ -17,7 +17,7 @@ cone2 = TrafficCone at spot2, facing (0, 360) deg
 
 cone3 = TrafficCone ahead of spot2 by (-1.5, -0.75) @ (1, 4), \
 	facing (0, 360) deg, \
-	with color [0, 0, 1]
+	with color [0, 0, (0.5, 1)]
 
 # Place disabled car ahead of cones
 SmallCar ahead of spot2 by (-1, 1) @ (4, 10), facing (0, 360) deg

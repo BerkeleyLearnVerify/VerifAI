@@ -2,6 +2,9 @@
 import pytest
 
 from verifai.samplers.scenic_sampler import ScenicSampler
+from verifai.tests.utils import sampleWithFeedback, checkSaveRestore
+
+## Basic
 
 def test_objects():
     sampler = ScenicSampler.fromScenicCode(
@@ -26,6 +29,17 @@ def test_params():
     assert type(x) is float
     assert 3 <= x <= 5
 
+def test_quoted_param():
+    sampler = ScenicSampler.fromScenicCode(
+        'param "x/y" = (3, 5)\n'
+        'ego = Object',
+        maxIterations=1
+    )
+    sample = sampler.nextSample()
+    v = sampler.paramDictForSample(sample)['x/y']
+    assert type(v) is float
+    assert 3 <= v <= 5
+
 def test_lists():
     sampler = ScenicSampler.fromScenicCode(
         'ego = Object with foo [1, -1, 3.3]',
@@ -36,8 +50,45 @@ def test_lists():
     assert type(foo) is tuple
     assert foo == pytest.approx((1, -1, 3.3))
 
+def test_save_restore(tmpdir):
+    sampler = ScenicSampler.fromScenicCode(
+        'ego = Object at (-1, 1) @ 0',
+        maxIterations=1
+    )
+    checkSaveRestore(sampler, tmpdir)
+
+## Active sampling
+
+def test_active_sampling():
+    sampler = ScenicSampler.fromScenicCode(
+        'from dotmap import DotMap\n'
+        'param verifaiSamplerType = "ce"\n'
+        'ce_params = DotMap(alpha=0.9)\n'
+        'ce_params.cont.buckets = 2\n'
+        'param verifaiSamplerParams = ce_params\n'
+        'ego = Object at VerifaiRange(-1, 1) @ 0',
+        maxIterations=1
+    )
+    def f(sample):
+        return -1 if sample.objects.object0.position[0] < 0 else 1
+    samples = sampleWithFeedback(sampler, 120, f)
+    xs = [sample.objects.object0.position[0] for sample in samples]
+    assert all(-1 <= x <= 1 for x in xs)
+    assert any(x > 0 for x in xs)
+    assert 66 <= sum(x < 0 for x in xs[50:])
+
+def test_active_save_restore(tmpdir):
+    sampler = ScenicSampler.fromScenicCode(
+        'param verifaiSamplerType = "halton"\n'
+        'ego = Object at VerifaiRange(-1, 1) @ 0',
+        maxIterations=1
+    )
+    checkSaveRestore(sampler, tmpdir)
+
+## Webots
+
 def test_webots_mars(pathToLocalFile):
-    path = pathToLocalFile('scenic_mars.sc')
+    path = pathToLocalFile('scenic_mars.scenic')
     sampler = ScenicSampler.fromScenario(path)
 
     for i in range(3):
@@ -46,7 +97,7 @@ def test_webots_mars(pathToLocalFile):
         print(sample)
 
 def test_webots_road(pathToLocalFile):
-    path = pathToLocalFile('scenic_road.sc')
+    path = pathToLocalFile('scenic_road.scenic')
     sampler = ScenicSampler.fromScenario(path)
 
     for i in range(3):

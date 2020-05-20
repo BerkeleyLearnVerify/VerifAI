@@ -8,7 +8,7 @@ from collections import OrderedDict, namedtuple
 
 import numpy as np
 
-from verifai.utils.utils import cached_property
+from verifai.utils.utils import RejectionException, cached_property
 
 ### Domains
 
@@ -107,6 +107,11 @@ class Domain:
         self.standardizeOnto(point, coords)
         return tuple(coords)
 
+    @cached_property
+    def isStandardizable(self):
+        """Whether points in this Domain can be standardized as above."""
+        return self.standardizedDimension >= 0 or self.standardizedIntervals
+
     def standardizeOnto(self, point, targetList):
         """Standardize a point onto the end of the given list."""
         raise RuntimeError(
@@ -116,8 +121,8 @@ class Domain:
     def standardizedDimension(self):
         """Dimension of the vector returned by standardize.
 
-        Returns 0 if continuous standardization is not supported."""
-        return 0
+        Returns -1 if continuous standardization is not supported."""
+        return -1
 
     @cached_property
     def standardizedIntervals(self):
@@ -139,15 +144,20 @@ class Domain:
         raise RuntimeError(
             f'Domain {self.__class__.__name__} does not support standardize')
 
+    @cached_property
+    def requiresRejection(self):
+        """Whether sampling from this Domain requires rejection sampling."""
+        return False
+
     def partition(self, predicate):
-        """Split this Domain into parts satisfying/falsifying the predicate"""
+        """Split this Domain into parts satisfying/falsifying the predicate."""
         if predicate(self):
             return self, None
         else:
             return None, self
 
     def rejoinPoints(self, *components):
-        """Join points from the partitioned components of a Domain"""
+        """Join points from the partitioned components of a Domain."""
         assert sum(int(component is not None) for component in components) == 1
         for component in components:
             if component is not None:
@@ -164,6 +174,11 @@ class Constant(Domain):
     """Domain consisting of a single value"""
 
     def __init__(self, value):
+        try:
+            hash(value)
+        except TypeError as e:
+            raise RuntimeError('value for Constant domain '
+                               f'is not hashable: {value}') from e
         self.value = value
 
     def distance(self, pointA, pointB):
@@ -428,7 +443,7 @@ class AbstractBox(Domain):
         return len(self.intervals)
 
     def __eq__(self, other):
-        if not isinstance(other, type(self)):
+        if type(other) is not type(self):
             return NotImplemented
         return self.intervals == other.intervals
 
@@ -619,7 +634,8 @@ class Array(Domain):
 
     @cached_property
     def standardizedDimension(self):
-        return self.numElements * self.domain.standardizedDimension
+        sd = self.domain.standardizedDimension
+        return self.numElements * sd if sd >= 0 else -1
 
     @cached_property
     def standardizedIntervals(self):
@@ -630,6 +646,8 @@ class Array(Domain):
         return self.pointWithElements(it)
 
     def partition(self, predicate):
+        if self.numElements == 0:   # length-0 arrays count as leaves
+            return super().partition(predicate)
         left, right = self.domain.partition(predicate)
         left = Array(left, self.shape) if left else None
         right = Array(right, self.shape) if right else None
@@ -647,11 +665,15 @@ class Array(Domain):
         return self.pointWithElements(values)
 
     @cached_property
+    def requiresRejection(self):
+        return self.domain.requiresRejection
+
+    @cached_property
     def pointsAreScalars(self):
         return self.shape == (1,)
 
     def __eq__(self, other):
-        if not isinstance(self, Array):
+        if not isinstance(other, Array):
             return NotImplemented
         return (self.domain == other.domain and self.shape == other.shape)
 
@@ -694,7 +716,7 @@ class Struct(Domain):
     """A domain consisting of named sub-domains."""
 
     def __init__(self, domains):
-        self.namedDomains = sorted(domains.items(), key=lambda i: i[0])
+        self.namedDomains = tuple(sorted(domains.items(), key=lambda i: i[0]))
         self.domainNamed = OrderedDict(self.namedDomains)
         self.domains = tuple(self.domainNamed.values())
         self.makePoint = namedtuple('StructPoint', self.domainNamed.keys())
@@ -743,12 +765,25 @@ class Struct(Domain):
 
     @cached_property
     def standardizedDimension(self):
-        return sum(domain.standardizedDimension for domain in self.domains)
+        total = 0
+        for domain in self.domains:
+            sd = domain.standardizedDimension
+            if sd < 0:
+                return -1
+            else:
+                total += sd
+        return total
 
     @cached_property
     def standardizedIntervals(self):
-        return tuple(itertools.chain(*(domain.standardizedIntervals
-                                       for domain in self.domains)))
+        ints = []
+        for domain in self.domains:
+            subints = domain.standardizedIntervals
+            if subints is ():
+                return ()
+            else:
+                ints.extend(subints)
+        return tuple(ints)
 
     def unstandardizeIterator(self, coords):
         subPts = (dom.unstandardizeIterator(coords) for dom in self.domains)
@@ -774,12 +809,16 @@ class Struct(Domain):
         )
         return self.makePoint(*subPoints)
 
+    @cached_property
+    def requiresRejection(self):
+        return any(domain.requiresRejection for domain in self.domains)
+
     def __iter__(self):
         for values in itertools.product(*self.domains):
             yield self.makePoint(*values)
 
     def __eq__(self, other):
-        if not isinstance(self, Struct):
+        if type(other) is not Struct:
             return NotImplemented
         return self.namedDomains == other.namedDomains
 
@@ -801,7 +840,7 @@ class FilteredDomain(Domain):
         if self.filter(sample):
             return sample
         else:
-            raise RejectionException()
+            raise RejectionException
 
     def flattenOnto(self, point, targetList):
         self.domain.flattenOnto(point, targetList)
@@ -824,6 +863,10 @@ class FilteredDomain(Domain):
         return self.domain.unflattenIterator(coords)
 
     @cached_property
+    def requiresRejection(self):
+        return True
+
+    @cached_property
     def pointsAreScalars(self):
         return self.domain.pointsAreScalars
 
@@ -831,7 +874,7 @@ class FilteredDomain(Domain):
         return filter(self.filter, self.domain)
 
     def __eq__(self, other):
-        if not isinstance(self, FilteredDomain):
+        if type(other) is not FilteredDomain:
             return NotImplemented
         return (self.domain == other.domain and self.filter == other.filter)
 
@@ -846,25 +889,23 @@ class FilteredDomain(Domain):
 class Feature:
     """A feature or list of features with unknown length.
 
-    Instance variables:
-    domain -- a Domain object specifying the Feature's possible values;
-    distribution -- optional object specifying distribution of values;
-    lengthDomain -- if not None, this Feature is actually a list of features, with possible lengths given by this Domain;
-    lengthDistribution -- optional distribution over lengths;
-    distanceMetric -- if not None, custom distance metric.
-    """
-    """
-    # Feature consisting of list of 10 cars
+    Args:
+        domain: a `Domain` object specifying the Feature's possible values;
+        distribution (optional): object specifying the distribution of values;
+        lengthDomain (`Domain`): if not None, this `Feature` is actually a list
+          of features, with possible lengths given by this `Domain`;
+        lengthDistribution (optional): distribution over lengths;
+        distanceMetric (optional): if not None, custom distance metric.
 
-    carDomain = Struct({
-    'position': Array(Real(), [3]),
-    'heading': Box((0, math.pi))
-    })
-
-    Feature(Array(carDomain, [10]))
-    # Feature consisting of list of 1-10 cars
-    carDist = Uniform(range(1, 11))
-    Feature(carDomain, lengthDistribution=carDist)
+    >>> # Feature consisting of list of 10 cars
+    >>> carDomain = Struct({
+    >>>     'position': Array(Real(), [3]),
+    >>>     'heading': Box((0, math.pi))
+    >>> })
+    >>> Feature(Array(carDomain, [10]))
+    >>> # Feature consisting of list of 1-10 cars
+    >>> carDist = Uniform(range(1, 11))
+    >>> Feature(carDomain, lengthDistribution=carDist)
     """
     def __init__(self,
                  domain,
@@ -925,13 +966,13 @@ class Feature:
 ### Feature spaces
 
 class FeatureSpace:
-    """A space consisting of named features."""
-    """
-    FeatureSpace({
-    'weather': Feature(DiscreteBox([0, 12])),
-    'egoCar': Feature(carDomain),
-    'traffic': Feature(Array(carDomain, [4]))
-    })
+    """A space consisting of named features.
+
+    >>> FeatureSpace({
+    >>>     'weather': Feature(DiscreteBox([0, 12])),
+    >>>     'egoCar': Feature(carDomain),
+    >>>     'traffic': Feature(Array(carDomain, [4]))
+    >>> })
     """
 
     def __init__(self, features, distanceMetric=None):

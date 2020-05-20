@@ -2,6 +2,7 @@ from dotmap import DotMap
 
 from verifai.features import *
 from verifai.samplers import *
+from verifai.tests.utils import checkSaveRestore
 
 def test_halton():
     carDomain = Struct({
@@ -24,3 +25,13 @@ def test_halton():
     for i in range(3):
         print(f'Sample #{i}:')
         print(sampler.nextSample())
+
+def test_save_restore(tmpdir):
+    space = FeatureSpace({
+        'a': Feature(DiscreteBox([0, 12])),
+        'b': Feature(Box((0, 1)), lengthDomain=DiscreteBox((1, 2)))
+    })
+    halton_params = DotMap(sample_index=0, bases_skipped=0)
+    sampler = FeatureSampler.haltonSamplerFor(space, halton_params)
+
+    checkSaveRestore(sampler, tmpdir)

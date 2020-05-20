@@ -5,8 +5,6 @@ import numpy as np
 from typing import NamedTuple
 import os
 
-print(os.getcwd())
-
 class simulator_world(NamedTuple):
      lanes:list = []
      cars:list = []

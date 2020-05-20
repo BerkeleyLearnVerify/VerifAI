@@ -2,20 +2,35 @@
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 from dotmap import DotMap
-
+from collections import defaultdict
+from kmodes.kmodes import KModes
 
 class error_table():
-    def __init__(self, space):
-        self.space= space
-        self.column_names = []
-        self.column_type = {}
-        for i in range(space.fixedFlattenedDimension):
-            self.column_names.append(space.meaningOfFlatCoordinate(i))
-            self.column_type[space.meaningOfFlatCoordinate(i)] = \
-                space.coordinateIsNumerical(i)
-        self.table = pd.DataFrame(columns=self.column_names)
-        self.ignore_locs = []
+    def __init__(self, space=None, table=None, column_type = None):
+        assert space is not None or table is not None
+        if space is not None:
+            self.space= space
+            self.column_names = []
+            self.column_type = {}
+            for i in range(space.fixedFlattenedDimension):
+                self.column_names.append(space.meaningOfFlatCoordinate(i))
+                self.column_type[space.meaningOfFlatCoordinate(i)] = \
+                    space.coordinateIsNumerical(i)
+            self.column_names.append("rho")
+            self.column_type["rho"] = True # Set to numerical by default. Can be updated later.
+            self.table = pd.DataFrame(columns=self.column_names)
+            self.ignore_locs = []
+        else:
+            self.table = table
+            self.column_names = table.columns
+            if column_type is None:
+                self.column_type = {col:True for col in self.column_names}
+            else:
+                self.column_type = column_type
+            self.ignore_locs = []
+
 
 
     def update_column_names(self, column_names):
@@ -23,7 +38,7 @@ class error_table():
         self.table.columns = column_names
         self.column_names = column_names
 
-    def update_error_table(self, sample):
+    def update_error_table(self, sample, rho):
         sample = self.space.flatten(sample, fixedDimension=True)
         sample_dict = {}
         for k, v in zip(self.table.columns, list(sample)):
@@ -31,6 +46,24 @@ class error_table():
                 locs = np.where(np.array(sample) == None)
                 self.ignore_locs = self.ignore_locs + list(locs[0])
             sample_dict[k] = float(v) if self.column_type[k] and v is not None else v
+        if isinstance(rho, (list, tuple)):
+            for i,r in enumerate(rho[:-1]):
+                if "rho_" + str(i) not in self.column_names:
+                    self.column_names.append("rho_"+str(i))
+                    if isinstance(r, bool):
+                        self.column_type["rho_" + str(i)] = False
+                    else:
+                        self.column_type["rho_" + str(i)] = True
+                sample_dict["rho_"+str(i)]  = r
+            sample_dict["rho"] = rho[-1]
+            if isinstance(rho[-1], bool) and self.column_type["rho"]:
+                print("Updating column type")
+                self.column_type["rho"] = False
+        else:
+            sample_dict["rho"] = rho
+            if isinstance(rho, bool) and self.column_type["rho"]:
+                print("Updating column type")
+                self.column_type["rho"] = False
         self.ignore_locs = list(set(tuple(self.ignore_locs)))
         self.table = self.table.append(sample_dict, ignore_index=True)
 
@@ -94,48 +127,117 @@ class error_table():
                 sample_ids.add(i)
             return list(sample_ids)
 
-    def k_closest_samples(self, column_names=None, k = None):
-        # Returns the indices of the samples that are the closest to each other
+    def build_normalized(self, column_names=None):
         if len(self.table) < 1:
-            return []
+            return pd.DataFrame(), pd.DataFrame()
+        if column_names is None:
+            column_names = self.column_names
 
-        num_samples = len(self.table)
+        numerical, categorical = self.split_table(column_names=column_names)
 
+
+        if len(categorical.columns) + len(numerical.columns) == 0:
+            return pd.DataFrame(), pd.DataFrame()
+
+        # Normalize tables (only for numerical table)
+        stats = numerical.describe()
+
+        normalized_dict = {r: (numerical[r] - stats[r]['min']) / (stats[r]['max'] - stats[r]['min'])
+                         for r in numerical.columns}
+        normalized_table = pd.DataFrame(normalized_dict)
+
+        return normalized_table, categorical, \
+               np.array([stats[r]['min'] for r in numerical.columns]),\
+               np.array([stats[r]['max'] for r in numerical.columns])
+
+
+    def build_standardized(self, column_names=None):
+        if len(self.table) < 1:
+            return pd.DataFrame(), pd.DataFrame()
         if column_names is None:
             column_names = self.column_names
 
         numerical, categorical = self.split_table(column_names=column_names)
 
         if len(categorical.columns) + len(numerical.columns) == 0:
-            return []
+            return pd.DataFrame(), pd.DataFrame()
 
-
-        if k is None or k >= num_samples:
-             return np.array(range(num_samples))
-
-        # Standardize tables (only for numerical table)
+        # Normalize tables (only for numerical table)
         stats = numerical.describe()
-        standardized_dict = {r:(numerical[r] - stats[r]['mean'])/stats[r]['std']
+
+        standardized_dict = {r: (numerical[r] - stats[r]['mean']) / stats[r]['std']
                              for r in numerical.columns}
         standardized_table = pd.DataFrame(standardized_dict)
 
-        # Norm distance between table rows
+        return standardized_table, categorical, \
+               np.array([stats[r]['mean'] for r in numerical.columns]),\
+               np.array([stats[r]['std'] for r in numerical.columns])
+
+    def dist_element(self, numerical, point_n):
+
+        d=np.zeros(len(self.table))
         if len(numerical.columns) > 0:
-            d_rows = [np.linalg.norm(standardized_table.values -
-                                 standardized_table.values[i], axis=1)
-                  for i in range(len(standardized_table))]
-        else:
-            d_rows = [0] * num_samples
+            d = np.linalg.norm(numerical.values- point_n, axis=1)
+        return d
 
-        # For the categorical rows we want define distance as the number of different rows
 
-        normalize_row = len(categorical.columns) + len(numerical.columns)
+    def k_clusters(self, column_names=None, k=None):
+        if k is None or k >= len(self.table):
+            return np.array(range(len(self.table)))
+
+        if len(self.table) <=0 :
+            return np.array(range(len(self.table)))
+
+        numerical, categorical, min_elems, max_elems = self.build_normalized(column_names=column_names)
+        range_elems = max_elems- min_elems
+        result = defaultdict(dict)
+
+
         if len(categorical.columns) > 0:
-            d_cat_rows = [np.apply_along_axis(sum , 1,
-                        categorical.values != categorical.iloc[i].values)/normalize_row
-                      for i in range(len(categorical))]
-            d_rows = np.array(d_rows) + np.array(d_cat_rows)
+            X = np.array(categorical.values)
+            Y = np.array(numerical.values)
+            kmodes = KModes(n_clusters=k, init='Huang', n_init=5, verbose=1)
+            kmodes.fit_predict(X)
+            centers_cat = kmodes.cluster_centroids_
+            labels_cat = kmodes.labels_
+            result['categorical'] = {'clusters':centers_cat, 'labels':labels_cat}
+            for j in range(k):
+                pos = Y[np.where(labels_cat == j)]
+                kmeans = KMeans(n_clusters=min(len(pos), k), random_state=0).fit(pos)
+                centers = kmeans.cluster_centers_
+                labels = kmeans.labels_
+                for label, center in enumerate(centers):
+                    center = (center * range_elems) + min_elems
+                    result[j][label] = center
+                result[j]['labels'] = labels
 
+        elif len(numerical.columns) > 0:
+            X = np.array(numerical.values)
+            kmeans = KMeans(n_clusters=k, random_state=0).fit(X)
+            centers = kmeans.cluster_centers_
+            labels = kmeans.labels_
+            #print(centers, labels)
+            for label, center in enumerate(centers):
+                center = (center*range_elems) + min_elems
+                result['clusters'][label] = center
+            result['labels'] = labels
+        return result
+
+
+    def k_closest_samples(self, column_names=None, k = None, dist_type=True):
+        # dist_type is True for using normalized, False for standardized
+        if k is None or k >= len(self.table):
+             return np.array(range(len(self.table)))
+
+        if dist_type:
+            numerical, categorical, _, _ = self.build_normalized(column_names=column_names)
+        else:
+            numerical, categorical, _, _ = self.build_standardized(column_names=column_names)
+
+        # Norm distance between table rows
+        d_rows = np.zeros((len(self.table), len(self.table)))
+        for i in range(len(self.table)):
+            d_rows[i] = self.dist_element(numerical, numerical.values[i])
 
         # Now the row associated with the min sum is the largest set of correlated elements
         sum_rows = []
@@ -208,6 +310,15 @@ class error_table():
                 count = 5
             analysis_data.random = self.get_random_samples(count=count)
 
+        if analysis_params is None or ('k_clusters' in analysis_params and analysis_params.k_clusters) or 'k_clusters' not in analysis_params:
+            if analysis_params is not None and 'k_clusters_params' in analysis_params:
+                columns = analysis_params.k_clusters_params.columns \
+                    if 'columns' in analysis_params.k_clusters_params else None
+                k = analysis_params.k_clusters_params.k \
+                    if 'k' in analysis_params.k_clusters_params else None
+            else:
+                columns, k = None, None
+            analysis_data.k_clusters = self.k_clusters(column_names=columns, k=k)
         return analysis_data
 
 
