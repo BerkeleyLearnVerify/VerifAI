@@ -1,7 +1,7 @@
 # Tutorial / Case Studies
 
 This page describes how to run many of the examples included in the VerifAI repository, which illustrate the main use cases of VerifAI.
-After cloning the repository, you can install all the extra dependencies needed for the examples by running:
+After cloning the repository, you can install the extra dependencies needed for the examples by running:
 
 ```
 poetry install -E examples
@@ -61,7 +61,10 @@ This is followed by the PCA analysis results, we report the pivot and the 2 prin
 The images in the two counterexample sets will pop up at the end of the run. The images are saved in the `counterexample_images` folder. The images with the prefix "random_" are from the random samples counterexample set and those with the prefix "kclosest_" are from the k closest counterexample set. 
 
 ## OpenAI Gym examples
-To run the following two examples, please install "baselines" from it <a href="https://github.com/openai/baselines">source</a>. We used baseline version 0.1.6 (with latest commit ea25b9e on Jan 31). pip install for baselines will NOT work. If you are using poetry, please activate your virtual environment first by executing "poetry shell," before you install baselines.
+
+The following two examples require at least version 0.1.6 of the `baselines` package.
+As of May 2020, the version on PyPI is too old and will not work, so you need to install `baselines` from its [repository](https://github.com/openai/baselines").
+Follow the installation instructions given there, remembering to first activate your virtual environment if necessary (if you used poetry to install VerifAI, you can run ``poetry shell`` to get a terminal inside the corresponding environment).
 
 ### Cartpole
 In this example we want to test the robustness of a controllers to changes in model parameters and initial states of the cartpole from <a href="https://gym.openai.com">openAI gym</a>.
