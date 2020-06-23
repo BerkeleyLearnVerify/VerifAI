@@ -5,7 +5,7 @@ Welcome to VerifAI's documentation!
 VerifAI is a software toolkit for the formal design and analysis of systems that include artificial intelligence (AI) and machine learning (ML) components.
 VerifAI particularly seeks to address challenges with applying formal methods to perception and ML components, including those based on neural networks, and to model and analyze system behavior in the presence of environment uncertainty.
 The current version of the toolkit performs intelligent simulation guided by formal models and specifications, enabling a variety of use cases including temporal-logic falsification (bug-finding), model-based systematic fuzz testing, parameter synthesis, counterexample analysis, and data set augmentation.
-Our `CAV 2019 paper <https://link.springer.com/chapter/10.1007%2F978-3-030-25540-4_25>`_, which is the basis of the tutorial below, illustrates all of these use cases: see our :doc:`publications <publications>` page for further applications.
+Our `CAV 2019 paper <https://people.eecs.berkeley.edu/~sseshia/pubs/b2hd-verifai-cav19.html`_, which is the basis of the tutorial below, illustrates all of these use cases: see our :doc:`publications <publications>` page for further applications.
 
 VerifAI was designed and implemented by Tommaso Dreossi, Daniel J. Fremont, Shromona Ghosh, Edward Kim, Hadi Ravanbakhsh, Marcell Vazquez-Chanlatte, and Sanjit A. Seshia.
 
