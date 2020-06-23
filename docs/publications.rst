@@ -6,7 +6,7 @@ Main Papers
 
 The main paper on VerifAI is:
 
-	Dreossi*, Fremont*, Ghosh*, Kim, Ravanbakhsh, Vazquez-Chanlatte, and Seshia, :t:`VerifAI: A Toolkit for the Formal Design and Analysis of Artificial Intelligence-Based Systems`, `CAV 2019 <https://people.eecs.berkeley.edu/~sseshia/b2hd-verifai-cav19.html>`_.
+	Dreossi*, Fremont*, Ghosh*, Kim, Ravanbakhsh, Vazquez-Chanlatte, and Seshia, :t:`VerifAI: A Toolkit for the Formal Design and Analysis of Artificial Intelligence-Based Systems`, `CAV 2019 <https://people.eecs.berkeley.edu/~sseshia/pubs/b2hd-verifai-cav19.html>`_.
 
 The Scenic environment modeling language is described in another paper:
 
