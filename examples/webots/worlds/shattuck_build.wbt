@@ -1,4 +1,4 @@
-#VRML_SIM R2018b utf8
+#VRML_SIM R2019b utf8
 WorldInfo {
   info [
     "World generated using the Open Street Map to Webots importer"
@@ -188,10 +188,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -209,6 +205,10 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation 41.817521 -0.07 143.962612
@@ -229,9 +229,6 @@ Road {
   endJunction "2069144153"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     -8.098594 0 1.439187
@@ -244,8 +241,8 @@ Road {
     1.397071
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -268,9 +265,6 @@ Road {
   endJunction "53050570"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     -8.449207 0 1.537811
@@ -290,8 +284,8 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 Road {
@@ -304,10 +298,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -328,6 +318,10 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -14.765687 -0.07 -30.997191
@@ -343,9 +337,6 @@ Road {
   endJunction "53050570"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     15.521509 0 -2.651694
@@ -363,8 +354,8 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -380,9 +371,6 @@ Road {
   endJunction "2053883367"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     8.599559 0 -1.476736
@@ -394,8 +382,8 @@ Road {
     -1.740003
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -451,9 +439,6 @@ Road {
   endJunction "53050568"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     -6.702332 0 1.139937
@@ -470,8 +455,8 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -488,7 +473,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 11.176
-  dashedLine []
   wayPoints [
     0 0 0
     -5.017198 0 0.879006
@@ -503,9 +487,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 PedestrianCrossing {
   translation -30.633177 -0.07 59.824975
@@ -523,10 +505,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -545,6 +523,10 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -20.331906 -0.07 60.223977
@@ -562,10 +544,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -586,6 +564,10 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -20.444439 -0.07 50.147094
@@ -603,10 +585,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -635,6 +613,10 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation 29.538767 -0.07 40.756305
@@ -657,7 +639,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 11.176
-  dashedLine []
   wayPoints [
     0 0 0
     4.393352 0 -0.751531
@@ -679,9 +660,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 PedestrianCrossing {
   translation -10.702635 -0.07 56.373117
@@ -704,11 +683,6 @@ Road {
   numberOfLanes 4
   numberOfForwardLanes 4
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -728,6 +702,11 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation 5.533463 -0.07 -53.647753
@@ -744,10 +723,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -758,6 +733,10 @@ Road {
     -0.094731
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -19.697988 -0.07 72.196708
@@ -773,7 +752,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 11.176
-  dashedLine []
   wayPoints [
     0 0 0
     5.353239 0 -0.894927
@@ -789,9 +767,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 PedestrianCrossing {
   translation 41.035756 -0.07 47.601092
@@ -1157,8 +1133,18 @@ SimpleBuilding {
   roofShape "flat roof"
 }
 DEF EgoCar BmwX5 {
-  translation -6.631316157005797 -0.0522634286958059 -127.80657228197518
-  rotation 0.3508702546057875 0.9363657364932186 0.010453322647940558 -0.06362067511004037
+  hidden position_0_0 -9.856541971499267e-11
+  hidden position2_0_0 4.3886814493633606e-07
+  hidden position_0_1 9.890400998194047e-11
+  hidden position2_0_1 4.3886471274777487e-07
+  hidden position_0_2 -0.0018151921651916468
+  hidden position_0_3 -0.0018151996126267089
+  hidden rotation_1 -0.00022459004684296575 0.999999974779655 -4.9282708614569394e-11 4.3901562281418636e-07
+  hidden rotation_2 -0.00022536331720792013 -0.9999999746056873 4.9452003735170554e-11 4.3901562281418636e-07
+  hidden rotation_3 0 -1 0 0.0018151921652204536
+  hidden rotation_4 0 1 0 0.0018151996126378786
+  translation -6.631333197272732 -0.04938568029379005 -127.80628628055041
+  rotation 0.3437553378252756 0.9390033851549374 0.010242577029200527 -0.06344208633639314
   controller "camera"
   sensorsSlotFront [
     Camera {
@@ -1168,8 +1154,18 @@ DEF EgoCar BmwX5 {
   ]
 }
 DEF BrokenCar ToyotaPrius {
-  translation -8.555792580696 -0.09732863173262865 -87.43932390638221
-  rotation 0.005112108871586753 0.9998670278796185 0.015485247885109642 -2.5052861539248794
+  hidden position_0_0 5.1687210067541374e-11
+  hidden position2_0_0 -1.0064140286425455e-07
+  hidden position_0_1 2.6874608094477637e-10
+  hidden position2_0_1 -1.0410986170730791e-07
+  hidden position_0_2 -0.002880324348432903
+  hidden position_0_3 -0.0028828109242958954
+  hidden rotation_1 0.0005135779289631756 -0.9999998681188468 -2.5843601625486252e-11 9.884312124119402e-08
+  hidden rotation_2 -0.0025813614690400623 0.9999966682809329 -1.3437259277916714e-10 1.032382731180714e-07
+  hidden rotation_3 0 -1 0 0.0028803243483700616
+  hidden rotation_4 0 1 0 0.0028828109242784103
+  translation -8.556034611395187 -0.093433437865171 -87.43964493843018
+  rotation 0.004981691634604819 0.9998732247255128 0.01512339993064175 -2.505282640110871
   color 1 1 1
   name "vehicle(1)"
 }
@@ -1187,6 +1183,8 @@ DEF TrafficCone0 TrafficCone {
   rotation 0 1 0 -4.607678493488908
   name "traffic cone(2)"
 }
-Supervisor {
+Robot {
+  name "supervisor"
   controller "scenic_cones_supervisor"
+  supervisor TRUE
 }

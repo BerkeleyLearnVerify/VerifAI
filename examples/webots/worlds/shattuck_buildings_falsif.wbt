@@ -1,4 +1,4 @@
-#VRML_SIM R2018b utf8
+#VRML_SIM R2019b utf8
 WorldInfo {
   info [
     "World generated using the Open Street Map to Webots importer"
@@ -188,10 +188,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -209,6 +205,10 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation 41.817521 -0.07 143.962612
@@ -229,9 +229,6 @@ Road {
   endJunction "2069144153"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     -8.098594 0 1.439187
@@ -244,8 +241,8 @@ Road {
     1.397071
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -268,9 +265,6 @@ Road {
   endJunction "53050570"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     -8.449207 0 1.537811
@@ -290,8 +284,8 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 Road {
@@ -304,10 +298,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -328,6 +318,10 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -14.765687 -0.07 -30.997191
@@ -343,9 +337,6 @@ Road {
   endJunction "53050570"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     15.521509 0 -2.651694
@@ -363,8 +354,8 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -380,9 +371,6 @@ Road {
   endJunction "2053883367"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     8.599559 0 -1.476736
@@ -394,8 +382,8 @@ Road {
     -1.740003
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -451,9 +439,6 @@ Road {
   endJunction "53050568"
   width 8
   speedLimit 11.176
-  dashedLine [
-    FALSE
-  ]
   wayPoints [
     0 0 0
     -6.702332 0 1.139937
@@ -470,8 +455,8 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
+  dashedLine [
+    FALSE
   ]
 }
 PedestrianCrossing {
@@ -488,7 +473,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 11.176
-  dashedLine []
   wayPoints [
     0 0 0
     -5.017198 0 0.879006
@@ -503,9 +487,7 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 PedestrianCrossing {
   translation -30.633177 -0.07 59.824975
@@ -523,10 +505,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -545,6 +523,10 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -20.331906 -0.07 60.223977
@@ -562,10 +544,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -586,6 +564,10 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -20.444439 -0.07 50.147094
@@ -603,10 +585,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -635,6 +613,10 @@ Road {
     "textures/road_line_triangle.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation 29.538767 -0.07 40.756305
@@ -657,7 +639,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 11.176
-  dashedLine []
   wayPoints [
     0 0 0
     4.393352 0 -0.751531
@@ -679,9 +660,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 PedestrianCrossing {
   translation -10.702635 -0.07 56.373117
@@ -704,11 +683,6 @@ Road {
   numberOfLanes 4
   numberOfForwardLanes 4
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -728,6 +702,11 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation 5.533463 -0.07 -53.647753
@@ -744,10 +723,6 @@ Road {
   numberOfLanes 3
   numberOfForwardLanes 3
   speedLimit 11.176
-  dashedLine [
-    TRUE
-    TRUE
-  ]
   rightBorder FALSE
   leftBorder FALSE
   wayPoints [
@@ -758,6 +733,10 @@ Road {
     -0.094731
   ]
   splineSubdivision 0
+  dashedLine [
+    TRUE
+    TRUE
+  ]
 }
 PedestrianCrossing {
   translation -19.697988 -0.07 72.196708
@@ -773,7 +752,6 @@ Road {
   width 4
   numberOfLanes 1
   speedLimit 11.176
-  dashedLine []
   wayPoints [
     0 0 0
     5.353239 0 -0.894927
@@ -789,9 +767,7 @@ Road {
     "textures/road_line_dashed.png"
   ]
   splineSubdivision 0
-  texture [
-    "textures/road_no_border_line.jpg"
-  ]
+  dashedLine []
 }
 PedestrianCrossing {
   translation 41.035756 -0.07 47.601092
@@ -1157,8 +1133,28 @@ SimpleBuilding {
   roofShape "flat roof"
 }
 DEF EGOCAR BmwX5 {
-  translation -11.96107378921176 0.26346343092378033 -31.891072639737537
-  rotation 0 1 0 -0.07
+  hidden position_0_0 -1.3067617370008338e-06
+  hidden position2_0_0 -0.00014634156074559059
+  hidden position_0_1 -2.098242787749972e-06
+  hidden position2_0_1 -0.00015244683982276852
+  hidden position_0_2 -0.01822561645307339
+  hidden position_0_3 -0.01995445880548193
+  hidden linearVelocity_0 5.849158127566426e-05 -8.035188132850452e-05 -0.0006556215125820995
+  hidden angularVelocity_0 6.725367379664736e-05 -1.691174266197692e-05 1.0379323427561802e-05
+  hidden rotation_1 -0.008929176597467803 -0.9999601341077875 6.533548208892326e-07 0.00014634739553329772
+  hidden linearVelocity_1 2.910561295474584e-05 -0.00018534694739075894 -0.0006448585938009742
+  hidden angularVelocity_1 6.836106828932331e-05 -1.692197502993381e-05 1.0495321135107562e-05
+  hidden rotation_2 0.013762463475512193 0.9999052928142668 1.0490220345406644e-06 0.0001524612801273249
+  hidden linearVelocity_2 3.101209782030943e-05 -0.00019535175439999827 -0.0006722363861457689
+  hidden angularVelocity_2 6.848466439348091e-05 -1.6922088413060142e-05 1.0503088365817036e-05
+  hidden rotation_3 0 -1 0 0.018225616453083227
+  hidden linearVelocity_3 8.032813406402661e-05 9.75611342570863e-06 -0.0006463785825813128
+  hidden angularVelocity_3 -0.0017351705129491574 -1.281632115144614e-05 -0.00011670756727299176
+  hidden rotation_4 0 1 0 0.019954458805491314
+  hidden linearVelocity_4 8.223678226611139e-05 2.4028620595459572e-06 -0.0006736779763859078
+  hidden angularVelocity_4 -0.001808157430251063 -1.2664503519085597e-05 -0.00012185600545355321
+  translation -11.95885002656735 0.09853403609411887 -31.906807010195866
+  rotation 0.3509391341563227 0.9354441075414118 0.04226163489102029 -0.07522978975190109
   controller "gaussian_cnn"
   controllerArgs "0.8655332978910354 14.249695194798264"
   sensorsSlotFront [
@@ -1179,31 +1175,57 @@ DEF EGOCAR BmwX5 {
   ]
 }
 DEF BROKENCAR ToyotaPrius {
-  translation -13.532262072413713 0.5040656146342554 10.016883016528391
-  rotation -0.019213421721551563 -0.9990226268764693 -0.03980747937999827 0.9609301438310764
+  hidden position_0_0 -1.0686501683568661e-10
+  hidden position2_0_0 1.8234112137783714e-14
+  hidden position_0_1 1.0686751483746571e-10
+  hidden position2_0_1 -1.877946582993513e-14
+  hidden position_0_2 -0.002402372111350527
+  hidden position_0_3 0.0031335486287783873
+  hidden linearVelocity_0 1.2167070960901367e-12 6.774434658406762e-16 1.7388238782457346e-12
+  hidden angularVelocity_0 5.370146509689549e-12 -1.5505565917450432e-13 -3.761987640380463e-12
+  hidden linearVelocity_1 5.597164604648708e-13 -4.835706473050672e-12 1.2466326251025997e-12
+  hidden angularVelocity_1 5.476488349418528e-12 -1.5959020176896703e-13 -3.864779622437363e-12
+  hidden linearVelocity_2 9.807354818438104e-13 4.8279995694154175e-12 9.431116411661476e-13
+  hidden angularVelocity_2 5.499775445383268e-12 -1.5465247375339e-13 -3.821647287922373e-12
+  hidden rotation_3 0 -1 0 0.0024023721113129236
+  hidden linearVelocity_3 5.996439286252445e-13 -4.8227524913727195e-12 1.0481035324044434e-12
+  hidden angularVelocity_3 5.724543283484529e-12 -1.5537016100349915e-13 -3.583128314605239e-12
+  hidden rotation_4 0 -0.9999999999999999 0 0.00313354862876737
+  hidden linearVelocity_4 7.836156486110741e-13 4.825544246326893e-12 9.148316825964283e-13
+  hidden angularVelocity_4 5.302753904101737e-12 -1.561593357704045e-13 -4.165877760464771e-12
+  translation -13.538027965836946 -0.09343186243032175 10.012363909516754
+  rotation -0.029062518093359208 -0.9994632805654751 -0.015116905879558287 0.9597163639666759
   color 0.7138713308831992 0.6415339394497244 0.140274923094213
   name "vehicle(1)"
 }
 DEF TRAFFICCONE0 TrafficCone {
-  translation -15.026098578307407 0 8.340071223743005
-  rotation 0 1 0 -1.7958239833642478
+  hidden linearVelocity_0 -3.1712954191158905e-18 -2.7252921376193256e-16 -2.080752349747216e-18
+  hidden angularVelocity_0 -2.8120559071411574e-16 -5.347681359786713e-17 -4.8750510068837837e-17
+  translation -15.02610046236387 -0.034642078802755466 8.340089596551955
+  rotation 0.00027822063988471637 0.999999781375606 -0.0005998683322563399 -1.7958412374002533
   physics Physics {
   }
 }
 DEF TRAFFICCONE1 TrafficCone {
-  translation -13.559384690168267 0 7.277036672680911
-  rotation 0 1 0 -3.8992124714386605
+  hidden linearVelocity_0 2.108243144507544e-17 -2.559479420877226e-16 -3.0932653560604993e-17
+  hidden angularVelocity_0 -3.128867421969483e-16 -5.221308139720192e-17 9.897493520711475e-17
+  translation -13.559398190605656 -0.034642078802755466 7.277026686792504
+  rotation 0.0005545771643877348 0.9999998451102585 -4.715535694752082e-05 2.3839482455391345
   name "traffic cone(1)"
   physics Physics {
   }
 }
 DEF TRAFFICCONE2 TrafficCone {
-  translation -16.203501596835906 0 9.282966043107093
-  rotation 0 1 0 -6.058212536529182
+  hidden linearVelocity_0 -3.1419209149473895e-17 -2.828549325223475e-16 4.749612004771478e-17
+  hidden angularVelocity_0 1.77361801700566e-16 -4.88114732777763e-17 1.9234285333100813e-16
+  translation -16.203484307366494 -0.034642078802755466 9.282959872749123
+  rotation 0.0025096419524462134 0.9999893894607311 0.003862986309140441 0.2249846785756245
   name "traffic cone(2)"
   physics Physics {
   }
 }
-Supervisor {
+Robot {
+  name "supervisor"
   controller "cones_lanechange_supervisor"
+  supervisor TRUE
 }
