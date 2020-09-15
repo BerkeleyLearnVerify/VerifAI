@@ -20,7 +20,7 @@ def test_objects():
 
 def test_params():
     sampler = ScenicSampler.fromScenicCode(
-        'param x = (3, 5)\n'
+        'param x = Range(3, 5)\n'
         'ego = Object',
         maxIterations=1
     )
@@ -31,7 +31,7 @@ def test_params():
 
 def test_quoted_param():
     sampler = ScenicSampler.fromScenicCode(
-        'param "x/y" = (3, 5)\n'
+        'param "x/y" = Range(3, 5)\n'
         'ego = Object',
         maxIterations=1
     )
@@ -52,7 +52,7 @@ def test_lists():
 
 def test_save_restore(tmpdir):
     sampler = ScenicSampler.fromScenicCode(
-        'ego = Object at (-1, 1) @ 0',
+        'ego = Object at Range(-1, 1) @ 0',
         maxIterations=1
     )
     checkSaveRestore(sampler, tmpdir)

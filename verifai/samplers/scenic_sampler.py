@@ -7,7 +7,8 @@ from scenic.core.vectors import Vector
 from scenic.core.type_support import canCoerceType, coerce, underlyingType
 
 # TODO unify handling of these custom types!
-from scenic.simulators.gta.interface import CarModel as GTACarModel, CarColor
+from scenic.simulators.utils.colors import Color
+from scenic.simulators.gta.interface import CarModel as GTACarModel
 from scenic.simulators.webots.road.car_models import (
     CarModel as WebotsCarModel, carModels as webotsCarModels)
 
@@ -28,14 +29,14 @@ def convertToVerifaiType(value, strict=True):
         return float(value)
     elif ty is list or ty is tuple:
         return tuple(convertToVerifaiType(e, strict=strict) for e in value)
-    elif canCoerceType(ty, Vector):
-        return tuple(coerce(value, Vector))
     elif ty is GTACarModel:
         return value
     elif ty is WebotsCarModel:
         return value
-    elif ty is CarColor:
+    elif ty is Color:
         return value
+    elif canCoerceType(ty, Vector):
+        return tuple(coerce(value, Vector))
     elif strict:    # Unknown type, so give up if we're being strict
         raise RuntimeError(
             f'attempted to convert Scenic value {value} of unknown type {ty}')
@@ -47,6 +48,12 @@ def domainForValue(value):
     ty = underlyingType(value)
     if ty is float or ty is int:
         domain = scalarDomain
+    elif ty is GTACarModel:
+        domain = gtaModelDomain
+    elif ty is WebotsCarModel:
+        domain = webotsModelDomain
+    elif ty is Color:
+        domain = colorDomain
     elif canCoerceType(ty, Vector):
         domain = vectorDomain
     elif ty is str:
@@ -56,12 +63,6 @@ def domainForValue(value):
             domain = Categorical(*value.options)
         else:
             domain = None   # we can't ensure the domain is finite
-    elif ty is GTACarModel:
-        domain = gtaModelDomain
-    elif ty is WebotsCarModel:
-        domain = webotsModelDomain
-    elif ty is CarColor:
-        domain = colorDomain
     else:
         domain = None   # no corresponding Domain known
     if not needsSampling(value):
@@ -115,7 +116,7 @@ normalizedProperties = {
 # hard-coded Domains for certain properties
 specialDomainProperties = {
     'webotsType': Categorical(*(model.name for model in webotsCarModels)),
-    'color': colorDomain,   # to allow CarColors, tuples, or lists
+    'color': colorDomain,   # to allow Colors, tuples, or lists
 }
 
 def domainForObject(obj, ignoredProperties):

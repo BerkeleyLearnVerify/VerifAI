@@ -779,7 +779,7 @@ class Struct(Domain):
         ints = []
         for domain in self.domains:
             subints = domain.standardizedIntervals
-            if subints is ():
+            if subints == ():
                 return ()
             else:
                 ints.extend(subints)
