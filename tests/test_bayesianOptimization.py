@@ -3,7 +3,7 @@ from verifai.samplers import *
 from dotmap import DotMap
 
 import pytest
-from verifai.tests.utils import sampleWithFeedback, checkSaveRestore
+from tests.utils import sampleWithFeedback, checkSaveRestore
 
 pytest.importorskip('GPyOpt')
 

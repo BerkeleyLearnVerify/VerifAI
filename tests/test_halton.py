@@ -2,7 +2,7 @@ from dotmap import DotMap
 
 from verifai.features import *
 from verifai.samplers import *
-from verifai.tests.utils import checkSaveRestore
+from tests.utils import checkSaveRestore
 
 def test_halton():
     carDomain = Struct({

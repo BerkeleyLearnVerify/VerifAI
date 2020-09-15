@@ -1,8 +1,11 @@
 
 import pytest
+from dotmap import DotMap
 
 from verifai.samplers.scenic_sampler import ScenicSampler
-from verifai.tests.utils import sampleWithFeedback, checkSaveRestore
+from verifai.scenic_server import ScenicServer
+from verifai.falsifier import generic_falsifier
+from tests.utils import sampleWithFeedback, checkSaveRestore
 
 ## Basic
 
@@ -87,20 +90,42 @@ def test_active_save_restore(tmpdir):
 
 ## Webots
 
-def test_webots_mars(pathToLocalFile):
-    path = pathToLocalFile('scenic_mars.scenic')
-    sampler = ScenicSampler.fromScenario(path)
-
+def runSampler(sampler):
     for i in range(3):
         sample = sampler.nextSample()
         print(f'Sample #{i}:')
         print(sample)
+
+def test_webots_mars(pathToLocalFile):
+    path = pathToLocalFile('scenic_mars.scenic')
+    sampler = ScenicSampler.fromScenario(path)
+    runSampler(sampler)
 
 def test_webots_road(pathToLocalFile):
     path = pathToLocalFile('scenic_road.scenic')
     sampler = ScenicSampler.fromScenario(path)
+    runSampler(sampler)
 
-    for i in range(3):
-        sample = sampler.nextSample()
-        print(f'Sample #{i}:')
-        print(sample)
+## Driving domain
+
+def test_driving(pathToLocalFile):
+    path = pathToLocalFile('scenic_driving.scenic')
+    sampler = ScenicSampler.fromScenario(path)
+    runSampler(sampler)
+
+## Dynamic scenarios
+
+def test_driving_dynamic(pathToLocalFile):
+    path = pathToLocalFile('scenic_driving.scenic')
+    sampler = ScenicSampler.fromScenario(path)
+    falsifier_params = DotMap(
+        n_iters=3,
+        save_error_table=False,
+        save_safe_table=False,
+    )
+    server_options = DotMap(maxSteps=2, verbosity=3)
+    falsifier = generic_falsifier(sampler=sampler,
+                                  falsifier_params=falsifier_params,
+                                  server_class=ScenicServer,
+                                  server_options=server_options)
+    falsifier.run_falsifier()

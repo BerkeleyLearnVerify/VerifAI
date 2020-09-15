@@ -3,7 +3,7 @@ from dotmap import DotMap
 
 from verifai.features import *
 from verifai.samplers import *
-from verifai.tests.utils import sampleWithFeedback, checkSaveRestore
+from tests.utils import sampleWithFeedback, checkSaveRestore
 
 ## Utilities
 

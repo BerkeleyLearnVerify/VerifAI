@@ -2,7 +2,7 @@ from verifai.features import *
 from verifai.samplers import *
 from dotmap import DotMap
 
-from verifai.tests.utils import sampleWithFeedback, checkSaveRestore
+from tests.utils import sampleWithFeedback, checkSaveRestore
 
 def test_crossEntropy():
     carDomain = Struct({

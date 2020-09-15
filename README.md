@@ -24,4 +24,6 @@ If you have any problems using VerifAI, please submit an issue to the GitHub rep
 
 * _examples_: examples and additional documentation for particular simulators, including CARLA, Webots, X-Plane, and OpenAI Gym;
 
-* _verifai_: the source for the `verifai` package proper.
+* _src/verifai_: the source for the `verifai` package proper;
+
+* _tests_: the VerifAI test suite.

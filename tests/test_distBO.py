@@ -2,7 +2,7 @@ from verifai.features import *
 from verifai.samplers import *
 from dotmap import DotMap
 from verifai.samplers.dist_BO import DistBayesOptSampler
-from verifai.tests.utils import sampleWithFeedback
+from tests.utils import sampleWithFeedback
 
 import pytest
 
