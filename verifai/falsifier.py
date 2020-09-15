@@ -8,7 +8,7 @@ import numpy as np
 
 class falsifier(ABC):
     def __init__(self, monitor, sampler_type=None, sampler=None, sample_space=None,
-                 falsifier_params=None, server_options={}):
+                 falsifier_params=None, server_options={}, server_class=Server):
         self.sample_space = sample_space
         self.sampler_type = sampler_type
         self.sampler = sampler
@@ -38,10 +38,10 @@ class falsifier(ABC):
         if server_options is not None:
             server_params.update(server_options)
         if server_params.init:
-            self.init_server(server_params)
+            self.init_server(server_params, server_class)
             self.init_error_table()
 
-    def init_server(self, server_options):
+    def init_server(self, server_options, server_class):
         if self.verbosity >= 1:
             print("Initializing server")
         sampling_data = DotMap()
@@ -52,7 +52,7 @@ class falsifier(ABC):
         sampling_data.sampler_params = self.sampler_params
         sampling_data.sampler = self.sampler
 
-        self.server = Server(sampling_data, self.monitor, options=server_options)
+        self.server = server_class(sampling_data, self.monitor, options=server_options)
 
     def init_error_table(self):
         # Initializing error table
@@ -131,7 +131,7 @@ class falsifier(ABC):
 
 class generic_falsifier(falsifier):
     def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options = {}):
+                 falsifier_params=None, server_options={}, server_class=Server):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):
@@ -142,12 +142,12 @@ class generic_falsifier(falsifier):
 
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
-                         server_options=server_options)
+                         server_options=server_options, server_class=server_class)
 
 class mtl_falsifier(generic_falsifier):
     def __init__(self, specification, sampler_type = None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options = {}):
+                 falsifier_params=None, server_options={}, server_class=Server):
         monitor = mtl_specification(specification=specification)
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
-                         server_options=server_options)
+                         server_options=server_options, server_class=server_class)

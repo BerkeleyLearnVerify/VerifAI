@@ -38,6 +38,7 @@ future = "^0.18.2"
 pandas = "^1.0.3"
 scikit-learn = "^0.22.2"
 pygame = "^2.0.0.dev6"
+kmodes = "^0.10.2"
 scenic = "^2.0.0b1"
 
 GPy = {version = "^1.9.9", optional = true}

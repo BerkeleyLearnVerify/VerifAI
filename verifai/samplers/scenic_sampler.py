@@ -15,6 +15,7 @@ from scenic.simulators.webots.road.car_models import (
 from verifai.features import (Constant, Categorical, Real, Box, Array, Struct,
                               Feature, FeatureSpace)
 from verifai.samplers.feature_sampler import FeatureSampler
+from verifai.utils.frozendict import frozendict
 
 scalarDomain = Real()
 vectorDomain = Array(scalarDomain, (2,))
@@ -29,6 +30,8 @@ def convertToVerifaiType(value, strict=True):
         return float(value)
     elif ty is list or ty is tuple:
         return tuple(convertToVerifaiType(e, strict=strict) for e in value)
+    elif issubclass(ty, dict) and not needsSampling(value):
+        return frozendict(value)
     elif ty is GTACarModel:
         return value
     elif ty is WebotsCarModel:
@@ -200,6 +203,7 @@ class ScenicSampler(FeatureSampler):
     def __init__(self, scenario, maxIterations=None, ignoredProperties=None):
         self.scenario = scenario
         self.maxIterations = 2000 if maxIterations is None else maxIterations
+        self.lastScene = None
         if ignoredProperties is None:
             ignoredProperties = defaultIgnoredProperties
         space, self.quotedParams = spaceForScenario(scenario, ignoredProperties)
@@ -220,9 +224,9 @@ class ScenicSampler(FeatureSampler):
                    ignoredProperties=ignoredProperties)
 
     def nextSample(self, feedback=None):
-        scene, iterations = self.scenario.generate(
+        self.lastScene, iterations = self.scenario.generate(
             maxIterations=self.maxIterations, feedback=feedback)
-        return self.pointForScene(scene)
+        return self.pointForScene(self.lastScene)
 
     def pointForScene(self, scene):
         """Convert a sampled Scenic Scene to a point in the Scenario's space."""

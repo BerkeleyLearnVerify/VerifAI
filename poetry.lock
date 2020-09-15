@@ -401,6 +401,20 @@ version = "1.2.0"
 
 [[package]]
 category = "main"
+description = "Python implementations of the k-modes and k-prototypes clustering algorithms for clustering categorical data."
+name = "kmodes"
+optional = false
+python-versions = "*"
+version = "0.10.2"
+
+[package.dependencies]
+joblib = ">=0.11"
+numpy = ">=1.10.4"
+scikit-learn = ">=0.19.0"
+scipy = ">=0.13.3"
+
+[[package]]
+category = "main"
 description = "A lens library for python"
 name = "lenses"
 optional = false
@@ -1149,7 +1163,7 @@ dev = ["pytest", "pytest-randomly", "tox", "sphinx", "sphinx-autodoc-typehints",
 examples = ["tensorflow", "gym", "opencv-python", "Pillow"]
 
 [metadata]
-content-hash = "d6e7ea687e2fc07ad2c33ad841e3d6e9e23d4c9a6685079282784fdb9daf0d7c"
+content-hash = "76e86b2ac1a6ce501f6a99491c1f55f1c94eecc9eb5058bbe4744ab3998a0169"
 python-versions = "^3.8.0"
 
 [metadata.files]
@@ -1385,6 +1399,10 @@ kiwisolver = [
     {file = "kiwisolver-1.2.0-cp38-none-win32.whl", hash = "sha256:d069ef4b20b1e6b19f790d00097a5d5d2c50871b66d10075dab78938dc2ee2cf"},
     {file = "kiwisolver-1.2.0-cp38-none-win_amd64.whl", hash = "sha256:18d749f3e56c0480dccd1714230da0f328e6e4accf188dd4e6884bdd06bf02dd"},
     {file = "kiwisolver-1.2.0.tar.gz", hash = "sha256:247800260cd38160c362d211dcaf4ed0f7816afb5efe56544748b21d6ad6d17f"},
+]
+kmodes = [
+    {file = "kmodes-0.10.2-py2.py3-none-any.whl", hash = "sha256:038b270aca1feebb98367894b3c87ea2b0e0107de7a8d6e0884066f4da8d97cc"},
+    {file = "kmodes-0.10.2.tar.gz", hash = "sha256:2ae2e8dbc7b317f81354b951811df911ba2875d31a45bda4c6275e5eb35b84f2"},
 ]
 lenses = [
     {file = "lenses-0.5.0-py3-none-any.whl", hash = "sha256:5fa2892eaf6c1da230423e9b4db70348f8dc6d193f3546fce2f2fe6e9e608dcd"},
