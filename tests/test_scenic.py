@@ -5,7 +5,7 @@ from dotmap import DotMap
 from verifai.samplers.scenic_sampler import ScenicSampler
 from verifai.scenic_server import ScenicServer
 from verifai.falsifier import generic_falsifier
-from tests.utils import sampleWithFeedback, checkSaveRestore
+# from utils import sampleWithFeedback, checkSaveRestore
 
 ## Basic
 
@@ -129,3 +129,4 @@ def test_driving_dynamic(pathToLocalFile):
                                   server_class=ScenicServer,
                                   server_options=server_options)
     falsifier.run_falsifier()
+    print('end of test')

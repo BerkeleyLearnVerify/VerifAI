@@ -104,6 +104,7 @@ def pointForValue(dom, scenicValue):
 ignoredParameters = {
     'externalSampler', 'externalSamplerRejectionFeedback',
     'verifaiSamplerType', 'verifaiSamplerParams',
+    'behavior',
 }
 # properties not included when sampling
 defaultIgnoredProperties = {
