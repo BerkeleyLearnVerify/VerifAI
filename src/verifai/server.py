@@ -5,6 +5,9 @@ from dotmap import DotMap
 from verifai.features.features import *
 from verifai.samplers.feature_sampler import *
 import functools
+import ray
+
+ray.init(ignore_reinit_error=True)
 
 def default_sampler_params(sampler_type):
     if sampler_type == 'random':
@@ -160,3 +163,7 @@ class Server:
         sample = self.get_sample(self.lastValue)
         self.lastValue = self.evaluate_sample(sample)
         return sample, self.lastValue
+
+@ray.remote
+class ParallelServer(Server):
+    pass

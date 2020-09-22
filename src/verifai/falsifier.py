@@ -1,10 +1,20 @@
 from abc import ABC
-from verifai.server import Server
+from verifai.server import Server, ParallelServer
+from verifai.scenic_server import ScenicServer, ParallelScenicServer
 from verifai.samplers import TerminationException
 from dotmap import DotMap
 from verifai.monitor import mtl_specification, specification_monitor
 from verifai.error_table import error_table
 import numpy as np
+import pickle
+import ray
+from ray.util import ActorPool
+
+def parallelized(server_class):
+    if server_class == Server:
+        return ParallelServer
+    elif server_class == ScenicServer:
+        return ParallelScenicServer
 
 class falsifier(ABC):
     def __init__(self, monitor, sampler_type=None, sampler=None, sample_space=None,
@@ -101,6 +111,7 @@ class falsifier(ABC):
     def run_falsifier(self):
         i = 0
         ce_num = 0
+        print(f'Running falsifier; server class is {type(self.server)}')
         while True:
             if i == self.n_iters:
                 break
@@ -110,8 +121,8 @@ class falsifier(ABC):
                 if self.verbosity >= 1:
                     print("Sampler has generated all possible samples")
                 break
-            if self.verbosity >= 1:
-                print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
+            # if self.verbosity >= 1:
+            #     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
             if isinstance(rho, (list, tuple)):
                 check_var = rho[-1]
@@ -151,3 +162,72 @@ class mtl_falsifier(generic_falsifier):
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
                          server_options=server_options, server_class=server_class)
+
+class parallel_falsifier(falsifier):
+
+    def __init__(self, monitor, sampler_type=None, sample_space=None,
+                 falsifier_params=None, server_options={}, server_class=Server, num_workers=5,
+                 scenic_path=None):
+        self.scenic_path = scenic_path
+        self.num_workers = num_workers
+        super().__init__(sample_space=sample_space, sampler_type=sampler_type,
+                         monitor=monitor, falsifier_params=falsifier_params, sampler=None,
+                         server_options=server_options, server_class=parallelized(server_class))
+
+class generic_parallel_falsifier(parallel_falsifier):
+    def __init__(self, monitor=None, sampler_type= None, sample_space=None, sampler=None,
+                 falsifier_params=None, server_options={}, server_class=Server, scenic_path=None):
+        if monitor is None:
+            class monitor(specification_monitor):
+                def __init__(self):
+                    def specification(traj):
+                        return np.inf
+                    super().__init__(specification)
+            monitor = monitor()
+
+        super().__init__(sample_space=sample_space, sampler_type=sampler_type,
+                         monitor=monitor, falsifier_params=falsifier_params,
+                         server_options=server_options, server_class=server_class,
+                         scenic_path=scenic_path)
+
+    def init_server(self, server_options, server_class):
+        if self.verbosity >= 1:
+            print("Initializing server")
+        sampling_data = DotMap()
+        if self.sampler_type is None:
+            self.sampler_type = 'random'
+        sampling_data.sampler_type = self.sampler_type
+        sampling_data.sample_space = self.sample_space
+        sampling_data.sampler_params = self.sampler_params
+        # sampling_data.sampler = self.sampler
+
+        self.servers = [server_class.remote(sampling_data, self.scenic_path,
+                                        self.monitor, options=server_options)
+                                        for _ in range(self.num_workers)]
+        self.server_pool = ActorPool(self.servers)
+
+    def run_falsifier(self):
+        i = 0
+        ce_num = 0
+        outputs = self.server_pool.map_unordered(lambda a, v: a.run_server.remote(),
+                                                        list(range(self.n_iters)))
+        for i, (sample, rho) in enumerate(outputs):
+            # if self.verbosity >= 1:
+            #     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
+            self.samples[i] = sample
+            if isinstance(rho, (list, tuple)):
+                check_var = rho[-1]
+            else:
+                check_var = rho
+            if check_var <= self.fal_thres:
+                if self.save_error_table:
+                    self.populate_error_table(sample, rho)
+                ce_num = ce_num + 1
+                if ce_num >= self.ce_num_max:
+                    break
+            elif self.save_safe_table:
+                self.populate_error_table(sample, rho, error=False)
+        for server in self.servers:
+            ray.get(server.terminate.remote())
+        # while True:
+        # ray.get(self.server.terminate.remote())

@@ -7,6 +7,9 @@ from dotmap import DotMap
 from verifai.server import Server
 from verifai.samplers.scenic_sampler import ScenicSampler
 from scenic.core.simulators import SimulationCreationError
+import ray
+
+ray.init(ignore_reinit_error=True)
 
 class ScenicServer(Server):
     def __init__(self, sampling_data, monitor, options={}):
@@ -62,3 +65,20 @@ class ScenicServer(Server):
 
     def terminate(self):
         pass
+
+@ray.remote
+class ParallelScenicServer(ScenicServer):
+
+    def __init__(self, sampling_data, scenic_path, monitor, options={}):
+        sampler = ScenicSampler.fromScenario(scenic_path)
+        sampling_data.sampler = sampler
+        super().__init__(sampling_data, monitor, options)
+
+    # def run_server(self):
+    #     sample, val = super().run_server()
+    #     print(sample)
+    #     for obj in sample.objects:
+    #         print(f'Object behavior is {obj.behavior}')
+    #     return sample, val
+
+    pass
