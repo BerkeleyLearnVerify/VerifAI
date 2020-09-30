@@ -176,7 +176,8 @@ class parallel_falsifier(falsifier):
 
 class generic_parallel_falsifier(parallel_falsifier):
     def __init__(self, monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=Server, scenic_path=None):
+                 falsifier_params=None, server_options={}, server_class=Server, num_workers=5,
+                 scenic_path=None):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):
@@ -188,7 +189,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params,
                          server_options=server_options, server_class=server_class,
-                         scenic_path=scenic_path)
+                         num_workers=num_workers, scenic_path=scenic_path)
 
     def init_server(self, server_options, server_class):
         if self.verbosity >= 1:
@@ -201,9 +202,9 @@ class generic_parallel_falsifier(parallel_falsifier):
         sampling_data.sampler_params = self.sampler_params
         # sampling_data.sampler = self.sampler
 
-        self.servers = [server_class.remote(sampling_data, self.scenic_path,
+        self.servers = [server_class.remote(i, self.num_workers, sampling_data, self.scenic_path,
                                         self.monitor, options=server_options)
-                                        for _ in range(self.num_workers)]
+                                        for i in range(self.num_workers)]
         self.server_pool = ActorPool(self.servers)
 
     def run_falsifier(self):

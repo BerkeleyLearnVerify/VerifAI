@@ -32,7 +32,6 @@ class ScenicServer(Server):
         self.maxSteps = defaults.maxSteps
         self.verbosity = defaults.verbosity
         self.maxIterations = defaults.maxIterations
-        # TODO call super after refactoring networking into Server subclass?
 
     def run_server(self):
         sample = self.sampler.nextSample(self.lastValue)
@@ -69,16 +68,25 @@ class ScenicServer(Server):
 @ray.remote
 class ParallelScenicServer(ScenicServer):
 
-    def __init__(self, sampling_data, scenic_path, monitor, options={}):
+    def __init__(self, worker_number, total_workers, sampling_data, scenic_path, monitor, options={}):
+        self.worker_number = worker_number
+        self.total_workers = total_workers
         sampler = ScenicSampler.fromScenario(scenic_path)
         sampling_data.sampler = sampler
         super().__init__(sampling_data, monitor, options)
+        print(f'Sampler class is {type(self.sampler)}')
+        for _ in range(self.worker_number):
+            self.sampler.nextSample(self.lastValue)
 
-    # def run_server(self):
-    #     sample, val = super().run_server()
-    #     print(sample)
-    #     for obj in sample.objects:
-    #         print(f'Object behavior is {obj.behavior}')
-    #     return sample, val
-
-    pass
+    def run_server(self):
+        for _ in range(self.total_workers):
+            sample = self.sampler.nextSample(self.lastValue)
+        scene = self.sampler.lastScene
+        assert scene
+        result = self._simulate(scene)
+        if result is None:
+            self.lastValue = self.rejectionFeedback
+        else:
+            self.lastValue = (0 if self.monitor is None
+                              else self.monitor.evaluate(result.trajectory))
+        return sample, self.lastValue
