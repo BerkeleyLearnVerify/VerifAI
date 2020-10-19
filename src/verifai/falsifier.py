@@ -200,18 +200,14 @@ class generic_parallel_falsifier(parallel_falsifier):
         sampling_data.sampler_type = self.sampler_type
         sampling_data.sample_space = self.sample_space
         sampling_data.sampler_params = self.sampler_params
-        # sampling_data.sampler = self.sampler
 
-        self.servers = [server_class.remote(i, self.num_workers, sampling_data, self.scenic_path,
-                                        self.monitor, options=server_options)
-                                        for i in range(self.num_workers)]
-        self.server_pool = ActorPool(self.servers)
+        self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
+        self.monitor, options=server_options)
 
     def run_falsifier(self):
         i = 0
         ce_num = 0
-        outputs = self.server_pool.map_unordered(lambda a, v: a.run_server.remote(),
-                                                        list(range(self.n_iters)))
+        outputs = self.server.run_server()
         for i, (sample, rho) in enumerate(outputs):
             # if self.verbosity >= 1:
             #     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
@@ -228,7 +224,5 @@ class generic_parallel_falsifier(parallel_falsifier):
                     break
             elif self.save_safe_table:
                 self.populate_error_table(sample, rho, error=False)
-        for server in self.servers:
-            ray.get(server.terminate.remote())
         # while True:
         # ray.get(self.server.terminate.remote())
