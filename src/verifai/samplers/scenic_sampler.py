@@ -110,6 +110,7 @@ defaultIgnoredProperties = {
     'viewAngle', 'visibleDistance', 'cameraOffset',
     'allowCollisions', 'requireVisible', 'regionContainedIn',
     'mutator', 'mutationEnabled', 'positionStdDev', 'headingStdDev',
+    'behavior',
 }
 # certain built-in properties requiring type normalization
 normalizedProperties = {
