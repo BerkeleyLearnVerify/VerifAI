@@ -25,6 +25,14 @@ class DomainSampler:
     def __init__(self, domain):
         self.domain = domain
 
+    def getSample(self):
+        """Generate the next sample, given the current distribution."""
+        return self.nextSample(feedback=None)
+    
+    def update(self, sample, rho):
+        """Use the provided sample and rho value to update the state of the sampler."""
+        pass
+
     def nextSample(self, feedback=None):
         """Generate the next sample, given feedback from the last sample."""
         raise NotImplementedError('tried to use abstract Sampler')
@@ -54,6 +62,10 @@ class SplitSampler(DomainSampler):
     def nextSample(self, feedback=None):
         return self.domain.rejoinPoints(
             *(sampler.nextSample(feedback) for sampler in self.samplers))
+
+    def update(self, sample, rho):
+        for sampler in self.samplers:
+            sampler.update(sample, rho)
 
     @classmethod
     def fromPartition(cls, domain, partition, defaultSampler=None):

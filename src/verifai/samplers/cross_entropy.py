@@ -46,6 +46,9 @@ class CrossEntropySampler(DomainSampler):
     def nextSample(self, feedback=None):
         return self.split_sampler.nextSample(feedback)
 
+    def update(self, sample, rho):
+        self.split_sampler.update(sample, rho)
+
 class ContinuousCrossEntropySampler(BoxSampler):
     def __init__(self, domain, alpha, thres,
                  buckets=10, dist=None):
@@ -67,21 +70,32 @@ class ContinuousCrossEntropySampler(BoxSampler):
         self.current_sample = None
 
     def nextVector(self, feedback=None):
-        if feedback is None:
-            assert self.current_sample is None
-        elif feedback < self.thres:
-            self.update_dist()
+        self.update(self.current_sample, feedback)
+        return self.getSample()
+    
+    def getSample(self):
         bucket_samples = np.array([np.random.choice(int(b), p=self.dist[i])
                                    for i, b in enumerate(self.buckets)])
         self.current_sample = bucket_samples
-        return tuple(np.random.uniform(bs, bs+1.)/b for b, bs
+        ret = tuple(np.random.uniform(bs, bs+1.)/b for b, bs
               in zip(self.buckets, bucket_samples))
-
-    def update_dist(self):
+        return ret
+    
+    def update(self, sample, rho):
+        print(f'buckets = {self.buckets}')
+        if rho is None or rho >= self.thres:
+            return
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
-        for ud,b in zip(update_dist,self.current_sample):
+        for ud,b in zip(update_dist, sample):
             ud[b] = 1.
         self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
+
+    '''
+    New API:
+    1) getSample which just samples from the distribution
+    2) update which takes in the sample and rho value to update distribution
+    3) nextSample
+    '''
 
 
 class DiscreteCrossEntropySampler(DiscreteBoxSampler):
@@ -99,7 +113,8 @@ class DiscreteCrossEntropySampler(DiscreteBoxSampler):
 
     def nextVector(self, feedback=None):
         if feedback is None:
-            assert self.current_sample is None
+            pass
+            # assert self.current_sample is None
         elif feedback < self.thres:
             self.update_dist()
         self.current_sample=\
@@ -115,3 +130,10 @@ class DiscreteCrossEntropySampler(DiscreteBoxSampler):
             ud[b-left] = 1.
 
         self.dist = self.alpha * self.dist + (1 - self.alpha) * update_dist
+
+class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
+    
+    def __init__(self, domain, alpha, thres, priority_graph,
+                 buckets=10, dist=None):
+        self.priority_graph = priority_graph
+        super().__init__(domain, alpha, thres, buckets=10, dist=dist)

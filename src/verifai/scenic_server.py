@@ -11,8 +11,10 @@ from scenic.core.external_params import VerifaiSampler
 from scenic.core.distributions import RejectionException
 import ray
 from ray.util import ActorPool
+from ray.util.multiprocessing import Pool
 
-ray.init(ignore_reinit_error=True)
+if not ray.is_initialized():
+    ray.init(ignore_reinit_error=True)
 
 class ScenicServer(Server):
     def __init__(self, sampling_data, monitor, options={}):
@@ -80,6 +82,7 @@ class SampleSimulator():
         self.sampler = ScenicSampler.fromScenario(scenic_path, maxIterations=1)
         # reset self.sampler.scenario.externalSampler to dummy sampler
         # that reads argument
+        self.worker_num = worker_num
         self.sampler.scenario.externalSampler = DummySampler(self.sampler.scenario.externalParams,
         self.sampler.scenario.params)
         self.simulator = self.sampler.scenario.getSimulator()
@@ -101,8 +104,9 @@ class SampleSimulator():
         '''
         Need to generate scene from sample here.
         '''
+        t0 = time.time()
         self.sampler.scenario.externalSampler.last_sample = sample
-        sample = self.sampler.nextSample(sample)
+        full_sample = self.sampler.nextSample(sample)
         scene = self.sampler.lastScene
         startTime = time.time()
         if self.verbosity >= 1:
@@ -118,13 +122,12 @@ class SampleSimulator():
         if self.verbosity >= 1:
             totalTime = time.time() - startTime
             print(f'  Ran simulation in {totalTime:.4g} seconds.')
-            print(f'Result is {result}')
         if result is None:
             self.lastValue = self.rejectionFeedback
         else:
             self.lastValue = (0 if self.monitor is None
                               else self.monitor.evaluate(result.trajectory))
-        return sample, self.lastValue
+        return self.worker_num, full_sample, self.lastValue
 
 class ParallelScenicServer(ScenicServer):
 
@@ -139,35 +142,71 @@ class ParallelScenicServer(ScenicServer):
         for i in range(self.total_workers)]
         self.simulator_pool = ActorPool(self.sample_simulators)
 
-    def run_server(self):
-        '''
-        The following need to happen here:
-
-        1. the external sampler is called and the next set of samples retrieved.
-        2. the sample is sent to the appropriate SampleSimulator object (self.sample_simulators)
-        3. SampleSimulator runs the simulation and returns the result here.
-        4. return sample, rho
-        '''
-        # externalSampler.sample called here
-        startTime = time.time()
-        samples = []
-        while len(samples) < self.n_iters:
-            self.sampler.scenario.externalSampler.sample(self.lastValue)
-            sample = self.sampler.scenario.externalSampler.cachedSample
+    def _generate_next_sample(self):
+        i = 0
+        feedback = self.lastValue
+        ext = self.sampler.scenario.externalSampler
+        while i < 2000:
+            t0 = time.time()
+            ext.cachedSample = ext.getSample()
+            try:
+                buckets = ext.sampler.domainSampler.current_sample
+            except Exception as e:
+                print(e)
+                buckets = None
+            sample = ext.cachedSample
+            # print(sample)
             # sample = Samplable.sampleAll(self.sampler.scenario.dependencies)
             sim = self.sample_simulators[0]
             try:
                 ray.get(sim.get_sample.remote(sample))
-                samples.append(sample)
+                # print(f'Successfully generated sample after {i} tries')
+                # self.lastValue = feedback
+                return sample, buckets
             except SimulationCreationError as e:
                 if self.verbosity >= 1:
                     print(f'  Failed to create simulation: {e}')
-                return None
+                return None, None
             except RejectionException as e:
+                i += 1
+                feedback = ext.rejectionFeedback
                 continue
-        # only works for passive samplers
-        results = self.simulator_pool.map_unordered(lambda a, v: a.simulate.remote(v), samples)
-            # if self.verbosity >= 1:
-            #     totalTime = time.time() - startTime
-            #     print(f'  Ran simulation in {totalTime:.4g} seconds.')
+        return None, None
+
+    def run_server(self):
+        startTime = time.time()
+        results = []
+        futures = []
+        samples = []
+        bucket_values = []
+        for i in range(self.total_workers):
+            next_sample, buckets = self._generate_next_sample()
+            samples.append(next_sample)
+            bucket_values.append(buckets)
+            sim = self.sample_simulators[i]
+            futures.append(sim.simulate.remote(next_sample))
+        while True:
+            done, _ = ray.wait(futures)
+            result = ray.get(done[0])
+            t = time.time() - startTime
+            print(f'result[{len(results)}] at t = {t:.5f} s')
+            index, sample, rho = result
+            self.lastValue = rho
+            results.append((sample, rho))
+            buckets = bucket_values[index]
+            if buckets is not None:
+                print(f'updating with buckets = {buckets}')
+                self.sampler.scenario.externalSampler.update(buckets, rho)
+            # print(f'Future #{index} finished: rho = {rho}')
+            if len(results) >= self.n_iters:
+                break
+            t0 = time.time()
+            next_sample, buckets = self._generate_next_sample()
+            elapsed = time.time() - t0
+            print(f'Generated next sample in {elapsed:.5f} seconds')
+            sim = self.sample_simulators[index]
+            samples[index] = next_sample
+            bucket_values[index] = buckets
+            futures[index] = sim.simulate.remote(next_sample)
+
         return results

@@ -108,6 +108,14 @@ class FeatureSampler:
                 makeRandomSampler)
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
+    def getSample(self):
+        """Generate the next sample, given the current distribution."""
+        return self.nextSample(feedback=None)
+    
+    def update(self, sample, rho):
+        """Use the provided sample and rho value to update the state of the sampler."""
+        pass
+
     def nextSample(self, feedback=None):
         """Generate the next sample, given feedback from the last sample."""
         raise NotImplementedError('tried to use abstract FeatureSampler')
@@ -164,6 +172,7 @@ class LateFeatureSampler(FeatureSampler):
     def nextSample(self, feedback=None):
         if self.lengthSampler is None:
             domainPoint = self.domainSampler.nextSample(feedback)
+            print(f'domainPoint = {domainPoint}')
         else:
             if self.lastLength is not None:
                 self.feedbacks[self.lastLength] = feedback
@@ -172,6 +181,18 @@ class LateFeatureSampler(FeatureSampler):
             lastFeedback = self.feedbacks[length]
             domainPoint = self.domainSamplers[length].nextSample(lastFeedback)
         return self.space.makePoint(*domainPoint)
+    
+    def update(self, sample, rho):
+        if self.lengthSampler is None:
+            self.domainSampler.update(sample, rho)
+        else:
+            self.lengthSampler.update(sample, rho)
+            lengths = []
+            for name, feature in self.space.namedFeatures:
+                if feature.lengthDomain:
+                    lengths.append(len(getattr(sample, name)))
+            lengthPoint = self.lengthDomain.makePoint(*lengths)
+            self.domainSamplers[lengthPoint].update(sample, rho)
 
 ### Utilities
 

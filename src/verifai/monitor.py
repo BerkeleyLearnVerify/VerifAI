@@ -20,3 +20,12 @@ class mtl_specification(specification_monitor):
 
     def evaluate(self, traj):
         return self.specification(traj)
+
+class multi_objective_monitor(specification_monitor):
+    def __init__(self, specification, priority_graph):
+        super().__init__(specification)
+        self.priority_graph = priority_graph
+
+def generate_monitor_and_sampler(objective_function, priority_graph):
+    return multi_objective_monitor(objective_function, priority_graph), \
+        None # need to instantiate sampler correctly here
