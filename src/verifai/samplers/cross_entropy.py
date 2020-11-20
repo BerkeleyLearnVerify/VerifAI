@@ -82,7 +82,6 @@ class ContinuousCrossEntropySampler(BoxSampler):
         return ret
     
     def update(self, sample, rho):
-        print(f'buckets = {self.buckets}')
         if rho is None or rho >= self.thres:
             return
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
