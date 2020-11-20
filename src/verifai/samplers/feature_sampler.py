@@ -171,29 +171,28 @@ class LateFeatureSampler(FeatureSampler):
 
     def nextSample(self, feedback=None):
         if self.lengthSampler is None:
-            domainPoint, info = self.domainSampler.nextSample(feedback)
+            domainPoint = self.domainSampler.nextSample(feedback)
             print(f'domainPoint = {domainPoint}')
         else:
             if self.lastLength is not None:
                 self.feedbacks[self.lastLength] = feedback
-            length, info1 = self.lengthSampler.nextSample(feedback)
+            length = self.lengthSampler.nextSample(feedback)
             self.lastLength = length
             lastFeedback = self.feedbacks[length]
-            domainPoint, info2 = self.domainSamplers[length].nextSample(lastFeedback)
-            info = (info1, info2)
-        return self.space.makePoint(*domainPoint), info
+            domainPoint = self.domainSamplers[length].nextSample(lastFeedback)
+        return self.space.makePoint(*domainPoint)
     
-    def update(self, sample, info, rho):
+    def update(self, sample, rho):
         if self.lengthSampler is None:
-            self.domainSampler.update(sample, info, rho)
+            self.domainSampler.update(sample, rho)
         else:
-            self.lengthSampler.update(sample, info, rho)
+            self.lengthSampler.update(sample, rho)
             lengths = []
             for name, feature in self.space.namedFeatures:
                 if feature.lengthDomain:
                     lengths.append(len(getattr(sample, name)))
             lengthPoint = self.lengthDomain.makePoint(*lengths)
-            self.domainSamplers[lengthPoint].update(sample, info, rho)
+            self.domainSamplers[lengthPoint].update(sample, rho)
 
 ### Utilities
 

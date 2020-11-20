@@ -2,6 +2,7 @@
 param map = localPath('/home/scenic/Desktop/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr')  # or other CARLA map that definitely works
 param carla_map = 'Town03'
 model scenic.simulators.carla.model #located in scenic/simulators/carla/model.scenic
+param verifaiSamplerType = 'ce'
 
 DISTANCE_TO_INTERSECTION = VerifaiRange(-20, -10)
 HESITATION_TIME = VerifaiRange(0, 10)
