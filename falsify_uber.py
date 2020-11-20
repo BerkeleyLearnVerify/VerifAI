@@ -26,7 +26,7 @@ def main():
         save_error_table=True,
         save_safe_table=True,
     )
-    falsifier_params.fal_thres = np.inf
+    falsifier_params.fal_thres = 5.2
     server_options = DotMap(maxSteps=200, verbosity=0)
     falsifier = generic_falsifier(sampler=sampler,
                                   falsifier_params=falsifier_params,
