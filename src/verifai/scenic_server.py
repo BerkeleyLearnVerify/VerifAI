@@ -14,9 +14,6 @@ from ray.util import ActorPool
 from ray.util.multiprocessing import Pool
 import progressbar
 
-if not ray.is_initialized():
-    ray.init(ignore_reinit_error=True)
-
 class ScenicServer(Server):
     def __init__(self, sampling_data, monitor, options={}):
         if sampling_data.sampler is None:
@@ -133,6 +130,8 @@ class SampleSimulator():
 class ParallelScenicServer(ScenicServer):
 
     def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor, options={}):
+        if not ray.is_initialized():
+            ray.init(ignore_reinit_error=True)
         self.total_workers = total_workers
         self.n_iters = n_iters
         sampler = ScenicSampler.fromScenario(scenic_path)

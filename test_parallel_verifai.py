@@ -71,5 +71,5 @@ def test_driving_dynamic_parallel(num_workers=5, n_iters=None):
     return falsifier
 
 if __name__ == '__main__':
-    # test_driving_dynamic()
+    test_driving_dynamic()
     test_driving_dynamic_parallel(num_workers=2)

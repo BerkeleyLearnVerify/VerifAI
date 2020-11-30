@@ -7,9 +7,6 @@ from verifai.samplers.feature_sampler import *
 import functools
 import ray
 
-if not ray.is_initialized():
-    ray.init(ignore_reinit_error=True)
-
 def default_sampler_params(sampler_type):
     if sampler_type == 'random':
         return

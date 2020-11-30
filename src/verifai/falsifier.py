@@ -8,7 +8,6 @@ from verifai.error_table import error_table
 import numpy as np
 import pickle
 import ray
-from ray.util import ActorPool
 
 def parallelized(server_class):
     if server_class == Server:
