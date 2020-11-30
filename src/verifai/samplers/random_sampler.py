@@ -11,9 +11,9 @@ class RandomSampler(DomainSampler):
 
     def nextSample(self, feedback=None):
         if self.distribution is None:
-            return self.domain.uniformPoint()
+            return self.domain.uniformPoint(), None
         else:
-            return self.distribution.sample()
+            return self.distribution.sample(), None
 
     def __repr__(self):
         rep = f'RandomSampler({self.domain}'

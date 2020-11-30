@@ -23,14 +23,14 @@ class RejectionSampler(ConstrainedSampler):
                     f'exceeded RejectionSampler limit of {samples} rejections')
             samples += 1
             try:
-                sample = self.sampler.nextSample(feedback)
+                sample, info = self.sampler.nextSample(feedback)
                 if self.specification is not None:
                     reject = not self.specification.isSatisfiedBy(sample)
                 else:
                     reject = False
             except RejectionException:
                 reject = True
-        return sample
+        return sample, info
 
     def __repr__(self):
         return (f'RejectionSampler({self.sampler}, {self.spec}, '

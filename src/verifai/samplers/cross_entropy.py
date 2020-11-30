@@ -46,8 +46,11 @@ class CrossEntropySampler(DomainSampler):
     def nextSample(self, feedback=None):
         return self.split_sampler.nextSample(feedback)
 
-    def update(self, sample, rho):
-        self.split_sampler.update(sample, rho)
+    def getSample(self):
+        return self.split_sampler.getSample()
+
+    def update(self, sample, info, rho):
+        self.split_sampler.update(sample, info, rho)
 
 class ContinuousCrossEntropySampler(BoxSampler):
     def __init__(self, domain, alpha, thres,
@@ -70,22 +73,22 @@ class ContinuousCrossEntropySampler(BoxSampler):
         self.current_sample = None
 
     def nextVector(self, feedback=None):
-        self.update(self.current_sample, feedback)
-        return self.getSample()
+        self.update(None, self.current_sample, feedback)
+        return self.generateSample()
     
-    def getSample(self):
+    def generateSample(self):
         bucket_samples = np.array([np.random.choice(int(b), p=self.dist[i])
                                    for i, b in enumerate(self.buckets)])
         self.current_sample = bucket_samples
         ret = tuple(np.random.uniform(bs, bs+1.)/b for b, bs
               in zip(self.buckets, bucket_samples))
-        return ret
+        return ret, bucket_samples
     
-    def update(self, sample, rho):
+    def update(self, sample, info, rho):
         if rho is None or rho >= self.thres:
             return
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
-        for ud,b in zip(update_dist, sample):
+        for ud,b in zip(update_dist, info):
             ud[b] = 1.
         self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
 

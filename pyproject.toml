@@ -61,6 +61,7 @@ ipykernel = "^5.3.4"
 seaborn = "^0.11.0"
 cvxpy = "^1.1.7"
 ray = "^1.0.1"
+progressbar2 = "^3.53.1"
 
 [tool.poetry.extras]
 bayesopt = ["GPy", "GPyOpt"]

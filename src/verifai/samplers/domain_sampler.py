@@ -29,7 +29,7 @@ class DomainSampler:
         """Generate the next sample, given the current distribution."""
         return self.nextSample(feedback=None)
     
-    def update(self, sample, rho):
+    def update(self, sample, info, rho):
         """Use the provided sample and rho value to update the state of the sampler."""
         pass
 
@@ -60,12 +60,27 @@ class SplitSampler(DomainSampler):
         self.samplers = tuple(samplers)
 
     def nextSample(self, feedback=None):
-        return self.domain.rejoinPoints(
-            *(sampler.nextSample(feedback) for sampler in self.samplers))
-
-    def update(self, sample, rho):
+        samples, infos = [], []
         for sampler in self.samplers:
-            sampler.update(sample, rho)
+            sample, info = sampler.nextSample(feedback)
+            samples.append(sample)
+            infos.append(info)
+        # print(f'samples = {samples}, infos = {infos}')
+        return self.domain.rejoinPoints(*samples), infos
+
+    def getSample(self):
+        samples, infos = [], []
+        for sampler in self.samplers:
+            sample, info = sampler.getSample()
+            samples.append(sample)
+            infos.append(info)
+        # print(f'samples = {samples}, infos = {infos}')
+        return self.domain.rejoinPoints(*samples), infos
+
+    def update(self, sample, info, rho):
+        for sampler, i in zip(self.samplers, info):
+            if i is not None:
+                sampler.update(sample, i, rho)
 
     @classmethod
     def fromPartition(cls, domain, partition, defaultSampler=None):
@@ -126,8 +141,13 @@ class BoxSampler(DomainSampler):
         super().__init__(domain)
 
     def nextSample(self, feedback=None):
-        sample = self.nextVector(feedback)
-        return self.domain.unstandardize(sample)
+        sample, info = self.nextVector(feedback)
+        # print(f'inside BoxSampler.nextSample and sample = {sample}')
+        return self.domain.unstandardize(sample), info
+    
+    def getSample(self):
+        sample, info = self.nextVector()
+        return self.domain.unstandardize(sample), info
 
     def nextVector(self, feedback=None):
         raise NotImplementedError('tried to use abstract BoxSampler')
@@ -142,8 +162,12 @@ class DiscreteBoxSampler(DomainSampler):
         super().__init__(domain)
 
     def nextSample(self, feedback=None):
-        sample = self.nextVector(feedback)
-        return self.domain.unstandardize(sample)
+        sample, info = self.nextVector(feedback)
+        return self.domain.unstandardize(sample), info
+
+    def getSample(self):
+        sample, info = self.nextVector()
+        return self.domain.unstandardize(sample), info
 
     def nextVector(self, feedback=None):
         raise NotImplementedError('tried to use abstract DiscreteBoxSampler')

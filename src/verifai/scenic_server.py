@@ -12,6 +12,7 @@ from scenic.core.distributions import RejectionException
 import ray
 from ray.util import ActorPool
 from ray.util.multiprocessing import Pool
+import progressbar
 
 if not ray.is_initialized():
     ray.init(ignore_reinit_error=True)
@@ -73,7 +74,7 @@ class ScenicServer(Server):
 class DummySampler(VerifaiSampler):
 
     def nextSample(self, feedback):
-        return self.last_sample
+        return self.last_sample, None
 
 @ray.remote
 class SampleSimulator():
@@ -148,12 +149,9 @@ class ParallelScenicServer(ScenicServer):
         ext = self.sampler.scenario.externalSampler
         while i < 2000:
             t0 = time.time()
-            ext.cachedSample = ext.getSample()
-            try:
-                buckets = ext.sampler.domainSampler.current_sample
-            except Exception as e:
-                print(e)
-                buckets = None
+            # otherSample = ext.nextSample(feedback)
+            # print(f'otherSample = {otherSample}')
+            ext.cachedSample, info = ext.getSample()
             sample = ext.cachedSample
             # print(sample)
             # sample = Samplable.sampleAll(self.sampler.scenario.dependencies)
@@ -162,7 +160,8 @@ class ParallelScenicServer(ScenicServer):
                 ray.get(sim.get_sample.remote(sample))
                 # print(f'Successfully generated sample after {i} tries')
                 # self.lastValue = feedback
-                return sample, buckets
+                # print(f'sample = {sample}; info = {info}')
+                return sample, info
             except SimulationCreationError as e:
                 if self.verbosity >= 1:
                     print(f'  Failed to create simulation: {e}')
@@ -178,35 +177,37 @@ class ParallelScenicServer(ScenicServer):
         results = []
         futures = []
         samples = []
-        bucket_values = []
+        infos = []
+        bar = progressbar.ProgressBar(max_value=self.n_iters)
         for i in range(self.total_workers):
-            next_sample, buckets = self._generate_next_sample()
+            next_sample, info = self._generate_next_sample()
             samples.append(next_sample)
-            bucket_values.append(buckets)
+            infos.append(info)
             sim = self.sample_simulators[i]
             futures.append(sim.simulate.remote(next_sample))
         while True:
             done, _ = ray.wait(futures)
             result = ray.get(done[0])
             t = time.time() - startTime
-            print(f'result[{len(results)}] at t = {t:.5f} s')
+            # print(f'result[{len(results)}] at t = {t:.5f} s')
             index, sample, rho = result
             self.lastValue = rho
             results.append((sample, rho))
-            buckets = bucket_values[index]
-            if buckets is not None:
-                print(f'updating with buckets = {buckets}')
-                self.sampler.scenario.externalSampler.update(buckets, rho)
+            info = infos[index]
+            # print(f'updating with buckets = {info}')
+            self.sampler.scenario.externalSampler.update(sample, info, rho)
             # print(f'Future #{index} finished: rho = {rho}')
+            bar.update(len(results))
             if len(results) >= self.n_iters:
+                print()
                 break
             t0 = time.time()
-            next_sample, buckets = self._generate_next_sample()
+            next_sample, info = self._generate_next_sample()
             elapsed = time.time() - t0
-            print(f'Generated next sample in {elapsed:.5f} seconds')
+            # print(f'Generated next sample in {elapsed:.5f} seconds')
             sim = self.sample_simulators[index]
             samples[index] = next_sample
-            bucket_values[index] = buckets
+            infos[index] = info
             futures[index] = sim.simulate.remote(next_sample)
 
         return results
