@@ -67,7 +67,7 @@ class ContinuousGridSampler(BoxSampler):
             sample_vec.append(1./(k-1)*(t%k))
             t = t//k
         self.iters+=1
-        return tuple(sample_vec)
+        return tuple(sample_vec), None
 
 class DiscreteGridSampler(DiscreteBoxSampler):
     def __init__(self, domain):
@@ -88,4 +88,4 @@ class DiscreteGridSampler(DiscreteBoxSampler):
             sample_vec.append(left + t%(right-left+1))
             t = t//(right-left +1)
         self.iters+=1
-        return tuple(sample_vec)
+        return tuple(sample_vec), None

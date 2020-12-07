@@ -39,7 +39,7 @@ class DistBayesOptSampler(BoxSampler):
             #print("Doing random sampling")
             sample = np.random.uniform(0, 1, self.dimension)
             self.X = np.vstack((self.X, np.atleast_2d(sample)))
-            return tuple(sample)
+            return tuple(sample), None
 
         #print("Doing BO")
         X_vector = np.empty((self.num_GPs, 1))
@@ -58,4 +58,4 @@ class DistBayesOptSampler(BoxSampler):
         i = func_val.argmin()
         sample = X_vector[i]
         self.X = np.vstack((self.X, np.atleast_2d(sample)))
-        return tuple(sample)
+        return tuple(sample), None

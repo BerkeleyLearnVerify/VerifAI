@@ -74,7 +74,7 @@ class SimulatedAnnealingSampler(BoxSampler):
             # update iteration count within an epoch and total iteration count
             self.num_iter_in_epoch += 1
 
-            return sample
+            return sample, None
 
         if self.old_loss is None:
             self.old_loss = feedback
@@ -113,4 +113,4 @@ class SimulatedAnnealingSampler(BoxSampler):
                                      self.decay_rate, self.dimension)
         self.last_sample = new_sample
 
-        return new_sample
+        return new_sample, None

@@ -40,4 +40,4 @@ class HaltonSampler(BoxSampler):
     def nextVector(self, feedback=None):
         self.sample_index +=1
         return tuple(halton_sequence(index=self.sample_index,
-                                     base=p) for p in self.prime_bases)
+                                     base=p) for p in self.prime_bases), None

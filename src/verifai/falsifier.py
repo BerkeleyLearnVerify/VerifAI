@@ -7,6 +7,7 @@ from verifai.monitor import mtl_specification, specification_monitor
 from verifai.error_table import error_table
 import numpy as np
 import pickle
+import progressbar
 import ray
 
 def parallelized(server_class):
@@ -111,11 +112,13 @@ class falsifier(ABC):
         i = 0
         ce_num = 0
         print(f'Running falsifier; server class is {type(self.server)}')
+        # bar = progressbar.ProgressBar(max_value=self.n_iters)
         while True:
             if i == self.n_iters:
                 break
             try:
                 sample, rho = self.server.run_server()
+                # print(f'sample = {sample}, rho = {rho}')
             except TerminationException:
                 if self.verbosity >= 1:
                     print("Sampler has generated all possible samples")
@@ -136,6 +139,7 @@ class falsifier(ABC):
             elif self.save_safe_table:
                 self.populate_error_table(sample, rho, error=False)
             i += 1
+            # bar.update(i)
         self.server.terminate()
 
 
@@ -208,8 +212,8 @@ class generic_parallel_falsifier(parallel_falsifier):
         ce_num = 0
         outputs = self.server.run_server()
         for i, (sample, rho) in enumerate(outputs):
-            # if self.verbosity >= 1:
-            #     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
+            if self.verbosity >= 1:
+                print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
             if isinstance(rho, (list, tuple)):
                 check_var = rho[-1]

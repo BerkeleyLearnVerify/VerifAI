@@ -37,7 +37,7 @@ class BayesOptSampler(BoxSampler):
             #print("Doing random sampling")
             sample = np.random.uniform(0, 1, self.dimension)
             self.X = np.vstack((self.X, np.atleast_2d(sample)))
-            return tuple(sample)
+            return tuple(sample), None
         #print("Doing BO")
 
         BO = GPyOpt.methods.BayesianOptimization(
@@ -45,4 +45,4 @@ class BayesOptSampler(BoxSampler):
             domain=self.bounds, X=self.X, Y=self.Y, normalize_Y=False)
         sample = BO.suggest_next_locations()[0]
         self.X = np.vstack((self.X, np.atleast_2d(sample)))
-        return tuple(sample)
+        return tuple(sample), None

@@ -4,6 +4,7 @@ import numpy as np
 from verifai.samplers.domain_sampler import BoxSampler, DiscreteBoxSampler, \
     DomainSampler, SplitSampler
 from verifai.samplers.random_sampler import RandomSampler
+import networkx as nx
 
 class CrossEntropySampler(DomainSampler):
     def __init__(self, domain, ce_params):
@@ -13,7 +14,7 @@ class CrossEntropySampler(DomainSampler):
         self.cont_buckets = ce_params.cont.buckets
         self.cont_dist = ce_params.cont.dist
         self.disc_dist = ce_params.disc.dist
-        self.cont_ce = lambda domain: ContinuousCrossEntropySampler(domain=domain,
+        self.cont_ce = lambda domain: MultiContinuousCrossEntropySampler(domain=domain,
                                                      buckets=self.cont_buckets,
                                                      dist=self.cont_dist,
                                                      alpha=self.alpha,
@@ -122,7 +123,7 @@ class DiscreteCrossEntropySampler(DiscreteBoxSampler):
         self.current_sample=\
             tuple(left + np.random.choice(right-left+1, p=self.dist[i])
                      for i, (left, right) in enumerate(self.domain.standardizedIntervals))
-        return self.current_sample
+        return self.current_sample, None
 
     def update_dist(self):
         update_dist = np.array([np.zeros(right-left+1)
@@ -135,7 +136,62 @@ class DiscreteCrossEntropySampler(DiscreteBoxSampler):
 
 class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
     
-    def __init__(self, domain, alpha, thres, priority_graph,
-                 buckets=10, dist=None):
-        self.priority_graph = priority_graph
+    def __init__(self, domain, alpha, thres, priority_graph=None,
+                 buckets=10, dist=None, epsilon=0.5):
+        if priority_graph is not None:
+            self.set_graph(priority_graph)
+        self.epsilon = epsilon
+        self.still_sampling = False
         super().__init__(domain, alpha, thres, buckets=10, dist=dist)
+
+    def nextVector(self, feedback=None):
+        self.update(None, self.current_sample, feedback)
+        return self.generateSample()
+    
+    def generateSample(self):
+        if not self.still_sampling:
+            self.sample_randomly = np.random.uniform() < self.epsilon
+        if np.random.uniform() < self.epsilon:
+            bucket_samples = np.array([np.random.choice(int(b))
+                                    for i, b in enumerate(self.buckets)])
+        else:
+            bucket_samples = np.array([np.random.choice(int(b), p=self.dist[i])
+                                    for i, b in enumerate(self.buckets)])
+        self.current_sample = bucket_samples
+        ret = tuple(np.random.uniform(bs, bs+1.)/b for b, bs
+              in zip(self.buckets, bucket_samples))
+        return ret, bucket_samples
+
+
+    def set_graph(self, graph):
+        self.priority_graph = graph
+        try:
+            self.thres = [self.thres] * graph.number_of_nodes()
+        except Exception as e:
+            print(e)
+            assert len(self.thres) == graph.number_of_nodes(), 'Must have as many thresholds as graph nodes'
+        self.num_properties = graph.number_of_nodes()
+
+    def update(self, sample, info, rho):
+        if isinstance(rho, int):
+            self.still_sampling = True
+            return
+        if rho is None or any([r is None for r in rho]):
+            self.still_sampling = False
+            return
+        to_update = [True] * self.num_properties
+        for node in nx.dfs_preorder_nodes(self.priority_graph):
+            if not to_update[node]:
+                continue
+            b = rho[node] <= self.thres[node]
+            if not b:
+                to_update[node] = False
+                for subnode in nx.descendants(self.priority_graph, node):
+                    to_update[subnode] = False
+        num_updates = sum(to_update)
+        update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
+        for ud,b in zip(update_dist, info):
+            ud[b] = 1.
+        for _ in range(num_updates):
+            self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
+        print(self.dist)
