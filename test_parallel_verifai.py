@@ -9,7 +9,7 @@ from verifai.monitor import specification_monitor
 from verifai.falsifier import generic_falsifier
 
 # The specification must assume specification_monitor class
-class confidence_spec(specification_monitor):
+class distance_monitor(specification_monitor):
     def __init__(self):
         def specification(traj):
             min_dist = np.inf
@@ -30,7 +30,7 @@ def test_driving_dynamic():
         save_safe_table=True,
     )
     server_options = DotMap(maxSteps=2, verbosity=0)
-    monitor = confidence_spec()
+    monitor = distance_monitor()
     falsifier = generic_falsifier(sampler=sampler,
                                   falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
@@ -51,7 +51,7 @@ def test_driving_dynamic_parallel(num_workers=5, n_iters=None):
         save_safe_table=True,
     )
     server_options = DotMap(maxSteps=2, verbosity=0)
-    monitor = confidence_spec()
+    monitor = distance_monitor()
     falsifier = generic_parallel_falsifier(falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
                                   server_options=server_options,
