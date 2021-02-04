@@ -2,7 +2,7 @@ import scenic
 
 param map = localPath('tests/Town01.xodr')
 param carla_map = 'Town01'
-param verifaiSamplerType = 'ce'
+param verifaiSamplerType = 'eg'
 
 model scenic.domains.driving.model
 

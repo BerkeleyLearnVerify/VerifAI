@@ -21,6 +21,7 @@ def default_sampler_params(sampler_type):
 
 def choose_sampler(sample_space, sampler_type,
                    sampler_params=None):
+    print(f'sampler type is {sampler_type}')
     if sampler_type == 'random':
         return 'random', FeatureSampler.randomSamplerFor(sample_space)
 
@@ -53,6 +54,46 @@ def choose_sampler(sample_space, sampler_type,
         sampler = FeatureSampler.crossEntropySamplerFor(
             sample_space, ce_params=ce_params)
         return 'ce', sampler
+    if sampler_type == 'mab':
+        print('Creating multi-armed bandit sampler')
+        if sampler_params is None:
+            ce_params = default_sampler_params('ce')
+        else:
+            ce_params = default_sampler_params('ce')
+            if 'cont' in sampler_params:
+                if 'buckets' in sampler_params.cont:
+                    ce_params.cont.buckets = sampler_params.cont.buckets
+                if 'dist' in sampler_params.cont:
+                    ce_params.cont.dist = sampler_params.cont.dist
+            if 'dist' in sampler_params.disc:
+                ce_params.disc.dist = sampler_params.disc.dist
+            if 'alpha' in sampler_params:
+                ce_params.alpha = sampler_params.alpha
+            if 'thres' in sampler_params:
+                ce_params.thres = sampler_params.thres
+        sampler = FeatureSampler.multiArmedBanditSamplerFor(
+            sample_space, ce_params=ce_params)
+        return 'mab', sampler
+    if sampler_type == 'eg':
+        print('Creating epsilon-greedy sampler')
+        if sampler_params is None:
+            ce_params = default_sampler_params('ce')
+        else:
+            ce_params = default_sampler_params('ce')
+            if 'cont' in sampler_params:
+                if 'buckets' in sampler_params.cont:
+                    ce_params.cont.buckets = sampler_params.cont.buckets
+                if 'dist' in sampler_params.cont:
+                    ce_params.cont.dist = sampler_params.cont.dist
+            if 'dist' in sampler_params.disc:
+                ce_params.disc.dist = sampler_params.disc.dist
+            if 'alpha' in sampler_params:
+                ce_params.alpha = sampler_params.alpha
+            if 'thres' in sampler_params:
+                ce_params.thres = sampler_params.thres
+        sampler = FeatureSampler.epsilonGreedySamplerFor(
+            sample_space, ce_params=ce_params)
+        return 'eg', sampler
 
     if sampler_type == 'bo':
         if sampler_params is None:

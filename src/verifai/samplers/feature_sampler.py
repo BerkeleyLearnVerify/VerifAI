@@ -13,6 +13,8 @@ from verifai.samplers.rejection import RejectionSampler
 from verifai.samplers.halton import HaltonSampler
 from verifai.samplers.cross_entropy import CrossEntropySampler
 from verifai.samplers.random_sampler import RandomSampler
+from verifai.samplers.multi_armed_bandit import MultiArmedBanditSampler
+from verifai.samplers.eg_sampler import EpsilonGreedySampler
 from verifai.samplers.bayesian_optimization import BayesOptSampler
 from verifai.samplers.simulated_annealing import SimulatedAnnealingSampler
 from verifai.samplers.grid_sampler import GridSampler
@@ -59,6 +61,26 @@ class FeatureSampler:
         that are not standardizable."""
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: CrossEntropySampler(domain=domain,
+                                               ce_params=ce_params))
+
+    @staticmethod
+    def epsilonGreedySamplerFor(space, ce_params):
+        """Creates a cross-entropy sampler for a given space.
+
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable."""
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: EpsilonGreedySampler(domain=domain,
+                                               ce_params=ce_params))
+
+    @staticmethod
+    def multiArmedBanditSamplerFor(space, ce_params):
+        """Creates a multi-armed bandit sampler for a given space.
+
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable."""
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: MultiArmedBanditSampler(domain=domain,
                                                ce_params=ce_params))
 
     @staticmethod

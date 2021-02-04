@@ -14,7 +14,7 @@ class CrossEntropySampler(DomainSampler):
         self.cont_buckets = ce_params.cont.buckets
         self.cont_dist = ce_params.cont.dist
         self.disc_dist = ce_params.disc.dist
-        self.cont_ce = lambda domain: MultiContinuousCrossEntropySampler(domain=domain,
+        self.cont_ce = lambda domain: ContinuousCrossEntropySampler(domain=domain,
                                                      buckets=self.cont_buckets,
                                                      dist=self.cont_dist,
                                                      alpha=self.alpha,
@@ -143,6 +143,7 @@ class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
         self.epsilon = epsilon
         self.still_sampling = False
         super().__init__(domain, alpha, thres, buckets=10, dist=dist)
+        self.counts = np.array([np.zeros(int(b)) for b in self.buckets])
 
     def nextVector(self, feedback=None):
         self.update(None, self.current_sample, feedback)
@@ -151,7 +152,7 @@ class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
     def generateSample(self):
         if not self.still_sampling:
             self.sample_randomly = np.random.uniform() < self.epsilon
-        if np.random.uniform() < self.epsilon:
+        if self.sample_randomly:
             bucket_samples = np.array([np.random.choice(int(b))
                                     for i, b in enumerate(self.buckets)])
         else:
@@ -190,8 +191,9 @@ class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
                     to_update[subnode] = False
         num_updates = sum(to_update)
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
-        for ud,b in zip(update_dist, info):
+        for i, (ud, b) in enumerate(zip(update_dist, info)):
             ud[b] = 1.
+            self.counts[i][b] += 1
         for _ in range(num_updates):
             self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
         print(self.dist)
