@@ -79,7 +79,7 @@ class DummySampler(VerifaiSampler):
 @ray.remote
 class SampleSimulator():
 
-    def __init__(self, scenic_path, worker_num, monitor, options={}):
+    def __init__(self, scenic_path, worker_num, monitor, options={}, use_carla=False):
         self.sampler = ScenicSampler.fromScenario(scenic_path, maxIterations=1)
         # reset self.sampler.scenario.externalSampler to dummy sampler
         # that reads argument
@@ -90,7 +90,8 @@ class SampleSimulator():
         self.monitor = monitor
         # carla_map = self.sampler.scenario.externalParams.carla_map
         # assert carla_map, 'Map must be specified in Scenic script'
-        # self.simulator = CarlaSimulator(map=carla_map, port=2002 + 2 * worker_num)
+        if use_carla:
+            self.simulator = CarlaSimulator(map=carla_map, port=2000 + 2 * worker_num)
         defaults = DotMap(maxSteps=None, verbosity=0, maxIterations=1)
         defaults.update(options)
         self.maxSteps = defaults.maxSteps
@@ -102,6 +103,8 @@ class SampleSimulator():
         sample = self.sampler.nextSample(sample)
 
     def simulate(self, sample):
+
+        print(f'Worker {self.worker_num} running simulation')
         '''
         Need to generate scene from sample here.
         '''
@@ -132,7 +135,7 @@ class SampleSimulator():
 
 class ParallelScenicServer(ScenicServer):
 
-    def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor, options={}):
+    def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor, options={}, use_carla=False):
         if not ray.is_initialized():
             ray.init(ignore_reinit_error=True)
         self.total_workers = total_workers
@@ -141,7 +144,7 @@ class ParallelScenicServer(ScenicServer):
         sampling_data.sampler = sampler
         super().__init__(sampling_data, monitor, options)
         print(f'Sampler class is {type(self.sampler)}')
-        self.sample_simulators = [SampleSimulator.remote(scenic_path, i, monitor, options)
+        self.sample_simulators = [SampleSimulator.remote(scenic_path, i, monitor, options, use_carla)
         for i in range(self.total_workers)]
         self.simulator_pool = ActorPool(self.sample_simulators)
 
@@ -155,8 +158,7 @@ class ParallelScenicServer(ScenicServer):
             # print(f'otherSample = {otherSample}')
             ext.cachedSample, info = ext.getSample()
             sample = ext.cachedSample
-            # print(sample)
-            # sample = Samplable.sampleAll(self.sampler.scenario.dependencies)
+            print(sample)
             sim = self.sample_simulators[0]
             try:
                 ray.get(sim.get_sample.remote(sample))

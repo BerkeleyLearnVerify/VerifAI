@@ -82,9 +82,8 @@ class ContinuousMultiArmedBanditSampler(BoxSampler):
         proportions = self.errors / self.counts
         # print(proportions)
         Q = proportions + np.sqrt(2 / self.counts * np.log(1 + self.t*np.log(self.t)**2))
-        # choose the bucket with the highest "goodness" value, breaking ties randomly.
-        bucket_samples = np.array([np.random.choice(np.flatnonzero(np.isclose(Q[i], Q[i].max())))
-            for i in range(len(self.buckets))])
+        bucket_samples = np.array([np.argmax(Q[i]) for i in range(len(self.buckets))])
+        print(f'Bucket error proportions: {proportions}')
         print(f'Bucket goodness values: {Q}')
         print(f'Choosing buckets {bucket_samples}')
         # print(Q, bucket_samples)
@@ -97,6 +96,7 @@ class ContinuousMultiArmedBanditSampler(BoxSampler):
         if rho is None:
             return
         self.t += 1
+        print(f'Updating with buckets {info} and rho value {rho} and threshold {self.thres}')
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
         for i, (ud, b) in enumerate(zip(update_dist, info)):
             ud[b] = 1.
