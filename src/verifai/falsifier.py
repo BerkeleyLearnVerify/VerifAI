@@ -171,9 +171,10 @@ class parallel_falsifier(falsifier):
 
     def __init__(self, monitor, sampler_type=None, sample_space=None,
                  falsifier_params=None, server_options={}, server_class=Server, num_workers=5,
-                 scenic_path=None):
+                 scenic_path=None, use_carla=False):
         self.scenic_path = scenic_path
         self.num_workers = num_workers
+        self.use_carla = use_carla
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params, sampler=None,
                          server_options=server_options, server_class=parallelized(server_class))
@@ -181,7 +182,7 @@ class parallel_falsifier(falsifier):
 class generic_parallel_falsifier(parallel_falsifier):
     def __init__(self, monitor=None, sampler_type= None, sample_space=None, sampler=None,
                  falsifier_params=None, server_options={}, server_class=Server, num_workers=5,
-                 scenic_path=None):
+                 scenic_path=None, use_carla=False):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):
@@ -206,7 +207,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         sampling_data.sampler_params = self.sampler_params
 
         self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
-        self.monitor, options=server_options)
+        self.monitor, options=server_options, use_carla=self.use_carla)
 
     def run_falsifier(self):
         i = 0

@@ -15,7 +15,7 @@ def specification(traj):
         dist = obj1.distanceTo(obj2)
         min_dist = min(min_dist, dist)
     print(f'min_dist = {min_dist}')
-    return min_dist
+    return min_dist - 5.2
 
 def main():
 
@@ -26,13 +26,15 @@ def main():
         save_error_table=True,
         save_safe_table=True,
     )
-    falsifier_params.fal_thres = 5.2
     server_options = DotMap(maxSteps=200, verbosity=0)
-    falsifier = generic_falsifier(sampler=sampler,
+    falsifier = generic_parallel_falsifier(sampler=sampler,
                                   falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
                                   server_options=server_options,
-                                  monitor=specification_monitor(specification))
+                                  monitor=specification_monitor(specification),
+                                  num_workers=5,
+                                  scenic_path=path,
+                                  use_carla=True)
     t0 = time.time()
     falsifier.run_falsifier()
     t = time.time() - t0

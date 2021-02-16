@@ -1,6 +1,7 @@
 #SET MAP AND MODEL (i.e. definitions of all referenceable vehicle types, road library, etc)
-param map = localPath('/home/scenic/Desktop/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr')  # or other CARLA map that definitely works
+param map = localPath('/home/scenic/Desktop/Carla/VerifiedAI/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr')  # or other CARLA map that definitely works
 param carla_map = 'Town03'
+param verifaiSamplerType = 'mab'
 model scenic.simulators.carla.model #located in scenic/simulators/carla/model.scenic
 
 # Parameters of the scenario.

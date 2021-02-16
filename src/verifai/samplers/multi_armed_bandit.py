@@ -97,6 +97,7 @@ class ContinuousMultiArmedBanditSampler(BoxSampler):
         if rho is None:
             return
         self.t += 1
+        print(f'Updating with buckets {info} and rho value {rho} and threshold {self.thres}')
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
         for i, (ud, b) in enumerate(zip(update_dist, info)):
             ud[b] = 1.

@@ -94,7 +94,6 @@ class ContinuousEpsilonGreedySampler(BoxSampler):
         self.current_sample = bucket_samples
         ret = tuple(np.random.uniform(bs, bs+1.)/b for b, bs
               in zip(self.buckets, bucket_samples))
-        print(f'{bucket_samples}', end='; ')
         return ret, bucket_samples
     
     def update(self, sample, info, rho):
