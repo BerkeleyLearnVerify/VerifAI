@@ -33,7 +33,7 @@ class ScenicServer(Server):
         if isinstance(self.monitor, multi_objective_monitor):
             self.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].set_graph(self.monitor.graph)
         self.lastValue = None
-        defaults = DotMap(maxSteps=None, verbosity=2, maxIterations=1)
+        defaults = DotMap(maxSteps=None, verbosity=0, maxIterations=1)
         defaults.update(options)
         self.maxSteps = defaults.maxSteps
         self.verbosity = defaults.verbosity
@@ -99,7 +99,7 @@ class SampleSimulator():
 
     def get_sample(self, sample):
         self.sampler.scenario.externalSampler.last_sample = sample
-        sample = self.sampler.nextSample(sample)
+        self.full_sample = self.sampler.nextSample(sample)
 
     def simulate(self, sample):
         '''
@@ -107,7 +107,6 @@ class SampleSimulator():
         '''
         t0 = time.time()
         self.sampler.scenario.externalSampler.last_sample = sample
-        full_sample = self.sampler.nextSample(sample)
         scene = self.sampler.lastScene
         startTime = time.time()
         if self.verbosity >= 1:
@@ -128,7 +127,7 @@ class SampleSimulator():
         else:
             self.lastValue = (0 if self.monitor is None
                               else self.monitor.evaluate(result.trajectory))
-        return self.worker_num, full_sample, self.lastValue
+        return self.worker_num, self.full_sample, self.lastValue
 
 class ParallelScenicServer(ScenicServer):
 
@@ -145,7 +144,7 @@ class ParallelScenicServer(ScenicServer):
         for i in range(self.total_workers)]
         self.simulator_pool = ActorPool(self.sample_simulators)
 
-    def _generate_next_sample(self):
+    def _generate_next_sample(self, worker_num):
         i = 0
         feedback = self.lastValue
         ext = self.sampler.scenario.externalSampler
@@ -157,7 +156,7 @@ class ParallelScenicServer(ScenicServer):
             sample = ext.cachedSample
             # print(sample)
             # sample = Samplable.sampleAll(self.sampler.scenario.dependencies)
-            sim = self.sample_simulators[0]
+            sim = self.sample_simulators[worker_num]
             try:
                 ray.get(sim.get_sample.remote(sample))
                 # print(f'Successfully generated sample after {i} tries')
@@ -182,7 +181,7 @@ class ParallelScenicServer(ScenicServer):
         infos = []
         bar = progressbar.ProgressBar(max_value=self.n_iters)
         for i in range(self.total_workers):
-            next_sample, info = self._generate_next_sample()
+            next_sample, info = self._generate_next_sample(i)
             samples.append(next_sample)
             infos.append(info)
             sim = self.sample_simulators[i]
@@ -204,7 +203,7 @@ class ParallelScenicServer(ScenicServer):
                 print()
                 break
             t0 = time.time()
-            next_sample, info = self._generate_next_sample()
+            next_sample, info = self._generate_next_sample(index)
             elapsed = time.time() - t0
             # print(f'Generated next sample in {elapsed:.5f} seconds')
             sim = self.sample_simulators[index]

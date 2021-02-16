@@ -29,7 +29,7 @@ class falsifier(ABC):
             save_error_table=True, save_safe_table=True,
             error_table_path=None, safe_table_path=None,
             n_iters=1000, ce_num_max=np.inf, fal_thres=0,
-            sampler_params=None, verbosity=2,
+            sampler_params=None, verbosity=0,
         )
         if falsifier_params is not None:
             params.update(falsifier_params)
@@ -112,6 +112,7 @@ class falsifier(ABC):
         i = 0
         ce_num = 0
         print(f'Running falsifier; server class is {type(self.server)}')
+        bar = progressbar.ProgressBar(max_value=self.n_iters)
         # bar = progressbar.ProgressBar(max_value=self.n_iters)
         while True:
             if i == self.n_iters:
@@ -139,13 +140,13 @@ class falsifier(ABC):
             elif self.save_safe_table:
                 self.populate_error_table(sample, rho, error=False)
             i += 1
-            # bar.update(i)
+            bar.update(i)
         self.server.terminate()
 
 
 class generic_falsifier(falsifier):
     def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=Server):
+                 falsifier_params=None, server_options={}, server_class=Server, scenic_path=None):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):

@@ -80,13 +80,13 @@ class ContinuousMultiArmedBanditSampler(BoxSampler):
     
     def generateSample(self):
         proportions = self.errors / self.counts
-        # print(proportions)
-        Q = proportions + np.sqrt(2 / self.counts * np.log(1 + self.t*np.log(self.t)**2))
+        # print(f'proportions: {proportions}')
+        Q = proportions + np.sqrt(2 / self.counts * np.log(self.t))
         # choose the bucket with the highest "goodness" value, breaking ties randomly.
         bucket_samples = np.array([np.random.choice(np.flatnonzero(np.isclose(Q[i], Q[i].max())))
             for i in range(len(self.buckets))])
-        print(f'Bucket goodness values: {Q}')
-        print(f'Choosing buckets {bucket_samples}')
+        # print(f'Bucket goodness values: {Q}')
+        print(f'{bucket_samples}', end='; ')
         # print(Q, bucket_samples)
         self.current_sample = bucket_samples
         ret = tuple(np.random.uniform(bs, bs+1.)/b for b, bs
