@@ -1,7 +1,7 @@
 #SET MAP AND MODEL (i.e. definitions of all referenceable vehicle types, road library, etc)
 param map = localPath('/Users/kesav/Documents/Carla/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr')  # or other CARLA map that definitely works
 param carla_map = localPath('/Users/kesav/Documents/Carla/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr') 
-param render = False
+param render = True
 model scenic.simulators.newtonian.model #located in scenic/simulators/carla/model.scenic
 param verifaiSamplerType = 'mab'
 

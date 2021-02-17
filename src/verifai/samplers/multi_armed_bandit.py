@@ -96,6 +96,15 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
     def update(self, sample, info, rho):
         if rho is None:
             return
+        is_multi = False
+        try:
+            iter(rho)
+            is_multi = True
+        except:
+            pass
+        if is_multi:
+            self.update_dist_from_multi(sample, info, rho)
+            return
         self.t += 1
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
         for i, (ud, b) in enumerate(zip(update_dist, info)):
@@ -106,6 +115,11 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         if rho < self.thres and type(rho) != int:
             self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
         # print(self.errors / self.counts)
+    
+    def update_dist_from_multi(self, sample, info, rho):
+        print('inside update_dist_from_multi')
+        
+        pass
 
 class DiscreteMultiArmedBanditSampler(DiscreteCrossEntropySampler):
     pass

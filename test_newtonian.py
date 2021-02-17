@@ -3,7 +3,9 @@
 
 import time
 import numpy as np
+import math
 from dotmap import DotMap
+import sys
 
 from verifai.samplers.scenic_sampler import ScenicSampler
 from verifai.scenic_server import ScenicServer
@@ -15,15 +17,38 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-class confidence_spec(specification_monitor):
+class distance_and_steering(multi_objective_monitor):
     def __init__(self):
+        priority_graph = None
         def specification(traj):
             min_dist = np.inf
+            N = len(traj)
             for i, val in enumerate(traj):
                 obj1, obj2 = val
                 min_dist = min(min_dist, obj1.distanceTo(obj2))
-            # print(min_dist)
-            return min_dist - 5
+            angles = np.zeros((N - 1,))
+            for i in range(1, N):
+                t1, t2 = traj[i - 1], traj[i]
+                ego_pos1, _ = t1
+                ego_pos2, _ = t2
+                v_ego = (ego_pos2 - ego_pos1) * 10
+                angle = math.atan2(v_ego.y, v_ego.x)
+                angles[i - 1] = angle
+            rho = (min_dist - 5, (10 * math.pi / 180) - np.ptp(angles))
+            return rho
+        
+        super().__init__(specification, priority_graph)
+
+class distance(specification_monitor):
+    def __init__(self):
+        def specification(traj):
+            min_dist = np.inf
+            N = len(traj)
+            for i, val in enumerate(traj):
+                obj1, obj2 = val
+                min_dist = min(min_dist, obj1.distanceTo(obj2))
+            rho = min_dist - 5
+            return rho
         
         super().__init__(specification)
 
@@ -37,9 +62,9 @@ def test_driving_dynamic():
         save_safe_table=True,
     )
     server_options = DotMap(maxSteps=100, verbosity=0)
-    monitor = confidence_spec()
+    monitor = distance()
     
-    falsifier = generic_parallel_falsifier(sampler=sampler, falsifier_params=falsifier_params,
+    falsifier = generic_falsifier(sampler=sampler, falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
                                   server_options=server_options,
                                   monitor=monitor, scenic_path=path)
