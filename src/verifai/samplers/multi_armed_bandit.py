@@ -3,6 +3,7 @@ from verifai.samplers.domain_sampler import BoxSampler, DiscreteBoxSampler, \
     DomainSampler, SplitSampler
 from verifai.samplers.random_sampler import RandomSampler
 from verifai.samplers.cross_entropy import DiscreteCrossEntropySampler
+from verifai.samplers.multi_objective import MultiObjectiveSampler
 
 class MultiArmedBanditSampler(DomainSampler):
     def __init__(self, domain, ce_params):
@@ -51,7 +52,7 @@ class MultiArmedBanditSampler(DomainSampler):
     def update(self, sample, info, rho):
         self.split_sampler.update(sample, info, rho)
 
-class ContinuousMultiArmedBanditSampler(BoxSampler):
+class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
     def __init__(self, domain, alpha, thres,
                  buckets=10, dist=None):
         super().__init__(domain)
@@ -86,7 +87,6 @@ class ContinuousMultiArmedBanditSampler(BoxSampler):
         bucket_samples = np.array([np.random.choice(np.flatnonzero(np.isclose(Q[i], Q[i].max())))
             for i in range(len(self.buckets))])
         # print(f'Bucket goodness values: {Q}')
-        print(f'{bucket_samples}', end='; ')
         # print(Q, bucket_samples)
         self.current_sample = bucket_samples
         ret = tuple(np.random.uniform(bs, bs+1.)/b for b, bs
@@ -97,7 +97,6 @@ class ContinuousMultiArmedBanditSampler(BoxSampler):
         if rho is None:
             return
         self.t += 1
-        print(f'Updating with buckets {info} and rho value {rho} and threshold {self.thres}')
         update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
         for i, (ud, b) in enumerate(zip(update_dist, info)):
             ud[b] = 1.
