@@ -104,7 +104,6 @@ class SampleSimulator():
 
     def simulate(self, sample):
 
-        print(f'Worker {self.worker_num} running simulation')
         '''
         Need to generate scene from sample here.
         '''
