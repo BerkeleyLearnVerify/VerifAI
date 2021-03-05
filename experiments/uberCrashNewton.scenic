@@ -1,22 +1,23 @@
 #SET MAP AND MODEL (i.e. definitions of all referenceable vehicle types, road library, etc)
-param map = localPath('/home/scenic/Desktop/Carla/VerifiedAI/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr')  # or other CARLA map that definitely works
-param carla_map = 'Town03'
-param verifaiSamplerType = 'mab'
-model scenic.simulators.carla.model #located in scenic/simulators/carla/model.scenic
+param map = localPath('/Users/kesav/Documents/Carla/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr')  # or other CARLA map that definitely works
+param carla_map = localPath('/Users/kesav/Documents/Carla/Scenic-devel/tests/formats/opendrive/maps/CARLA/Town03.xodr') 
+param render = True
+model scenic.simulators.newtonian.model #located in scenic/simulators/carla/model.scenic
+param verifaiSamplerType = 'ce'
 
 # Parameters of the scenario.
-DISTANCE_TO_INTERSECTION = VerifaiRange(-20, -10)
-HESITATION_TIME = VerifaiRange(0, 10)
-UBER_SPEED = VerifaiRange(10, 20)
+param DISTANCE_TO_INTERSECTION = VerifaiRange(-20, -10)
+param HESITATION_TIME = VerifaiRange(0, 10)
+param UBER_SPEED = VerifaiRange(10, 20)
 
 # Ego vehicle just follows the trajectory specified later on.
 behavior EgoBehavior(trajectory):
-    do FollowTrajectoryBehavior(trajectory=trajectory, target_speed=UBER_SPEED)
+    do FollowTrajectoryBehavior(trajectory=trajectory, target_speed=globalParameters.UBER_SPEED)
     terminate
 
-# Crossing car hesitates for a certain amont of time before starting to turn.
+# Crossing car hesitates for a certain amount of time before starting to turn.
 behavior CrossingCarBehavior(trajectory):
-    while simulation().currentTime < HESITATION_TIME:
+    while simulation().currentTime < globalParameters.HESITATION_TIME:
         wait
     do FollowTrajectoryBehavior(trajectory = trajectory)
     terminate
@@ -40,7 +41,7 @@ crossing_car_trajectory = [left_maneuver.startLane, left_maneuver.connectingLane
 uberSpawnPoint = startLane.centerline[-1]
 crossingSpawnPoint = otherLane.centerline[-1]
 
-ego = Car following roadDirection from uberSpawnPoint for DISTANCE_TO_INTERSECTION,
+ego = Car following roadDirection from uberSpawnPoint for globalParameters.DISTANCE_TO_INTERSECTION,
         with behavior EgoBehavior(trajectory = ego_trajectory)
 
 crossing_car = Car at crossingSpawnPoint,

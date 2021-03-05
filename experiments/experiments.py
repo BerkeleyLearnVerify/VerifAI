@@ -1,11 +1,10 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import time
 import numpy as np
 import math
 from dotmap import DotMap
 import sys
+from itertools import product
+import argparse
 
 from verifai.samplers.scenic_sampler import ScenicSampler
 from verifai.scenic_server import ScenicServer
@@ -16,15 +15,16 @@ import networkx as nx
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
 class distance_and_steering(multi_objective_monitor):
     def __init__(self):
         priority_graph = None
+        self.num_objectives = 2
         def specification(traj):
             min_dist = np.inf
             N = len(traj)
             for i, val in enumerate(traj):
-                obj1, obj2 = val
+                print(len(val))
+                obj1, obj2 = val[:2]
                 min_dist = min(min_dist, obj1.distanceTo(obj2))
             angles = np.zeros((N - 1,))
             for i in range(1, N):
@@ -44,36 +44,46 @@ class distance(specification_monitor):
         def specification(traj):
             min_dist = np.inf
             N = len(traj)
+            # print(f'trajectory is {N} steps')
             for i, val in enumerate(traj):
-                obj1, obj2 = val
+                obj1, obj2 = val[:2]
                 min_dist = min(min_dist, obj1.distanceTo(obj2))
             rho = min_dist - 5
             return rho
         
         super().__init__(specification)
 
-def test_driving_dynamic():
+def run_experiment(path, parallel=False, multi_objective=False):
 
-    path = 'uberCrashNewton.scenic'
     sampler = ScenicSampler.fromScenario(path)
     falsifier_params = DotMap(
-        n_iters=1000,
+        n_iters=None,
         save_error_table=True,
         save_safe_table=True,
+        max_time=60,
     )
     server_options = DotMap(maxSteps=100, verbosity=0)
-    monitor = distance()
+    monitor = distance_and_steering() if multi_objective else distance()
+
+    falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
     
-    falsifier = generic_falsifier(sampler=sampler, falsifier_params=falsifier_params,
+    falsifier = falsifier_cls(sampler=sampler, falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
                                   server_options=server_options,
                                   monitor=monitor, scenic_path=path)
     t0 = time.time()
     falsifier.run_falsifier()
     t = time.time() - t0
-    print(f'Generated {len(falsifier.samples)} samples in {t} seconds with 1 worker')
+    print()
+    print(f'Generated {len(falsifier.samples)} samples in {t} seconds with {falsifier.num_workers} workers')
     print(f'Number of counterexamples: {len(falsifier.error_table.table)}')
     return falsifier
 
 if __name__ == '__main__':
-    falsifier = test_driving_dynamic()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', '-p', type=str, default='uberCrashNewton.scenic', help='Path to Scenic script')
+    parser.add_argument('--parallel', action='store_true')
+    parser.add_argument('--num-workers', type=int, default=5, help='Number of parallel workers')
+    parser.add_argument('--multi-objective', action='store_true')
+    args = parser.parse_args()
+    falsifier = run_experiment(args.path, args.parallel, args.multi_objective)

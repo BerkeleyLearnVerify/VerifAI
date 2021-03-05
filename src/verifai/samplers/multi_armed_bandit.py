@@ -1,4 +1,6 @@
 import numpy as np
+import networkx as nx
+from itertools import product
 from verifai.samplers.domain_sampler import BoxSampler, DiscreteBoxSampler, \
     DomainSampler, SplitSampler
 from verifai.samplers.random_sampler import RandomSampler
@@ -74,6 +76,9 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         self.counts = np.array([np.ones(int(b)) for b in buckets])
         self.errors = np.array([np.zeros(int(b)) for b in buckets])
         self.t = 1
+        self.counterexamples = dict()
+        self.is_multi = False
+        self.invalid = np.array([np.zeros(int(b)) for b in buckets])
 
     def nextVector(self, feedback=None):
         self.update(None, self.current_sample, feedback)
@@ -81,13 +86,10 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
     
     def generateSample(self):
         proportions = self.errors / self.counts
-        # print(f'proportions: {proportions}')
         Q = proportions + np.sqrt(2 / self.counts * np.log(self.t))
         # choose the bucket with the highest "goodness" value, breaking ties randomly.
         bucket_samples = np.array([np.random.choice(np.flatnonzero(np.isclose(Q[i], Q[i].max())))
             for i in range(len(self.buckets))])
-        # print(f'Bucket goodness values: {Q}')
-        # print(Q, bucket_samples)
         self.current_sample = bucket_samples
         ret = tuple(np.random.uniform(bs, bs+1.)/b for b, bs
               in zip(self.buckets, bucket_samples))
@@ -96,30 +98,95 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
     def update(self, sample, info, rho):
         if rho is None:
             return
-        is_multi = False
-        try:
-            iter(rho)
-            is_multi = True
-        except:
-            pass
-        if is_multi:
+        self.t += 1
+        if self.is_multi:
             self.update_dist_from_multi(sample, info, rho)
             return
-        self.t += 1
-        update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
-        for i, (ud, b) in enumerate(zip(update_dist, info)):
-            ud[b] = 1.
+        for i, b in enumerate(info):
             self.counts[i][b] += 1.
             if rho < self.thres:
                 self.errors[i][b] += 1.
-        if rho < self.thres and type(rho) != int:
-            self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
         # print(self.errors / self.counts)
+
+    def set_graph(self, graph):
+        self.priority_graph = graph
+        try:
+            self.thres = [self.thres] * graph.number_of_nodes()
+        except Exception as e:
+            print(e)
+            assert len(self.thres) == graph.number_of_nodes(), 'Must have as many thresholds as graph nodes'
+        self.num_properties = graph.number_of_nodes()
+        self.is_multi = True
+
+    # is rho1 better than rho2?
+    # partial pre-ordering on objective functions, so it is possible that:
+    # is_better_counterexample(rho1, rho2)
+    # and is_better_counterxample(rho2, rho1) both return False
+    def is_better_counterexample(self, ce1, ce2):
+        if ce2 is None:
+            return True
+        all_same = True
+        already_better = [False] * self.num_properties
+        for node in nx.dfs_preorder_nodes(self.priority_graph):
+            if already_better[node]:
+                continue
+            b1 = ce1[node]
+            b2 = ce2[node]
+            all_same = all_same and b1 == b2
+            if b2 and not b1:
+                return False
+            if b1 and not b2:
+                already_better[node] = False
+                for subnode in nx.descendants(self.priority_graph, node):
+                    already_better[subnode] = False
+        return not all_same
+
+    def _get_total_counterexamples(self):
+        return sum(self.counterexamples.values())
+
+    def _add_to_running(self, ce):
+        if ce in self.counterexamples:
+            return True
+        to_remove = set()
+        if len(self.counterexamples) > 0:
+            is_strictly_worse = True
+            for other_ce in self.counterexamples:
+                if not self.is_better_counterexample(other_ce, ce):
+                    is_strictly_worse = False
+                    break
+            if is_strictly_worse:
+                return False
+        for other_ce in self.counterexamples:
+            if self.is_better_counterexample(ce, other_ce):
+                to_remove.add(other_ce)
+        for other_ce in to_remove:
+            del self.counterexamples[other_ce]
+        self.counterexamples[ce] = np.array([np.zeros(int(b)) for b in self.buckets])
+        return True
     
     def update_dist_from_multi(self, sample, info, rho):
-        print('inside update_dist_from_multi')
-        
-        pass
+        try:
+            iter(rho)
+        except:
+            for i, b in enumerate(info):
+                self.invalid[i][b] += 1.
+            return
+        if len(rho) != self.num_properties:
+            for i, b in enumerate(info):
+                self.invalid[i][b] += 1.
+            return
+        # print('inside update_dist_from_multi')
+        counter_ex = tuple(
+            rho[node] < self.thres[node] for node in nx.dfs_preorder_nodes(self.priority_graph)
+        )
+        # print(f'counter_ex = {counter_ex}')
+        # print(self.counterexamples)
+        is_ce = self._add_to_running(counter_ex)
+        for i, b in enumerate(info):
+            self.counts[i][b] += 1.
+            if is_ce:
+                self.counterexamples[counter_ex][i][b] += 1.
+        self.errors = self.invalid + self._get_total_counterexamples()
 
 class DiscreteMultiArmedBanditSampler(DiscreteCrossEntropySampler):
     pass

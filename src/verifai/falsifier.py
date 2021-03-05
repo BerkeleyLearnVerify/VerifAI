@@ -9,6 +9,7 @@ import numpy as np
 import pickle
 import progressbar
 import ray
+import time
 
 def parallelized(server_class):
     if server_class == Server:
@@ -39,7 +40,13 @@ class falsifier(ABC):
         self.save_safe_table = params.save_safe_table
         self.error_table_path = params.error_table_path
         self.safe_table_path = params.safe_table_path
+        if not hasattr(self, 'num_workers'):
+            self.num_workers = 1
         self.n_iters, self.ce_num_max = params.n_iters, params.ce_num_max
+        if self.n_iters is None:
+            self.max_time = params.max_time
+        else:
+            self.max_time = None
         self.fal_thres = params.fal_thres
         self.sampler_params = params.sampler_params
         self.verbosity = params.verbosity
@@ -112,11 +119,14 @@ class falsifier(ABC):
         i = 0
         ce_num = 0
         print(f'Running falsifier; server class is {type(self.server)}')
-        bar = progressbar.ProgressBar(max_value=self.n_iters)
+        if self.n_iters is not None:
+            bar = progressbar.ProgressBar(max_value=self.n_iters)
+        else:
+            widgets = ['Scenes generated: ', progressbar.Counter('%(value)d'),
+               ' (', progressbar.Timer(), ')']
+            bar = progressbar.ProgressBar(widgets=widgets)
         # bar = progressbar.ProgressBar(max_value=self.n_iters)
         while True:
-            if i == self.n_iters:
-                break
             try:
                 sample, rho = self.server.run_server()
                 # print(f'sample = {sample}, rho = {rho}')
@@ -141,6 +151,12 @@ class falsifier(ABC):
                 self.populate_error_table(sample, rho, error=False)
             i += 1
             bar.update(i)
+            if i == 1:
+                t0 = time.time()
+            if self.n_iters is not None and i == self.n_iters:
+                break
+            if self.max_time is not None and time.time() - t0 >= self.max_time:
+                break
         self.server.terminate()
 
 
@@ -207,7 +223,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         sampling_data.sampler_params = self.sampler_params
 
         self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
-        self.monitor, options=server_options, use_carla=self.use_carla)
+        self.monitor, options=server_options, use_carla=self.use_carla, max_time=self.max_time)
 
     def run_falsifier(self):
         i = 0

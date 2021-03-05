@@ -133,11 +133,13 @@ class SampleSimulator():
 
 class ParallelScenicServer(ScenicServer):
 
-    def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor, options={}, use_carla=False):
+    def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor,
+    options={}, use_carla=False, max_time=None):
         if not ray.is_initialized():
             ray.init(ignore_reinit_error=True)
         self.total_workers = total_workers
         self.n_iters = n_iters
+        self.max_time = max_time
         sampler = ScenicSampler.fromScenario(scenic_path)
         sampling_data.sampler = sampler
         super().__init__(sampling_data, monitor, options)
@@ -181,7 +183,13 @@ class ParallelScenicServer(ScenicServer):
         futures = []
         samples = []
         infos = []
-        bar = progressbar.ProgressBar(max_value=self.n_iters)
+        if self.n_iters is not None:
+            bar = progressbar.ProgressBar(max_value=self.n_iters)
+        else:
+            print(f'Creating widgets with max_time = {self.max_time}')
+            widgets = ['Scenes generated: ', progressbar.Counter('%(value)d'),
+               ' (', progressbar.Timer(), ')']
+            bar = progressbar.ProgressBar(widgets=widgets)
         for i in range(self.total_workers):
             next_sample, info = self._generate_next_sample(i)
             samples.append(next_sample)
@@ -201,13 +209,16 @@ class ParallelScenicServer(ScenicServer):
             self.sampler.scenario.externalSampler.update(sample, info, rho)
             # print(f'Future #{index} finished: rho = {rho}')
             bar.update(len(results))
-            if len(results) >= self.n_iters:
-                print()
+            if len(results) == 1:
+                t0 = time.time()
+            elapsed = time.time() - t0
+            # print(f'elapsed time = {elapsed}')
+            if self.n_iters is not None and len(results) >= self.n_iters:
                 break
-            t0 = time.time()
+            if self.max_time is not None and elapsed >= self.max_time:
+                break
             next_sample, info = self._generate_next_sample(index)
             elapsed = time.time() - t0
-            # print(f'Generated next sample in {elapsed:.5f} seconds')
             sim = self.sample_simulators[index]
             samples[index] = next_sample
             infos[index] = info
