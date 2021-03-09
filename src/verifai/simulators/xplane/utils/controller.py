@@ -9,6 +9,9 @@ throttle = 0.4  # constant throttle of plane
 cte_gain = 0.1  # gain for cross-track error
 he_gain = 0.05  # gain for heading error
 
-def control(server, lat, lon, psi, cte, heading_err):
+#def control(server, lat, lon, psi, cte, heading_err):
+def control(server, controller_arguments):
+    assert (len(controller_arguments) == 5), "invalid number of arguments"
+    lat, lon, psi, cte, heading_err = controller_arguments
     rudder = (cte_gain * cte) + (he_gain * heading_err)
     server.sendCTRL([0.0, 0.0, rudder, throttle])

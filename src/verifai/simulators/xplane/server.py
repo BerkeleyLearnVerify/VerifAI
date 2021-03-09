@@ -163,7 +163,8 @@ class XPlaneServer(verifai.server.Server):
             ctes.append(cte); hes.append(heading_err)
             # Run controller for one step, if desired
             if self.controller is not None:
-                self.controller(self.xpcserver, lat, lon, psi, cte, heading_err)
+                controller_arguments = [lat, lon, psi, cte, heading_err]
+                self.controller(self.xpcserver, controller_arguments)
             # Save screenshot for videos
             if self.grab_image is not None:
                 images.append(self.grab_image())
@@ -235,7 +236,7 @@ class XPlaneFalsifier(verifai.falsifier.mtl_falsifier):
                                      fps=self.video_framerate)
 
 
-def run_test(configuration, runway, verbosity=0):
+def run_test(configuration, runway, controller, verbosity=0):
     # Load Scenic scenario
     print('Loading scenario...')
     sampler = verifai.ScenicSampler.fromScenario(configuration['scenario'])
@@ -249,8 +250,9 @@ def run_test(configuration, runway, verbosity=0):
 
     # Set up controller
     framerate = configuration['framerate']
-    controller = simple_controller.control if configuration['controller'] else None
-
+    #controller = simple_controller.control if configuration['controller'] else None
+    controller = controller.control if configuration['controller'] else None
+    
     # Get options for video recording
     video = configuration.get('video')
     if video is None or not video['record']:
@@ -310,6 +312,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', help='experiment configuration file', default='config.yaml')
     parser.add_argument('-r', '--runway', help='runway configuration file', default='runway.yaml')
     parser.add_argument('-v', '--verbosity', type=int, default=0)
+    parser.add_argument('-u', '--controller', help='controller file', default='controller.py')
     args = parser.parse_args()
 
     # Parse runway configuration
@@ -327,5 +330,6 @@ if __name__ == '__main__':
 
     # Parse experiment configuration
     configuration = load_yaml(args.config)
-
-    run_test(configuration, runway_data, verbosity=args.verbosity)
+    controller = args.controller
+    
+    run_test(configuration, runway_data, controller, verbosity=args.verbosity)
