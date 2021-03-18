@@ -8,10 +8,20 @@ errors.
 throttle = 0.4  # constant throttle of plane
 cte_gain = 0.1  # gain for cross-track error
 he_gain = 0.05  # gain for heading error
+from verifai.simulators.xplane.utils.geometry import (euclidean_dist, quaternion_for,
+    initial_bearing, cross_track_distance, compute_heading_error)
 
 #def control(server, lat, lon, psi, cte, heading_err):
-def control(server, controller_arguments):
-    assert (len(controller_arguments) == 5), "invalid number of arguments"
-    lat, lon, psi, cte, heading_err = controller_arguments
+def control(server, cache):
+    lat, lon, _, _, _, psi, _ = self.xpcserver.getPOSI()
+    cte = cross_track_distance(start_lat, start_lon, end_lat, end_lon, lat, lon)
+    heading_err = compute_heading_error(self.desired_heading, psi)
+    var_label_map = {'lats': lat, 'lons': lon, 'psis': psi, 'ctes': cte, 'hes': heading_err}
+    for var in var_label_map:
+        if var not in cache:
+            cache[var] = [var_label_map[var]]
+        else:
+            cache[var].append(var_label_map[var])
     rudder = (cte_gain * cte) + (he_gain * heading_err)
     server.sendCTRL([0.0, 0.0, rudder, throttle])
+    return cache
