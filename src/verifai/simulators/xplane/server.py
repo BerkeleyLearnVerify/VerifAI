@@ -150,20 +150,21 @@ class XPlaneServer(verifai.server.Server):
             print('Starting run...')
         start = time.time()
         current = start
-        lats, lons, psis, ctes, hes, times, images = [], [], [], [], [], [], []
+        #lats, lons, psis, ctes, hes, times, images = [], [], [], [], [], [], []
+        controller_arguments_cache = {}
+        times, images = [], []
         while current - start < simulation_time:
             times.append(current - start)
             # Get current plane state
             # Use modified getPOSI to get lat/lon in double precision
-            lat, lon, _, _, _, psi, _ = self.xpcserver.getPOSI()
-            lats.append(lat); lons.append(lon); psis.append(psi)
+            #lat, lon, _, _, _, psi, _ = self.xpcserver.getPOSI()
+            #lats.append(lat); lons.append(lon); psis.append(psi)
             # Compute cross-track and heading errors
-            cte = cross_track_distance(start_lat, start_lon, end_lat, end_lon, lat, lon)
-            heading_err = compute_heading_error(self.desired_heading, psi)
-            ctes.append(cte); hes.append(heading_err)
+            #ctes.append(cte); hes.append(heading_err)
             # Run controller for one step, if desired
             if self.controller is not None:
-                self.controller(self.xpcserver, lat, lon, psi, cte, heading_err)
+                #controller_arguments = [lat, lon, psi, cte, heading_err]
+                self.controller(self.xpcserver, controller_arguments_cache)
             # Save screenshot for videos
             if self.grab_image is not None:
                 images.append(self.grab_image())
@@ -181,6 +182,11 @@ class XPlaneServer(verifai.server.Server):
         # Do some simple checks to see if the plane has gotten stuck
         thresh = 0.000001
         end_point_check, mid_point_check = True, True
+        lats = controller_arguments_cache.get('lats', [0])
+        lons = controller_arguments_cache.get('lons', [0])
+        psis = controller_arguments_cache.get('psis', [0])
+        ctes = controller_arguments_cache.get('ctes', [0])
+        hes = controller_arguments_cache.get('hes', [0])
         if abs(lats[0] - lats[-1]) < thresh and abs(lons[0] - lons[-1]) < thresh:
             end_point_check = False
         num_lats = len(lats)
@@ -235,7 +241,7 @@ class XPlaneFalsifier(verifai.falsifier.mtl_falsifier):
                                      fps=self.video_framerate)
 
 
-def run_test(configuration, runway, verbosity=0):
+def run_test(configuration, runway, controller, verbosity=0):
     # Load Scenic scenario
     print('Loading scenario...')
     sampler = verifai.ScenicSampler.fromScenario(configuration['scenario'])
@@ -249,8 +255,9 @@ def run_test(configuration, runway, verbosity=0):
 
     # Set up controller
     framerate = configuration['framerate']
-    controller = simple_controller.control if configuration['controller'] else None
-
+    #controller = simple_controller.control if configuration['controller'] else None
+    controller = controller.control if configuration['controller'] else None
+    
     # Get options for video recording
     video = configuration.get('video')
     if video is None or not video['record']:
@@ -310,6 +317,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', help='experiment configuration file', default='config.yaml')
     parser.add_argument('-r', '--runway', help='runway configuration file', default='runway.yaml')
     parser.add_argument('-v', '--verbosity', type=int, default=0)
+    parser.add_argument('-u', '--controller', help='controller file', default='controller.py')
     args = parser.parse_args()
 
     # Parse runway configuration
@@ -327,5 +335,6 @@ if __name__ == '__main__':
 
     # Parse experiment configuration
     configuration = load_yaml(args.config)
-
-    run_test(configuration, runway_data, verbosity=args.verbosity)
+    controller = args.controller
+    
+    run_test(configuration, runway_data, controller, verbosity=args.verbosity)
