@@ -21,7 +21,7 @@ funcy==1.15
 future==0.18.2
 idna==2.10
 imagesize==1.2.0
-jinja2==2.11.2
+jinja2==2.11.3
 joblib==0.14.1
 kiwisolver==1.2.0
 kmodes==0.10.2
