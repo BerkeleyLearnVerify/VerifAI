@@ -40,7 +40,7 @@ pillow==7.2.0
 pluggy==0.13.1
 py==1.9.0
 pygame==2.0.0.dev18
-pygments==2.7.1
+pygments==2.7.4
 pynverse==0.1.4.4
 pyparsing==2.4.7
 pytest-randomly==3.4.1
