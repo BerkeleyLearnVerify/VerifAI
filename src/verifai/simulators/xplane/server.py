@@ -90,6 +90,22 @@ class XPlaneServer(verifai.server.Server):
         simulation_data = self.run_simulation(sample)
         value = 0 if self.monitor is None else self.monitor.evaluate(simulation_data)
         return value
+    
+    def check_stuck(self, var_maps, thresh):
+        try:
+            lats = [var_map['lat'] for var_map in var_maps]
+            lons = [var_map['lon'] for var_map in var_maps]
+        except:
+            lats = [0]
+            lons = [0]
+        end_point_check, mid_point_check = True, True
+        if abs(lats[0] - lats[-1]) < thresh and abs(lons[0] - lons[-1]) < thresh:
+            end_point_check = False
+        num_lats = len(lats)
+        if abs(lats[0] - lats[num_lats//2]) < thresh and abs(lons[0] - lons[num_lats//2]) < thresh:
+            mid_point_check = False
+        if not (mid_point_check or end_point_check):
+            raise RuntimeError('Plane appears to have gotten stuck!')
 
     def run_simulation(self, sample):
         # Get runway endpoints
@@ -150,21 +166,15 @@ class XPlaneServer(verifai.server.Server):
             print('Starting run...')
         start = time.time()
         current = start
-        lats, lons, psis, ctes, hes, times, images = [], [], [], [], [], [], []
+        times, images, var_maps = [], [], []
         while current - start < simulation_time:
             times.append(current - start)
-            # Get current plane state
-            # Use modified getPOSI to get lat/lon in double precision
-            lat, lon, _, _, _, psi, _ = self.xpcserver.getPOSI()
-            lats.append(lat); lons.append(lon); psis.append(psi)
-            # Compute cross-track and heading errors
-            cte = cross_track_distance(start_lat, start_lon, end_lat, end_lon, lat, lon)
-            heading_err = compute_heading_error(self.desired_heading, psi)
-            ctes.append(cte); hes.append(heading_err)
             # Run controller for one step, if desired
             if self.controller is not None:
-                self.controller(self.xpcserver, lat, lon, psi, cte, heading_err)
+                #controller_arguments = [lat, lon, psi, cte, heading_err]
+                var_label_map = self.controller(self.xpcserver)
             # Save screenshot for videos
+            var_maps.append(var_label_map)
             if self.grab_image is not None:
                 images.append(self.grab_image())
             if self.verbosity >= 2:
@@ -180,21 +190,14 @@ class XPlaneServer(verifai.server.Server):
 
         # Do some simple checks to see if the plane has gotten stuck
         thresh = 0.000001
-        end_point_check, mid_point_check = True, True
-        if abs(lats[0] - lats[-1]) < thresh and abs(lons[0] - lons[-1]) < thresh:
-            end_point_check = False
-        num_lats = len(lats)
-        if abs(lats[0] - lats[num_lats//2]) < thresh and abs(lons[0] - lons[num_lats//2]) < thresh:
-            mid_point_check = False
-        if not (mid_point_check or end_point_check):
-            raise RuntimeError('Plane appears to have gotten stuck!')
+        self.check_stuck(var_maps, thresh)
 
         # Compute time series for each atomic predicate
         simulation_data = {}
         for name, predicate in self.predicates.items():
             series = [
-                (time, predicate(lat, lon, psi, cte, he))
-                for time, lat, lon, psi, cte, he in zip(times, lats, lons, psis, ctes, hes)
+                (time, predicate(var_map))
+                for var_map in var_maps
             ]
             simulation_data[name] = series
         return simulation_data
@@ -235,13 +238,17 @@ class XPlaneFalsifier(verifai.falsifier.mtl_falsifier):
                                      fps=self.video_framerate)
 
 
-def run_test(configuration, runway, verbosity=0):
+def run_test(configuration, runway, controller, verbosity=0):
     # Load Scenic scenario
     print('Loading scenario...')
     sampler = verifai.ScenicSampler.fromScenario(configuration['scenario'])
 
     # Define predicates and specifications
-    def nearcenterline(lat, lon, psi, cte, he):
+    def nearcenterline(var_map):
+        try:
+            cte = var_map['cte']
+        except:
+            print("No cross track distance available!")
         """MTL predicate 'cte < 1.5', i.e. within 1.5 m of centerline."""
         return 1.5 - abs(cte)
     predicates = { 'nearcenterline': nearcenterline }
@@ -249,8 +256,9 @@ def run_test(configuration, runway, verbosity=0):
 
     # Set up controller
     framerate = configuration['framerate']
-    controller = simple_controller.control if configuration['controller'] else None
-
+    #controller = simple_controller.control if configuration['controller'] else None
+    controller = controller.control if configuration['controller'] else None
+    
     # Get options for video recording
     video = configuration.get('video')
     if video is None or not video['record']:
@@ -310,6 +318,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', help='experiment configuration file', default='config.yaml')
     parser.add_argument('-r', '--runway', help='runway configuration file', default='runway.yaml')
     parser.add_argument('-v', '--verbosity', type=int, default=0)
+    parser.add_argument('-u', '--controller', help='controller file', default='controller.py')
     args = parser.parse_args()
 
     # Parse runway configuration
@@ -327,5 +336,6 @@ if __name__ == '__main__':
 
     # Parse experiment configuration
     configuration = load_yaml(args.config)
-
-    run_test(configuration, runway_data, verbosity=args.verbosity)
+    controller = args.controller
+    
+    run_test(configuration, runway_data, controller, verbosity=args.verbosity)
