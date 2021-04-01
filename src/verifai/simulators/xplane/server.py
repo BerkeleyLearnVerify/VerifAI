@@ -90,6 +90,22 @@ class XPlaneServer(verifai.server.Server):
         simulation_data = self.run_simulation(sample)
         value = 0 if self.monitor is None else self.monitor.evaluate(simulation_data)
         return value
+    
+    def check_stuck(self, var_maps, thresh):
+        try:
+            lats = [var_map['lat'] for var_map in var_maps]
+            lons = [var_map['lon'] for var_map in var_maps]
+        except:
+            lats = [0]
+            lons = [0]
+        end_point_check, mid_point_check = True, True
+        if abs(lats[0] - lats[-1]) < thresh and abs(lons[0] - lons[-1]) < thresh:
+            end_point_check = False
+        num_lats = len(lats)
+        if abs(lats[0] - lats[num_lats//2]) < thresh and abs(lons[0] - lons[num_lats//2]) < thresh:
+            mid_point_check = False
+        if not (mid_point_check or end_point_check):
+            raise RuntimeError('Plane appears to have gotten stuck!')
 
     def run_simulation(self, sample):
         # Get runway endpoints
@@ -150,22 +166,15 @@ class XPlaneServer(verifai.server.Server):
             print('Starting run...')
         start = time.time()
         current = start
-        #lats, lons, psis, ctes, hes, times, images = [], [], [], [], [], [], []
-        controller_arguments_cache = {}
-        times, images = [], []
+        times, images, var_maps = [], [], []
         while current - start < simulation_time:
             times.append(current - start)
-            # Get current plane state
-            # Use modified getPOSI to get lat/lon in double precision
-            #lat, lon, _, _, _, psi, _ = self.xpcserver.getPOSI()
-            #lats.append(lat); lons.append(lon); psis.append(psi)
-            # Compute cross-track and heading errors
-            #ctes.append(cte); hes.append(heading_err)
             # Run controller for one step, if desired
             if self.controller is not None:
                 #controller_arguments = [lat, lon, psi, cte, heading_err]
-                self.controller(self.xpcserver, controller_arguments_cache)
+                var_label_map = self.controller(self.xpcserver)
             # Save screenshot for videos
+            var_maps.append(var_label_map)
             if self.grab_image is not None:
                 images.append(self.grab_image())
             if self.verbosity >= 2:
@@ -181,26 +190,14 @@ class XPlaneServer(verifai.server.Server):
 
         # Do some simple checks to see if the plane has gotten stuck
         thresh = 0.000001
-        end_point_check, mid_point_check = True, True
-        lats = controller_arguments_cache.get('lats', [0])
-        lons = controller_arguments_cache.get('lons', [0])
-        psis = controller_arguments_cache.get('psis', [0])
-        ctes = controller_arguments_cache.get('ctes', [0])
-        hes = controller_arguments_cache.get('hes', [0])
-        if abs(lats[0] - lats[-1]) < thresh and abs(lons[0] - lons[-1]) < thresh:
-            end_point_check = False
-        num_lats = len(lats)
-        if abs(lats[0] - lats[num_lats//2]) < thresh and abs(lons[0] - lons[num_lats//2]) < thresh:
-            mid_point_check = False
-        if not (mid_point_check or end_point_check):
-            raise RuntimeError('Plane appears to have gotten stuck!')
+        self.check_stuck(var_maps, thresh)
 
         # Compute time series for each atomic predicate
         simulation_data = {}
         for name, predicate in self.predicates.items():
             series = [
-                (time, predicate(lat, lon, psi, cte, he))
-                for time, lat, lon, psi, cte, he in zip(times, lats, lons, psis, ctes, hes)
+                (time, predicate(var_map))
+                for var_map in var_maps
             ]
             simulation_data[name] = series
         return simulation_data
@@ -247,7 +244,11 @@ def run_test(configuration, runway, controller, verbosity=0):
     sampler = verifai.ScenicSampler.fromScenario(configuration['scenario'])
 
     # Define predicates and specifications
-    def nearcenterline(lat, lon, psi, cte, he):
+    def nearcenterline(var_map):
+        try:
+            cte = var_map['cte']
+        except:
+            print("No cross track distance available!")
         """MTL predicate 'cte < 1.5', i.e. within 1.5 m of centerline."""
         return 1.5 - abs(cte)
     predicates = { 'nearcenterline': nearcenterline }
