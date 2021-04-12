@@ -171,7 +171,8 @@ class falsifier(ABC):
 
 class generic_falsifier(falsifier):
     def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=Server, scenic_path=None):
+                 falsifier_params=None, server_options={}, server_class=Server, scenic_path=None,
+                 scenario_params={}):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):
@@ -207,7 +208,7 @@ class parallel_falsifier(falsifier):
 class generic_parallel_falsifier(parallel_falsifier):
     def __init__(self, monitor=None, sampler_type= None, sample_space=None, sampler=None,
                  falsifier_params=None, server_options={}, server_class=Server, num_workers=5,
-                 scenic_path=None, use_carla=False):
+                 scenic_path=None, use_carla=False, scenario_params={}):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):
@@ -215,6 +216,7 @@ class generic_parallel_falsifier(parallel_falsifier):
                         return np.inf
                     super().__init__(specification)
             monitor = monitor()
+        self.scenario_params = scenario_params
 
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params,
@@ -232,7 +234,8 @@ class generic_parallel_falsifier(parallel_falsifier):
         sampling_data.sampler_params = self.sampler_params
 
         self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
-        self.monitor, options=server_options, use_carla=self.use_carla, max_time=self.max_time)
+        self.monitor, options=server_options, use_carla=self.use_carla, max_time=self.max_time,
+        scenario_params=self.scenario_params)
 
     def run_falsifier(self):
         i = 0

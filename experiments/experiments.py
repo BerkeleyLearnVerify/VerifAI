@@ -99,7 +99,9 @@ def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=Fa
     model = 'scenic.simulators.newtonian.model' if use_newtonian else None
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
     params['render'] = not headless
-    sampler = ScenicSampler.fromScenario(path, model=model, **params)
+    if use_newtonian:
+        params['model'] = model
+    sampler = ScenicSampler.fromScenario(path, **params)
     falsifier_params = DotMap(
         n_iters=None,
         save_error_table=True,
@@ -114,7 +116,7 @@ def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=Fa
     falsifier = falsifier_cls(sampler=sampler, falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
                                   server_options=server_options,
-                                  monitor=monitor, scenic_path=path)
+                                  monitor=monitor, scenic_path=path, scenario_params=params)
     t0 = time.time()
     falsifier.run_falsifier()
     t = time.time() - t0
