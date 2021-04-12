@@ -9,6 +9,7 @@ import numpy as np
 import pickle
 import progressbar
 import ray
+from scipy.stats import norm
 import time
 
 def parallelized(server_class):
@@ -236,6 +237,15 @@ class generic_parallel_falsifier(parallel_falsifier):
         self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
         self.monitor, options=server_options, use_carla=self.use_carla, max_time=self.max_time,
         scenario_params=self.scenario_params)
+
+    def get_confidence_interval(self, confidence_level=0.95):
+        N = len(falsifier.samples)
+        c = len(falsifier.error_table.table)
+        p = c / N
+        q = (1 - c) / N
+        z = norm.ppf((confidence_level + 1)/2)
+        err = z * np.sqrt(p*q/N)
+        return (p - err, p + err)
 
     def run_falsifier(self):
         i = 0
