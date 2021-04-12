@@ -9,7 +9,7 @@ import numpy as np
 import pickle
 import progressbar
 import ray
-from scipy.stats import norm
+from statsmodels.stats.proportion import proportion_confint
 import time
 
 def parallelized(server_class):
@@ -119,11 +119,7 @@ class falsifier(ABC):
     def get_confidence_interval(self, confidence_level=0.95):
         N = len(self.samples)
         c = len(self.error_table.table)
-        p = c / N
-        q = (N - c) / N
-        z = norm.ppf((confidence_level + 1)/2)
-        err = z * np.sqrt(p*q/N)
-        return (p - err, p + err)
+        return proportion_confint(c, N, alpha=1 - confidence_level, method='beta')
 
     def run_falsifier(self):
         i = 0
