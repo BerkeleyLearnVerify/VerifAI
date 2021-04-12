@@ -120,6 +120,7 @@ class falsifier(ABC):
         ce_num = 0
         counterexamples = []
         server_samples = []
+        rhos = []
         # print(f'Running falsifier; server class is {type(self.server)}')
         if self.n_iters is not None:
             bar = progressbar.ProgressBar(max_value=self.n_iters)
@@ -141,6 +142,7 @@ class falsifier(ABC):
             self.samples[i] = sample
             server_samples.append(sample)
             counterexamples.append(rho <= self.fal_thres)
+            rhos.append(rho)
             i += 1
             bar.update(i)
             if i == 1:
@@ -151,7 +153,7 @@ class falsifier(ABC):
                 break
         if isinstance(self.monitor, multi_objective_monitor):
             counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
-        for sample, ce in zip(server_samples, counterexamples):
+        for sample, ce, rho in zip(server_samples, counterexamples, rhos):
             # if isinstance(rho, (list, tuple)):
             #     check_var = rho[-1]
             # else:
@@ -249,11 +251,11 @@ class generic_parallel_falsifier(parallel_falsifier):
             #     check_var = rho
             if ce:
                 if self.save_error_table:
-                    self.populate_error_table(sample, rho)
+                    self.populate_error_table(sample, ce)
                 ce_num = ce_num + 1
                 if ce_num >= self.ce_num_max:
                     break
             elif self.save_safe_table:
-                self.populate_error_table(sample, rho, error=False)
+                self.populate_error_table(sample, ce, error=False)
         # while True:
         # ray.get(self.server.terminate.remote())
