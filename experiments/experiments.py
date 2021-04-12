@@ -123,6 +123,7 @@ def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=Fa
     print()
     print(f'Generated {len(falsifier.samples)} samples in {t} seconds with {falsifier.num_workers} workers')
     print(f'Number of counterexamples: {len(falsifier.error_table.table)}')
+    print(f'Confidence interval: {falsifier.get_confidence_interval()}')
     return falsifier
 
 if __name__ == '__main__':
