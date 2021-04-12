@@ -80,6 +80,7 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         self.is_multi = False
         self.invalid = np.array([np.zeros(int(b)) for b in buckets])
         self.monitor = None
+        self.rho_values = []
         self.restart_every = restart_every
 
     def nextVector(self, feedback=None):
@@ -149,6 +150,10 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
 
     def _get_total_counterexamples(self):
         return sum(self.counterexamples.values())
+    
+    @property
+    def counterexample_values(self):
+        return [ce in self.counterexamples for ce in self.rho_values]
 
     def _add_to_running(self, ce):
         if ce in self.counterexamples:
@@ -185,6 +190,7 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         counter_ex = tuple(
             rho[node] < self.thres[node] for node in nx.dfs_preorder_nodes(self.priority_graph)
         )
+        self.rho_values.append(counter_ex)
         # print(f'counter_ex = {counter_ex}')
         # print(self.counterexamples)
         is_ce = self._add_to_running(counter_ex)

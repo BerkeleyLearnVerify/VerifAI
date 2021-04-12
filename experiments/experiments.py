@@ -1,4 +1,5 @@
 import time
+import os
 import numpy as np
 import math
 from dotmap import DotMap
@@ -48,14 +49,53 @@ class distance(specification_monitor):
             for i, val in enumerate(traj):
                 obj1, obj2 = val[:2]
                 min_dist = min(min_dist, obj1.distanceTo(obj2))
-            rho = min_dist - 5
+            rho = min_dist - 3
             return rho
         
         super().__init__(specification)
 
+def announce(message):
+    m = f'* {message} *'
+    border = '*' * len(m)
+    print(border)
+    print(m)
+    print(border)
+
+def run_experiments(path, parallel=False, multi_objective=False, use_newtonian=False,
+                   sampler_type=None, headless=False, output_dir='outputs'):
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    paths = []
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for name in files:
+                fname = os.path.join(root, name)
+                if os.path.splitext(fname)[1] == '.scenic':
+                    paths.append(fname)
+    else:
+        paths = [path]
+    for p in paths:
+        falsifier = run_experiment(p, parallel=parallel, multi_objective=multi_objective,
+        use_newtonian=use_newtonian, sampler_type=sampler_type, headless=headless)
+        df = pd.concat([falsifier.error_table.table, falsifier.safe_table.table])
+        root, _ = os.path.splitext(p)
+        outfile = root.split('/')[-1]
+        if parallel:
+            outfile += '_parallel'
+        if multi_objective:
+            outfile += '_multi'
+        if use_newtonian:
+            outfile += '_newton'
+        if sampler_type:
+            outfile += f'_{sampler_type}'
+        outfile += '.csv'
+        outpath = os.path.join(output_dir, outfile)
+        announce(f'SAVING OUTPUT TO {outpath}')
+        df.to_csv(outpath)
+
 def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=False,
                    sampler_type=None, headless=False):
-
+    announce(f'RUNNING SCENIC SCRIPT {path}')
     model = 'scenic.simulators.newtonian.model' if use_newtonian else None
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
     params['render'] = not headless
@@ -64,7 +104,7 @@ def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=Fa
         n_iters=None,
         save_error_table=True,
         save_safe_table=True,
-        max_time=60,
+        max_time=30,
     )
     server_options = DotMap(maxSteps=100, verbosity=0)
     monitor = distance_and_steering() if multi_objective else distance()
@@ -85,13 +125,15 @@ def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=Fa
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', '-p', type=str, default='uberCrashNewton.scenic', help='Path to Scenic script')
+    parser.add_argument('--path', '-p', type=str, default='uberCrashNewton.scenic',
+    help='Path to Scenic script')
     parser.add_argument('--parallel', action='store_true')
     parser.add_argument('--num-workers', type=int, default=5, help='Number of parallel workers')
-    parser.add_argument('--sampler-type', '-s', type=str, default=None, help='verifaiSamplerType to use')
+    parser.add_argument('--sampler-type', '-s', type=str, default=None,
+    help='verifaiSamplerType to use')
     parser.add_argument('--multi-objective', action='store_true')
     parser.add_argument('--newtonian', '-n', action='store_true')
     parser.add_argument('--headless', action='store_true')
     args = parser.parse_args()
-    falsifier = run_experiment(args.path, args.parallel, args.multi_objective,
+    run_experiments(args.path, args.parallel, args.multi_objective,
     use_newtonian=args.newtonian, sampler_type=args.sampler_type, headless=args.headless)

@@ -3,7 +3,7 @@ from verifai.server import Server, ParallelServer
 from verifai.scenic_server import ScenicServer, ParallelScenicServer
 from verifai.samplers import TerminationException
 from dotmap import DotMap
-from verifai.monitor import mtl_specification, specification_monitor
+from verifai.monitor import mtl_specification, specification_monitor, multi_objective_monitor
 from verifai.error_table import error_table
 import numpy as np
 import pickle
@@ -118,6 +118,8 @@ class falsifier(ABC):
     def run_falsifier(self):
         i = 0
         ce_num = 0
+        counterexamples = []
+        server_samples = []
         # print(f'Running falsifier; server class is {type(self.server)}')
         if self.n_iters is not None:
             bar = progressbar.ProgressBar(max_value=self.n_iters)
@@ -137,18 +139,8 @@ class falsifier(ABC):
             # if self.verbosity >= 1:
             #     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
-            if isinstance(rho, (list, tuple)):
-                check_var = rho[-1]
-            else:
-                check_var = rho
-            if check_var <= self.fal_thres:
-                if self.save_error_table:
-                    self.populate_error_table(sample, rho)
-                ce_num = ce_num + 1
-                if ce_num >= self.ce_num_max:
-                    break
-            elif self.save_safe_table:
-                self.populate_error_table(sample, rho, error=False)
+            server_samples.append(sample)
+            counterexamples.append(rho <= self.fal_thres)
             i += 1
             bar.update(i)
             if i == 1:
@@ -157,6 +149,21 @@ class falsifier(ABC):
                 break
             if self.max_time is not None and time.time() - t0 >= self.max_time:
                 break
+        if isinstance(self.monitor, multi_objective_monitor):
+            counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
+        for sample, ce in zip(server_samples, counterexamples):
+            # if isinstance(rho, (list, tuple)):
+            #     check_var = rho[-1]
+            # else:
+            #     check_var = rho
+            if ce:
+                if self.save_error_table:
+                    self.populate_error_table(sample, rho)
+                ce_num = ce_num + 1
+                if ce_num >= self.ce_num_max:
+                    break
+            elif self.save_safe_table:
+                self.populate_error_table(sample, rho, error=False)
         self.server.terminate()
 
 
@@ -229,15 +236,18 @@ class generic_parallel_falsifier(parallel_falsifier):
         i = 0
         ce_num = 0
         outputs = self.server.run_server()
-        for i, (sample, rho) in enumerate(outputs):
+        samples, counterexamples = zip(*outputs)
+        if isinstance(self.monitor, multi_objective_monitor):
+            counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
+        for i, (sample, ce) in enumerate(zip(samples, counterexamples)):
             if self.verbosity >= 1:
                 print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
-            if isinstance(rho, (list, tuple)):
-                check_var = rho[-1]
-            else:
-                check_var = rho
-            if check_var <= self.fal_thres:
+            # if isinstance(rho, (list, tuple)):
+            #     check_var = rho[-1]
+            # else:
+            #     check_var = rho
+            if ce:
                 if self.save_error_table:
                     self.populate_error_table(sample, rho)
                 ce_num = ce_num + 1
