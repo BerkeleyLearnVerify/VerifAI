@@ -53,9 +53,13 @@ class distance(specification_monitor):
         
         super().__init__(specification)
 
-def run_experiment(path, parallel=False, multi_objective=False):
+def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=False,
+                   sampler_type=None, headless=False):
 
-    sampler = ScenicSampler.fromScenario(path)
+    model = 'scenic.simulators.newtonian.model' if use_newtonian else None
+    params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
+    params['render'] = not headless
+    sampler = ScenicSampler.fromScenario(path, model=model, **params)
     falsifier_params = DotMap(
         n_iters=None,
         save_error_table=True,
@@ -84,6 +88,10 @@ if __name__ == '__main__':
     parser.add_argument('--path', '-p', type=str, default='uberCrashNewton.scenic', help='Path to Scenic script')
     parser.add_argument('--parallel', action='store_true')
     parser.add_argument('--num-workers', type=int, default=5, help='Number of parallel workers')
+    parser.add_argument('--sampler-type', '-s', type=str, default=None, help='verifaiSamplerType to use')
     parser.add_argument('--multi-objective', action='store_true')
+    parser.add_argument('--newtonian', '-n', action='store_true')
+    parser.add_argument('--headless', action='store_true')
     args = parser.parse_args()
-    falsifier = run_experiment(args.path, args.parallel, args.multi_objective)
+    falsifier = run_experiment(args.path, args.parallel, args.multi_objective,
+    use_newtonian=args.newtonian, sampler_type=args.sampler_type, headless=args.headless)

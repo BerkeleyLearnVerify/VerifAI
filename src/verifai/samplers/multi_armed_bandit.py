@@ -56,7 +56,7 @@ class MultiArmedBanditSampler(DomainSampler):
 
 class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
     def __init__(self, domain, alpha, thres,
-                 buckets=10, dist=None):
+                 buckets=10, dist=None, restart_every=100):
         super().__init__(domain)
         if isinstance(buckets, int):
             buckets = np.ones(self.dimension) * buckets
@@ -79,6 +79,8 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         self.counterexamples = dict()
         self.is_multi = False
         self.invalid = np.array([np.zeros(int(b)) for b in buckets])
+        self.monitor = None
+        self.restart_every = restart_every
 
     def nextVector(self, feedback=None):
         self.update(None, self.current_sample, feedback)
@@ -99,7 +101,11 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         if rho is None:
             return
         self.t += 1
+        # "random restarts" to generate a new topological sort of the priority graph
+        # every restart_every samples.
         if self.is_multi:
+            if self.monitor is not None and t % self.restart_every == 0:
+                self.monitor._linearize()
             self.update_dist_from_multi(sample, info, rho)
             return
         for i, b in enumerate(info):

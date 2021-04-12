@@ -118,7 +118,7 @@ class falsifier(ABC):
     def run_falsifier(self):
         i = 0
         ce_num = 0
-        print(f'Running falsifier; server class is {type(self.server)}')
+        # print(f'Running falsifier; server class is {type(self.server)}')
         if self.n_iters is not None:
             bar = progressbar.ProgressBar(max_value=self.n_iters)
         else:
