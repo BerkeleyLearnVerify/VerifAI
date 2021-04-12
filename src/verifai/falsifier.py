@@ -241,10 +241,12 @@ class generic_parallel_falsifier(parallel_falsifier):
         i = 0
         ce_num = 0
         outputs = self.server.run_server()
-        samples, counterexamples = zip(*outputs)
+        samples, rhos = zip(*outputs)
         if isinstance(self.monitor, multi_objective_monitor):
             counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
-        for i, (sample, ce) in enumerate(zip(samples, counterexamples)):
+        else:
+            counterexamples = [r <= self.fal_thres for r in rhos]
+        for i, (sample, ce, rho) in enumerate(zip(samples, counterexamples, rhos)):
             if self.verbosity >= 1:
                 print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
@@ -254,11 +256,11 @@ class generic_parallel_falsifier(parallel_falsifier):
             #     check_var = rho
             if ce:
                 if self.save_error_table:
-                    self.populate_error_table(sample, ce)
+                    self.populate_error_table(sample, rho)
                 ce_num = ce_num + 1
                 if ce_num >= self.ce_num_max:
                     break
             elif self.save_safe_table:
-                self.populate_error_table(sample, ce, error=False)
+                self.populate_error_table(sample, rho, error=False)
         # while True:
         # ray.get(self.server.terminate.remote())
