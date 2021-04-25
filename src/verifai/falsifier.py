@@ -20,7 +20,7 @@ def parallelized(server_class):
 
 class falsifier(ABC):
     def __init__(self, monitor, sampler_type=None, sampler=None, sample_space=None,
-                 falsifier_params=None, server_options={}, server_class=Server):
+                 falsifier_params=None, server_options={}, server_class=Server, use_carla=False):
         self.sample_space = sample_space
         self.sampler_type = sampler_type
         self.sampler = sampler

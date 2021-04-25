@@ -50,7 +50,7 @@ class ScenicServer(Server):
             self.lastValue = self.rejectionFeedback
         else:
             self.lastValue = (0 if self.monitor is None
-                              else self.monitor.evaluate(result.trajectory))
+                              else self.monitor.evaluate(result))
         after_simulation = time.time()
         return sample, self.lastValue, (after_sampling - start, after_simulation - after_sampling)
 
@@ -85,6 +85,9 @@ class SampleSimulator():
     def __init__(self, scenic_path, worker_num, monitor, options={}, use_carla=False,
     scenario_params={}):
         print(scenario_params)
+        scenario_params.update({
+            'port': 2000 + 2*worker_num
+        })
         self.sampler = ScenicSampler.fromScenario(scenic_path, maxIterations=1, **scenario_params)
         # reset self.sampler.scenario.externalSampler to dummy sampler
         # that reads argument
@@ -93,10 +96,6 @@ class SampleSimulator():
         self.sampler.scenario.params)
         self.simulator = self.sampler.scenario.getSimulator()
         self.monitor = monitor
-        # carla_map = self.sampler.scenario.externalParams.carla_map
-        # assert carla_map, 'Map must be specified in Scenic script'
-        if use_carla:
-            self.simulator = CarlaSimulator(map=carla_map, port=2000 + 2 * worker_num)
         defaults = DotMap(maxSteps=None, verbosity=0, maxIterations=1)
         defaults.update(options)
         self.maxSteps = defaults.maxSteps
@@ -133,7 +132,7 @@ class SampleSimulator():
             self.lastValue = self.rejectionFeedback
         else:
             self.lastValue = (0 if self.monitor is None
-                              else self.monitor.evaluate(result.trajectory))
+                              else self.monitor.evaluate(result))
         return self.worker_num, self.full_sample, self.lastValue
 
 class ParallelScenicServer(ScenicServer):
