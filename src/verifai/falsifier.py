@@ -127,6 +127,8 @@ class falsifier(ABC):
         counterexamples = []
         server_samples = []
         rhos = []
+        self.total_sample_time = 0
+        self.total_simulate_time = 0
         # print(f'Running falsifier; server class is {type(self.server)}')
         if self.n_iters is not None:
             bar = progressbar.ProgressBar(max_value=self.n_iters)
@@ -137,7 +139,9 @@ class falsifier(ABC):
         # bar = progressbar.ProgressBar(max_value=self.n_iters)
         while True:
             try:
-                sample, rho = self.server.run_server()
+                sample, rho, (sample_time, simulate_time) = self.server.run_server()
+                self.total_sample_time += sample_time
+                self.total_simulate_time += simulate_time
                 # print(f'sample = {sample}, rho = {rho}')
             except TerminationException:
                 if self.verbosity >= 1:
@@ -178,7 +182,7 @@ class falsifier(ABC):
 class generic_falsifier(falsifier):
     def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,
                  falsifier_params=None, server_options={}, server_class=Server, scenic_path=None,
-                 scenario_params={}):
+                 scenario_params={}, num_workers=None):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):

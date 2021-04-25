@@ -62,7 +62,7 @@ def announce(message):
     print(border)
 
 def run_experiments(path, parallel=False, multi_objective=False, use_newtonian=False,
-                   sampler_type=None, headless=False, output_dir='outputs'):
+                   sampler_type=None, headless=False, num_workers=5, output_dir='outputs'):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     paths = []
@@ -76,7 +76,8 @@ def run_experiments(path, parallel=False, multi_objective=False, use_newtonian=F
         paths = [path]
     for p in paths:
         falsifier = run_experiment(p, parallel=parallel, multi_objective=multi_objective,
-        use_newtonian=use_newtonian, sampler_type=sampler_type, headless=headless)
+        use_newtonian=use_newtonian, sampler_type=sampler_type, headless=headless,
+        num_workers=num_workers)
         df = pd.concat([falsifier.error_table.table, falsifier.safe_table.table])
         root, _ = os.path.splitext(p)
         outfile = root.split('/')[-1]
@@ -94,7 +95,7 @@ def run_experiments(path, parallel=False, multi_objective=False, use_newtonian=F
         df.to_csv(outpath)
 
 def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=False,
-                   sampler_type=None, headless=False):
+                   sampler_type=None, headless=False, num_workers=5):
     announce(f'RUNNING SCENIC SCRIPT {path}')
     model = 'scenic.simulators.newtonian.model' if use_newtonian else None
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
@@ -108,7 +109,7 @@ def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=Fa
         save_safe_table=True,
         max_time=30,
     )
-    server_options = DotMap(maxSteps=100, verbosity=0)
+    server_options = DotMap(maxSteps=300, verbosity=0)
     monitor = distance_and_steering() if multi_objective else distance()
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
@@ -123,6 +124,9 @@ def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=Fa
     print()
     print(f'Generated {len(falsifier.samples)} samples in {t} seconds with {falsifier.num_workers} workers')
     print(f'Number of counterexamples: {len(falsifier.error_table.table)}')
+    if not parallel:
+        print(f'Sampling time: {falsifier.total_sample_time}')
+        print(f'Simulation time: {falsifier.total_simulate_time}')
     print(f'Confidence interval: {falsifier.get_confidence_interval()}')
     return falsifier
 
@@ -139,4 +143,5 @@ if __name__ == '__main__':
     parser.add_argument('--headless', action='store_true')
     args = parser.parse_args()
     run_experiments(args.path, args.parallel, args.multi_objective,
-    use_newtonian=args.newtonian, sampler_type=args.sampler_type, headless=args.headless)
+    use_newtonian=args.newtonian, sampler_type=args.sampler_type, headless=args.headless,
+    num_workers=args.num_workers)

@@ -40,16 +40,19 @@ class ScenicServer(Server):
         self.maxIterations = defaults.maxIterations
 
     def run_server(self):
+        start = time.time()
         sample = self.sampler.nextSample(self.lastValue)
         scene = self.sampler.lastScene
         assert scene
+        after_sampling = time.time()
         result = self._simulate(scene)
         if result is None:
             self.lastValue = self.rejectionFeedback
         else:
             self.lastValue = (0 if self.monitor is None
                               else self.monitor.evaluate(result.trajectory))
-        return sample, self.lastValue
+        after_simulation = time.time()
+        return sample, self.lastValue, (after_sampling - start, after_simulation - after_sampling)
 
     def _simulate(self, scene):
         startTime = time.time()
