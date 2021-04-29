@@ -41,6 +41,24 @@ class distance_and_steering(multi_objective_monitor):
         
         super().__init__(specification, priority_graph)
 
+class distance_multi(multi_objective_monitor):
+    def __init__(self, num_objectives=1):
+        priority_graph = nx.DiGraph()
+        self.num_objectives = num_objectives
+        for i in range(num_objectives - 1):
+            priority_graph.add_edge(i, i + 1)
+        def specification(simulation):
+            positions = np.array(simulation.result.trajectory)
+            # simulation.objects[0].carlaObject
+            # print(positions)
+            distances = positions[:, [0], :] - positions[:, 1:, :]
+            distances = np.linalg.norm(distances, axis=2)
+            rho = np.min(distances, axis=0) - 5
+            # print(rho)
+            return rho
+        
+        super().__init__(specification, priority_graph)
+
 class distance(specification_monitor):
     def __init__(self):
         def specification(simulation):
@@ -49,12 +67,16 @@ class distance(specification_monitor):
             # print(positions)
             distances = positions[:, [0], :] - positions[:, 1:, :]
             distances = np.linalg.norm(distances, axis=2)
-            if distances.shape[1] == 1:
-                return np.min(distances) - 5
-            else:
-                return np.min(distances, axis=0) - 5
+            rho = np.min(distances) - 5
+            # print(rho)
+            return rho
         
         super().__init__(specification)
+
+class lgsvl_monitor(specification_monitor):
+    def __init__(self):
+        def specification(simulation):
+            return 2*int(not simulation.collisionOccurred) - 1
 
 def announce(message):
     lines = message.split('\n')
@@ -70,8 +92,9 @@ def announce(message):
     print(m)
     print(border)
 
-def run_experiments(path, parallel=False, multi_objective=False, use_newtonian=False,
-                   sampler_type=None, headless=False, num_workers=5, output_dir='outputs'):
+def run_experiments(path, parallel=False, multi_objective=False, model=None,
+                   sampler_type=None, headless=False, num_workers=5, output_dir='outputs',
+                   experiment_name=None, map_path=None, lgsvl=False):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     paths = []
@@ -86,44 +109,52 @@ def run_experiments(path, parallel=False, multi_objective=False, use_newtonian=F
     for p in paths:
         try:
             falsifier = run_experiment(p, parallel=parallel, multi_objective=multi_objective,
-            use_newtonian=use_newtonian, sampler_type=sampler_type, headless=headless,
-            num_workers=num_workers)
+            model=model, sampler_type=sampler_type, headless=headless,
+            num_workers=num_workers, map_path=map_path)
         except:
             announce(f'ERROR FOR SCRIPT {p}:\n\n{traceback.format_exc()}')
             continue
         df = pd.concat([falsifier.error_table.table, falsifier.safe_table.table])
-        root, _ = os.path.splitext(p)
-        outfile = root.split('/')[-1]
-        if parallel:
-            outfile += '_parallel'
-        if multi_objective:
-            outfile += '_multi'
-        if use_newtonian:
-            outfile += '_newton'
-        if sampler_type:
-            outfile += f'_{sampler_type}'
+        if experiment_name is not None:
+            outfile = experiment_name
+        else:
+            root, _ = os.path.splitext(p)
+            outfile = root.split('/')[-1]
+            if parallel:
+                outfile += '_parallel'
+            if multi_objective:
+                outfile += '_multi'
+            if model:
+                outfile += f'_{model}'
+            if sampler_type:
+                outfile += f'_{sampler_type}'
         outfile += '.csv'
         outpath = os.path.join(output_dir, outfile)
         announce(f'SAVING OUTPUT TO {outpath}')
         df.to_csv(outpath)
 
-def run_experiment(path, parallel=False, multi_objective=False, use_newtonian=False,
-                   sampler_type=None, headless=False, num_workers=5):
+def run_experiment(path, parallel=False, multi_objective=False, model=None,
+                   sampler_type=None, headless=False, num_workers=5, map_path=None,
+                   lgsvl=False):
     announce(f'RUNNING SCENIC SCRIPT {path}')
-    model = 'scenic.simulators.newtonian.model' if use_newtonian else None
+    model = f'scenic.simulators.{model}.model' if model else None
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
     params['render'] = not headless
-    if use_newtonian:
+    if model:
         params['model'] = model
     sampler = ScenicSampler.fromScenario(path, **params)
+    num_objectives = sampler.scenario.params.get('N', 1)
     falsifier_params = DotMap(
-        n_iters=None,
+        n_iters=3,
         save_error_table=True,
         save_safe_table=True,
-        max_time=1800,
+        max_time=None,
     )
     server_options = DotMap(maxSteps=300, verbosity=0)
-    monitor = distance_and_steering() if multi_objective else distance()
+    if lgsvl:
+        monitor = lgsvl_monitor()
+    else:
+        monitor = distance_multi(num_objectives) if num_objectives > 1 else distance()
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
     
@@ -152,10 +183,13 @@ if __name__ == '__main__':
     parser.add_argument('--num-workers', type=int, default=5, help='Number of parallel workers')
     parser.add_argument('--sampler-type', '-s', type=str, default=None,
     help='verifaiSamplerType to use')
+    parser.add_argument('--experiment-name', '-e', type=str, default=None,
+    help='verifaiSamplerType to use')
     parser.add_argument('--multi-objective', action='store_true')
-    parser.add_argument('--newtonian', '-n', action='store_true')
+    parser.add_argument('--model', '-m', type=str, default=None)
     parser.add_argument('--headless', action='store_true')
+    parser.add_argument('--lgsvl', '-l', action='store_true')
     args = parser.parse_args()
     run_experiments(args.path, args.parallel, args.multi_objective,
-    use_newtonian=args.newtonian, sampler_type=args.sampler_type, headless=args.headless,
-    num_workers=args.num_workers)
+    model=args.model, sampler_type=args.sampler_type, headless=args.headless,
+    num_workers=args.num_workers, experiment_name=args.experiment_name, lgsvl=args.lgsvl)

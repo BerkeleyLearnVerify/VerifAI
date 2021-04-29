@@ -101,11 +101,12 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
     def update(self, sample, info, rho):
         if rho is None:
             return
+        # print(rho)
         self.t += 1
         # "random restarts" to generate a new topological sort of the priority graph
         # every restart_every samples.
         if self.is_multi:
-            if self.monitor is not None and t % self.restart_every == 0:
+            if self.monitor is not None and self.monitor.linearize and t % self.restart_every == 0:
                 self.monitor._linearize()
             self.update_dist_from_multi(sample, info, rho)
             return
@@ -143,9 +144,9 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
             if b2 and not b1:
                 return False
             if b1 and not b2:
-                already_better[node] = False
+                already_better[node] = True
                 for subnode in nx.descendants(self.priority_graph, node):
-                    already_better[subnode] = False
+                    already_better[subnode] = True
         return not all_same
 
     def _get_total_counterexamples(self):
@@ -159,14 +160,12 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         if ce in self.counterexamples:
             return True
         to_remove = set()
+        # if there is already a better counterexample, don't add this.
         if len(self.counterexamples) > 0:
-            is_strictly_worse = True
             for other_ce in self.counterexamples:
-                if not self.is_better_counterexample(other_ce, ce):
-                    is_strictly_worse = False
-                    break
-            if is_strictly_worse:
-                return False
+                if self.is_better_counterexample(other_ce, ce):
+                    return False
+        # remove all worse counterexamples than this.
         for other_ce in self.counterexamples:
             if self.is_better_counterexample(ce, other_ce):
                 to_remove.add(other_ce)

@@ -96,6 +96,11 @@ class SampleSimulator():
         self.sampler.scenario.params)
         self.simulator = self.sampler.scenario.getSimulator()
         self.monitor = monitor
+        extSampler = self.sampler.scenario.externalSampler
+        if extSampler is None:
+            self.rejectionFeedback = None
+        else:
+            self.rejectionFeedback = extSampler.rejectionFeedback
         defaults = DotMap(maxSteps=None, verbosity=0, maxIterations=1)
         defaults.update(options)
         self.maxSteps = defaults.maxSteps
@@ -124,7 +129,8 @@ class SampleSimulator():
         except SimulationCreationError as e:
             if self.verbosity >= 1:
                 print(f'  Failed to create simulation: {e}')
-            return None
+            self.lastValue = self.rejectionFeedback
+            return self.worker_num, self.full_sample, self.lastValue
         if self.verbosity >= 1:
             totalTime = time.time() - startTime
             print(f'  Ran simulation in {totalTime:.4g} seconds.')
