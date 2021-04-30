@@ -126,6 +126,7 @@ class SampleSimulator():
             result = self.simulator.simulate(scene,
                 maxSteps=self.maxSteps, verbosity=self.verbosity,
                 maxIterations=self.maxIterations)
+            result.worker_num = self.worker_num
         except SimulationCreationError as e:
             if self.verbosity >= 1:
                 print(f'  Failed to create simulation: {e}')
