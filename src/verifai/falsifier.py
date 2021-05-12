@@ -207,12 +207,12 @@ class parallel_falsifier(falsifier):
 
     def __init__(self, monitor, sampler_type=None, sample_space=None,
                  falsifier_params=None, server_options={}, server_class=Server, num_workers=5,
-                 scenic_path=None, use_carla=False):
+                 scenic_path=None, use_carla=False, sampler=None):
         self.scenic_path = scenic_path
         self.num_workers = num_workers
         self.use_carla = use_carla
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
-                         monitor=monitor, falsifier_params=falsifier_params, sampler=None,
+                         monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
                          server_options=server_options, server_class=parallelized(server_class))
 
 class generic_parallel_falsifier(parallel_falsifier):
@@ -231,7 +231,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params,
                          server_options=server_options, server_class=server_class,
-                         num_workers=num_workers, scenic_path=scenic_path)
+                         num_workers=num_workers, scenic_path=scenic_path, sampler=sampler)
 
     def init_server(self, server_options, server_class):
         if self.verbosity >= 1:
@@ -245,7 +245,7 @@ class generic_parallel_falsifier(parallel_falsifier):
 
         self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
         self.monitor, options=server_options, use_carla=self.use_carla, max_time=self.max_time,
-        scenario_params=self.scenario_params)
+        scenario_params=self.scenario_params, sampler=self.sampler)
 
     def run_falsifier(self):
         i = 0

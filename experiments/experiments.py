@@ -45,8 +45,11 @@ class distance_multi(multi_objective_monitor):
     def __init__(self, num_objectives=1):
         priority_graph = nx.DiGraph()
         self.num_objectives = num_objectives
-        for i in range(num_objectives - 1):
-            priority_graph.add_edge(i, i + 1)
+        priority_graph.add_edge(0, 2)
+        priority_graph.add_edge(1, 3)
+        priority_graph.add_edge(2, 4)
+        priority_graph.add_edge(3, 4)
+        print(f'Initialized priority graph with {self.num_objectives} objectives')
         def specification(simulation):
             positions = np.array(simulation.result.trajectory)
             # simulation.objects[0].carlaObject
@@ -63,6 +66,7 @@ class distance(specification_monitor):
     def __init__(self):
         def specification(simulation):
             positions = np.array(simulation.result.trajectory)
+            # print(np.diff(positions[:, 1, :], axis=0))
             # simulation.objects[0].carlaObject
             # print(positions)
             distances = positions[:, [0], :] - positions[:, 1:, :]
@@ -144,17 +148,18 @@ def run_experiment(path, parallel=False, multi_objective=False, model=None,
         params['model'] = model
     sampler = ScenicSampler.fromScenario(path, **params)
     num_objectives = sampler.scenario.params.get('N', 1)
+    multi = num_objectives > 1
     falsifier_params = DotMap(
-        n_iters=3,
+        n_iters=None,
         save_error_table=True,
         save_safe_table=True,
-        max_time=None,
+        max_time=1800,
     )
     server_options = DotMap(maxSteps=300, verbosity=0)
     if lgsvl:
         monitor = lgsvl_monitor()
     else:
-        monitor = distance_multi(num_objectives) if num_objectives > 1 else distance()
+        monitor = distance() if not multi else distance_multi(num_objectives)
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
     
@@ -173,6 +178,8 @@ def run_experiment(path, parallel=False, multi_objective=False, model=None,
         print(f'Sampling time: {falsifier.total_sample_time}')
         print(f'Simulation time: {falsifier.total_simulate_time}')
     print(f'Confidence interval: {falsifier.get_confidence_interval()}')
+    if multi:
+        print(f'Counterexamples found: {falsifier.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexamples.keys()}')
     return falsifier
 
 if __name__ == '__main__':

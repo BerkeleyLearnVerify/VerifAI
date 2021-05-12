@@ -131,6 +131,11 @@ class SampleSimulator():
                 print(f'  Failed to create simulation: {e}')
             self.lastValue = self.rejectionFeedback
             return self.worker_num, self.full_sample, self.lastValue
+        except RuntimeError as e:
+            print(f'Runtime error during simulation: {e}')
+            print('Waiting 1 minute before continuing...')
+            time.sleep(60)
+            return self.worker_num, self.full_sample, self.lastValue
         if self.verbosity >= 1:
             totalTime = time.time() - startTime
             print(f'  Ran simulation in {totalTime:.4g} seconds.')
@@ -144,20 +149,19 @@ class SampleSimulator():
 class ParallelScenicServer(ScenicServer):
 
     def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor,
-    options={}, use_carla=False, max_time=None, scenario_params={}):
+    options={}, use_carla=False, max_time=None, scenario_params={}, sampler=None):
         if not ray.is_initialized():
             ray.init(ignore_reinit_error=True)
         self.total_workers = total_workers
         self.n_iters = n_iters
         self.max_time = max_time
-        sampler = ScenicSampler.fromScenario(scenic_path, **scenario_params)
+        # sampler = ScenicSampler.fromScenario(scenic_path, **scenario_params)
         sampling_data.sampler = sampler
         super().__init__(sampling_data, monitor, options)
         print(f'Sampler class is {type(self.sampler)}')
         self.sample_simulators = [SampleSimulator.remote(scenic_path, i, monitor, options,
         use_carla, scenario_params)
         for i in range(self.total_workers)]
-        self.simulator_pool = ActorPool(self.sample_simulators)
 
     def _generate_next_sample(self, worker_num):
         i = 0
@@ -165,18 +169,11 @@ class ParallelScenicServer(ScenicServer):
         ext = self.sampler.scenario.externalSampler
         while i < 2000:
             t0 = time.time()
-            # otherSample = ext.nextSample(feedback)
-            # print(f'otherSample = {otherSample}')
             ext.cachedSample, info = ext.getSample()
             sample = ext.cachedSample
-            # print(sample)
-            # sample = Samplable.sampleAll(self.sampler.scenario.dependencies)
             sim = self.sample_simulators[worker_num]
             try:
                 ray.get(sim.get_sample.remote(sample))
-                # print(f'Successfully generated sample after {i} tries')
-                # self.lastValue = feedback
-                # print(f'sample = {sample}; info = {info}')
                 return sample, info
             except SimulationCreationError as e:
                 if self.verbosity >= 1:
@@ -211,19 +208,15 @@ class ParallelScenicServer(ScenicServer):
             done, _ = ray.wait(futures)
             result = ray.get(done[0])
             t = time.time() - startTime
-            # print(f'result[{len(results)}] at t = {t:.5f} s')
             index, sample, rho = result
             self.lastValue = rho
             results.append((sample, rho))
             info = infos[index]
-            # print(f'updating with buckets = {info}')
             self.sampler.scenario.externalSampler.update(sample, info, rho)
-            # print(f'Future #{index} finished: rho = {rho}')
             bar.update(len(results))
             if len(results) == 1:
                 t0 = time.time()
             elapsed = time.time() - t0
-            # print(f'elapsed time = {elapsed}')
             if self.n_iters is not None and len(results) >= self.n_iters:
                 break
             if self.max_time is not None and elapsed >= self.max_time:
