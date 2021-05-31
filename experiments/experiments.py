@@ -1,11 +1,15 @@
+"""
+Framework for experimentation of parallel and multi-objective falsification.
+
+Author: Kesav Viswanadha
+Email: kesav@berkeley.edu
+"""
+
 import time
 import os
 import numpy as np
-import math
 from dotmap import DotMap
-import sys
 import traceback
-from itertools import product
 import argparse
 
 from verifai.samplers.scenic_sampler import ScenicSampler
@@ -15,72 +19,6 @@ from verifai.monitor import multi_objective_monitor, specification_monitor
 from verifai.falsifier import generic_falsifier
 import networkx as nx
 import pandas as pd
-import matplotlib.pyplot as plt
-
-class distance_and_steering(multi_objective_monitor):
-    def __init__(self):
-        priority_graph = None
-        self.num_objectives = 2
-        def specification(traj):
-            min_dist = np.inf
-            N = len(traj)
-            for i, val in enumerate(traj):
-                print(len(val))
-                obj1, obj2 = val[:2]
-                min_dist = min(min_dist, obj1.distanceTo(obj2))
-            angles = np.zeros((N - 1,))
-            for i in range(1, N):
-                t1, t2 = traj[i - 1], traj[i]
-                ego_pos1, _ = t1
-                ego_pos2, _ = t2
-                v_ego = (ego_pos2 - ego_pos1) * 10
-                angle = math.atan2(v_ego.y, v_ego.x)
-                angles[i - 1] = angle
-            rho = (min_dist - 5, (10 * math.pi / 180) - np.ptp(angles))
-            return rho
-        
-        super().__init__(specification, priority_graph)
-
-class distance_multi(multi_objective_monitor):
-    def __init__(self, num_objectives=1):
-        priority_graph = nx.DiGraph()
-        self.num_objectives = num_objectives
-        priority_graph.add_edge(0, 2)
-        priority_graph.add_edge(1, 3)
-        priority_graph.add_edge(2, 4)
-        priority_graph.add_edge(3, 4)
-        print(f'Initialized priority graph with {self.num_objectives} objectives')
-        def specification(simulation):
-            positions = np.array(simulation.result.trajectory)
-            # simulation.objects[0].carlaObject
-            # print(positions)
-            distances = positions[:, [0], :] - positions[:, 1:, :]
-            distances = np.linalg.norm(distances, axis=2)
-            rho = np.min(distances, axis=0) - 5
-            # print(rho)
-            return rho
-        
-        super().__init__(specification, priority_graph)
-
-class distance(specification_monitor):
-    def __init__(self):
-        def specification(simulation):
-            positions = np.array(simulation.result.trajectory)
-            # print(np.diff(positions[:, 1, :], axis=0))
-            # simulation.objects[0].carlaObject
-            # print(positions)
-            distances = positions[:, [0], :] - positions[:, 1:, :]
-            distances = np.linalg.norm(distances, axis=2)
-            rho = np.min(distances) - 5
-            # print(rho)
-            return rho
-        
-        super().__init__(specification)
-
-class lgsvl_monitor(specification_monitor):
-    def __init__(self):
-        def specification(simulation):
-            return 2*int(not simulation.collisionOccurred) - 1
 
 def announce(message):
     lines = message.split('\n')
@@ -96,6 +34,47 @@ def announce(message):
     print(m)
     print(border)
 
+"""
+Example of multi-objective specification. This monitor specifies that the ego vehicle
+must stay at least 5 meters away from each other vehicle in the scenario.
+"""
+class distance_multi(multi_objective_monitor):
+    def __init__(self, num_objectives=1):
+        priority_graph = nx.DiGraph()
+        self.num_objectives = num_objectives
+        priority_graph.add_edge(0, 2)
+        priority_graph.add_edge(1, 3)
+        priority_graph.add_edge(2, 4)
+        priority_graph.add_edge(3, 4)
+        print(f'Initialized priority graph with {self.num_objectives} objectives')
+        def specification(simulation):
+            positions = np.array(simulation.result.trajectory)
+            distances = positions[:, [0], :] - positions[:, 1:, :]
+            distances = np.linalg.norm(distances, axis=2)
+            rho = np.min(distances, axis=0) - 5
+            return rho
+        
+        super().__init__(specification, priority_graph)
+
+"""
+Single-objective specification. This monitor is similar to the one above, but takes a
+minimum over the distances from each vehicle. If the ego vehicle is less than 5 meters
+away from any vehicle at any point, a counterexample is returned.
+"""
+class distance(specification_monitor):
+    def __init__(self):
+        def specification(simulation):
+            positions = np.array(simulation.result.trajectory)
+            distances = positions[:, [0], :] - positions[:, 1:, :]
+            distances = np.linalg.norm(distances, axis=2)
+            rho = np.min(distances) - 5
+            return rho
+        
+        super().__init__(specification)
+
+"""
+Runs all experiments in a directory.
+"""
 def run_experiments(path, parallel=False, multi_objective=False, model=None,
                    sampler_type=None, headless=False, num_workers=5, output_dir='outputs',
                    experiment_name=None, map_path=None, lgsvl=False):
@@ -137,9 +116,19 @@ def run_experiments(path, parallel=False, multi_objective=False, model=None,
         announce(f'SAVING OUTPUT TO {outpath}')
         df.to_csv(outpath)
 
-def run_experiment(path, parallel=False, multi_objective=False, model=None,
-                   sampler_type=None, headless=False, num_workers=5, map_path=None,
-                   lgsvl=False):
+"""
+Runs a single falsification experiment.
+
+Arguments:
+    path: Path to Scenic script to be run.
+    parallel: Whether or not to enable parallelism.
+    model: Which simulator model to use (e.g. carla, lgsvl, newtonian, etc.)
+    sampler_type: Which VerifAI sampelr to use (e.g. halton, scenic, ce, mab, etc.)
+    headless: Whether or not to display each simulation.
+    num_workers: Number of parallel workers. Only used if parallel is true.
+"""
+def run_experiment(path, parallel=False, model=None,
+                   sampler_type=None, headless=False, num_workers=5):
     announce(f'RUNNING SCENIC SCRIPT {path}')
     model = f'scenic.simulators.{model}.model' if model else None
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
@@ -156,17 +145,15 @@ def run_experiment(path, parallel=False, multi_objective=False, model=None,
         max_time=1800,
     )
     server_options = DotMap(maxSteps=300, verbosity=0)
-    if lgsvl:
-        monitor = lgsvl_monitor()
-    else:
-        monitor = distance() if not multi else distance_multi(num_objectives)
+    monitor = distance() if not multi else distance_multi(num_objectives)
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
     
     falsifier = falsifier_cls(sampler=sampler, falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
                                   server_options=server_options,
-                                  monitor=monitor, scenic_path=path, scenario_params=params)
+                                  monitor=monitor, scenic_path=path,
+                                  scenario_params=params, num_workers=num_workers)
     t0 = time.time()
     print('Running falsifier')
     falsifier.run_falsifier()
