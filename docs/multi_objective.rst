@@ -11,7 +11,10 @@ VerifAI now provides the ability to run falsification on multiple metrics at the
 
     from verifai.monitor import multi_objective_monitor
 
-    # The specification must assume multi_objective_monitor class
+    """
+    Example of multi-objective specification. This monitor specifies that the ego vehicle
+    must stay at least 5 meters away from each other vehicle in the scenario.
+    """
     class distance_multi(multi_objective_monitor):
         def __init__(self, num_objectives=1):
             priority_graph = nx.DiGraph()
@@ -23,12 +26,9 @@ VerifAI now provides the ability to run falsification on multiple metrics at the
             print(f'Initialized priority graph with {self.num_objectives} objectives')
             def specification(simulation):
                 positions = np.array(simulation.result.trajectory)
-                # simulation.objects[0].carlaObject
-                # print(positions)
                 distances = positions[:, [0], :] - positions[:, 1:, :]
                 distances = np.linalg.norm(distances, axis=2)
                 rho = np.min(distances, axis=0) - 5
-                # print(rho)
                 return rho
             
             super().__init__(specification, priority_graph)
