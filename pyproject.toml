@@ -60,6 +60,7 @@ ray = "^1.0.1"
 progressbar2 = "^3.53.1"
 networkx = "^2.5"
 statsmodels = "^0.12.2"
+sympy = "^1.8"
 
 [tool.poetry.extras]
 bayesopt = ["GPy", "GPyOpt"]
