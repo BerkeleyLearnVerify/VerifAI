@@ -44,4 +44,4 @@ To mitigate issues with sensitivity to results of initial samples, VerifAI imple
 
     param verifaiSamplerType = 'mab'
 
-For an example of using multi-objective sampling, see the `Github repository <https://github.com/BerkeleyLearnVerify/VerifAI/tree/kesav-v/multi-objective/experiments>`_.
+For an example of using multi-objective sampling, see the `Github repository <https://github.com/BerkeleyLearnVerify/VerifAI/tree/kesav-v/multi-objective/examples/multi_objective>`_.
