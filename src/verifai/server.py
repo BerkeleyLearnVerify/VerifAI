@@ -21,7 +21,6 @@ def default_sampler_params(sampler_type):
 
 def choose_sampler(sample_space, sampler_type,
                    sampler_params=None):
-    print(f'sampler type is {sampler_type}')
     if sampler_type == 'random':
         return 'random', FeatureSampler.randomSamplerFor(sample_space)
 
@@ -55,8 +54,7 @@ def choose_sampler(sample_space, sampler_type,
             sample_space, ce_params=ce_params)
         return 'ce', sampler
     if sampler_type == 'mab':
-        print('Creating multi-armed bandit sampler')
-        if sampler_params is None:
+\        if sampler_params is None:
             ce_params = default_sampler_params('ce')
         else:
             ce_params = default_sampler_params('ce')
@@ -75,7 +73,6 @@ def choose_sampler(sample_space, sampler_type,
             sample_space, ce_params=ce_params)
         return 'mab', sampler
     if sampler_type == 'eg':
-        print('Creating epsilon-greedy sampler')
         if sampler_params is None:
             ce_params = default_sampler_params('ce')
         else:
@@ -150,7 +147,6 @@ class Server:
                 sampler_params=params
             )
 
-        print("Initialized sampler")
 
     def listen(self):
         client_socket, addr = self.socket.accept()
