@@ -137,6 +137,7 @@ class falsifier(ABC):
                ' (', progressbar.Timer(), ')']
             bar = progressbar.ProgressBar(widgets=widgets)
         # bar = progressbar.ProgressBar(max_value=self.n_iters)
+        multi = isinstance(self.monitor, multi_objective_monitor)
         while True:
             try:
                 sample, rho, (sample_time, simulate_time) = self.server.run_server()
@@ -151,7 +152,10 @@ class falsifier(ABC):
             #     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
             server_samples.append(sample)
-            counterexamples.append(rho <= self.fal_thres)
+            if not multi:
+                counterexamples.append(rho <= self.fal_thres)
+            else:
+                print(rho)
             rhos.append(rho)
             i += 1
             bar.update(i)
@@ -161,7 +165,7 @@ class falsifier(ABC):
                 break
             if self.max_time is not None and time.time() - t0 >= self.max_time:
                 break
-        if isinstance(self.monitor, multi_objective_monitor):
+        if multi:
             counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
         for sample, ce, rho in zip(server_samples, counterexamples, rhos):
             # if isinstance(rho, (list, tuple)):

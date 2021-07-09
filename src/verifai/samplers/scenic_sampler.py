@@ -230,6 +230,9 @@ class ScenicSampler(FeatureSampler):
             maxIterations=self.maxIterations, feedback=feedback, verbosity=0)
         return self.pointForScene(self.lastScene)
 
+    def set_graph(self, graph):
+        self.scenario.externalSampler.set_graph(graph)
+
     def pointForScene(self, scene):
         """Convert a sampled Scenic Scene to a point in the Scenario's space."""
         lengths, dom = self.space.domains

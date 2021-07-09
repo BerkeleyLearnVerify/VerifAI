@@ -17,7 +17,7 @@ from verifai.scenic_server import ScenicServer
 from verifai.falsifier import generic_falsifier, generic_parallel_falsifier
 from verifai.monitor import multi_objective_monitor, specification_monitor
 from verifai.falsifier import generic_falsifier
-from ieee_metrics import time_to_collision
+from ieee_metrics import time_to_collision, braking_projection
 import networkx as nx
 import pandas as pd
 
@@ -34,6 +34,17 @@ def announce(message):
     print(border)
     print(m)
     print(border)
+
+def make_multi_objective_monitor(*classes):
+    monitors = [class_name() for class_name in classes]
+    def specification(simulation):
+        ret_vals = [m.specification(simulation) for m in monitors]
+        return ret_vals
+    class mo_monitor(multi_objective_monitor):
+        def __init__(self, spec):
+            self.num_objectives = len(classes)
+            super().__init__(spec, None)
+    return mo_monitor(specification)
 
 """
 Example of multi-objective specification. This monitor specifies that the ego vehicle
@@ -146,7 +157,7 @@ def run_experiment(path, parallel=False, model=None,
         max_time=1800,
     )
     server_options = DotMap(maxSteps=300, verbosity=0)
-    monitor = time_to_collision() if not multi else distance_multi(num_objectives)
+    monitor = make_multi_objective_monitor(distance, time_to_collision, braking_projection) if not multi else distance_multi(num_objectives)
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
     
