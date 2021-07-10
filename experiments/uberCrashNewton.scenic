@@ -4,6 +4,7 @@ param carla_map = localPath('/Users/kesav/Documents/Carla/Scenic-devel/tests/for
 param render = True
 model scenic.simulators.newtonian.model #located in scenic/simulators/carla/model.scenic
 param verifaiSamplerType = 'ce'
+param distToLaneCenter = []
 
 # Parameters of the scenario.
 param DISTANCE_TO_INTERSECTION = VerifaiRange(-20, -10)
@@ -46,3 +47,8 @@ ego = Car following roadDirection from uberSpawnPoint for globalParameters.DISTA
 
 crossing_car = Car at crossingSpawnPoint,
                 with behavior CrossingCarBehavior(crossing_car_trajectory)
+
+monitor getDistance:
+    while True:
+        globalParameters.distToLaneCenter.append(distance to ego.lane)
+        wait

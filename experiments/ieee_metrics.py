@@ -107,7 +107,6 @@ class braking_projection(specification_monitor):
                 a1x, a1y, a2x, a2y,
                 t2
         ), dist_2D)
-        # breakpoint()
         def specification(simulation):
             positions = np.array(simulation.result.trajectory)
             velocities = np.diff(positions, axis=0) / simulation.timestep
@@ -195,41 +194,16 @@ class braking_projection(specification_monitor):
             
             arguments = zip(dist1_function, dist2B_function, dist2D_function, t1_vals, t2_vals)
             min_dist_vals = np.array([helper(args) for args in arguments])
-            # for args in arguments:
-            #     # # breakpoint()
-            #     # print (t1_val, t2_val)
-            #     # if t1_val < t2_val:
-            #     #     seg1 = sympy.calculus.util.minimum(f1, self.t, sympy.calculus.util.Interval(0, t1_val))
-            #     #     seg2 = sympy.calculus.util.minimum(f2b, self.t, sympy.calculus.util.Interval(t1_val , t2_val))
-            #     # else: 
-            #     #     seg1 = sympy.calculus.util.minimum(f1, self.t, sympy.calculus.util.Interval(0, t2_val))
-            #     #     seg2 = sympy.calculus.util.minimum(f2d, self.t, sympy.calculus.util.Interval(t2_val , t1_val))
 
-            #     min_dist_vals.append(helper(args))
-
-            # breakpoint()
-            # mask = (t1_vals*t2_vals<0) | ((t1_vals > 0) & (t2_vals > 0))
-            # t1_vals, t2_vals = t1_vals[mask], t2_vals[mask]
-            # ttc = np.maximum(np.min([t1_vals, t2_vals], axis=0), 0)
-            # if ttc.shape[0] == 0:
-            #     return np.inf
             if min_dist_vals.shape[0] == 0:
                 return np.inf
             return np.min(min_dist_vals) - self.DISTANCE_THRESHOLD
         
         super().__init__(specification)
 
+class staying_in_lane(specification_monitor):
 
-
-#              seg1 | seg2
-# if t1 < t2    a     b
-# else          c     d
-
-# t1 := stopping distance ego
-# t2 := stopping distnace other
-# a := min from 0 to t1
-# b := min from t1 to t2
-# c := min from 0 to t2
-# d := min from t2 to t1
-
-# return min (a,b) if t1> t2 else min (c,d)
+    def __init__(self):
+        def specification(simulation):
+            return np.mean(simulation.scene.params['distToLaneCenter'])
+        super().__init__(specification)
