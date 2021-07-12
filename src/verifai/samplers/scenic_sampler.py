@@ -248,6 +248,8 @@ class ScenicSampler(FeatureSampler):
         params = {}
         for param, subdom in paramDomain.domainNamed.items():
             originalName = self.quotedParams.get(param, param)
+            if isinstance(scene.params[originalName], list):
+                scene.params[originalName].clear()
             params[param] = pointForValue(subdom, scene.params[originalName])
         paramPoint = paramDomain.makePoint(**params)
 

@@ -102,13 +102,14 @@ def run_experiments(path, parallel=False, multi_objective=False, model=None,
     else:
         paths = [path]
     for p in paths:
-        try:
-            falsifier = run_experiment(p, parallel=parallel,
-            model=model, sampler_type=sampler_type, headless=headless,
-            num_workers=num_workers)
-        except:
-            announce(f'ERROR FOR SCRIPT {p}:\n\n{traceback.format_exc()}')
-            continue
+        # try:
+        falsifier = run_experiment(p, parallel=parallel,
+        model=model, sampler_type=sampler_type, headless=headless,
+        num_workers=num_workers)
+    # except:
+        # announce(f'ERROR FOR SCRIPT {p}:\n\n{traceback.format_exc()}')
+            # breakpoint()
+            # continue
         df = pd.concat([falsifier.error_table.table, falsifier.safe_table.table])
         if experiment_name is not None:
             outfile = experiment_name

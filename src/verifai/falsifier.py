@@ -154,8 +154,6 @@ class falsifier(ABC):
             server_samples.append(sample)
             if not multi:
                 counterexamples.append(rho <= self.fal_thres)
-            else:
-                print(rho)
             rhos.append(rho)
             i += 1
             bar.update(i)
