@@ -17,7 +17,7 @@ from verifai.scenic_server import ScenicServer
 from verifai.falsifier import generic_falsifier, generic_parallel_falsifier
 from verifai.monitor import multi_objective_monitor, specification_monitor
 from verifai.falsifier import generic_falsifier
-from ieee_metrics import time_to_collision, braking_projection, staying_in_lane
+from ieee_metrics import *
 import networkx as nx
 import pandas as pd
 
@@ -79,6 +79,8 @@ class distance(specification_monitor):
             positions = np.array(simulation.result.trajectory)
             distances = positions[:, [0], :] - positions[:, 1:, :]
             distances = np.linalg.norm(distances, axis=2)
+            if not all(distances.shape):
+                return np.inf
             rho = np.min(distances) - 5
             return rho
         
@@ -141,10 +143,10 @@ Arguments:
     num_workers: Number of parallel workers. Only used if parallel is true.
 """
 def run_experiment(path, parallel=False, model=None,
-                   sampler_type=None, headless=False, num_workers=5):
+                   sampler_type=None, headless=False, num_workers=5, scenario=None):
     announce(f'RUNNING SCENIC SCRIPT {path}')
     model = f'scenic.simulators.{model}.model' if model else None
-    params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
+    params = {'verifaiSamplerType': sampler_type, 'scenario': scenario} if sampler_type else {}
     params['render'] = not headless
     if model:
         params['model'] = model
@@ -152,17 +154,18 @@ def run_experiment(path, parallel=False, model=None,
     num_objectives = sampler.scenario.params.get('N', 1)
     multi = num_objectives > 1
     falsifier_params = DotMap(
-        n_iters=None,
+        n_iters=50,
         save_error_table=True,
         save_safe_table=True,
-        max_time=1800,
+        max_time=None,
     )
-    server_options = DotMap(maxSteps=300, verbosity=0)
+    server_options = DotMap(maxSteps=200, verbosity=0)
     monitor = make_multi_objective_monitor(
         distance,
         time_to_collision,
         # braking_projection,
         staying_in_lane,
+        reached_destination,
     ) if not multi else distance_multi(num_objectives)
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier

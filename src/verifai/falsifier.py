@@ -154,6 +154,8 @@ class falsifier(ABC):
             server_samples.append(sample)
             if not multi:
                 counterexamples.append(rho <= self.fal_thres)
+            else:
+                counterexamples.append(any([r <= self.fal_thres for r in rho]))
             rhos.append(rho)
             i += 1
             bar.update(i)
@@ -163,7 +165,7 @@ class falsifier(ABC):
                 break
             if self.max_time is not None and time.time() - t0 >= self.max_time:
                 break
-        if multi:
+        if multi and self.server.sampler.scenario.params['verifaiSamplerType'] == 'mab':
             counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
         for sample, ce, rho in zip(server_samples, counterexamples, rhos):
             # if isinstance(rho, (list, tuple)):

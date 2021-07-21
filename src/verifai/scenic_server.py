@@ -30,7 +30,8 @@ class ScenicServer(Server):
         else:
             self.rejectionFeedback = extSampler.rejectionFeedback
         self.monitor = monitor
-        if isinstance(self.monitor, multi_objective_monitor):
+        sampler_type = self.sampler.scenario.params['verifaiSamplerType']
+        if self.sampler.scenario.externalSampler is not None and isinstance(self.monitor, multi_objective_monitor) and sampler_type == 'mab':
             # self.sampler.set_graph(self.monitor.graph)
             self.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].set_graph(self.monitor.graph)
         self.lastValue = None
@@ -48,6 +49,7 @@ class ScenicServer(Server):
         after_sampling = time.time()
         result = self._simulate(scene)
         if result is None:
+            print('HERE')
             self.lastValue = self.rejectionFeedback
         else:
             self.lastValue = (0 if self.monitor is None
@@ -61,9 +63,10 @@ class ScenicServer(Server):
             print('  Beginning simulation...')
         try:
             result = self.simulator.simulate(scene,
-                maxSteps=self.maxSteps, verbosity=self.verbosity,
+                maxSteps=self.maxSteps, verbosity=2,
                 maxIterations=self.maxIterations)
         except SimulationCreationError as e:
+            print('HERE!')
             if self.verbosity >= 1:
                 print(f'  Failed to create simulation: {e}')
             return None
