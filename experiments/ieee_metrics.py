@@ -1,13 +1,47 @@
+from __future__ import print_function
 import numpy as np
 from verifai.monitor import specification_monitor
 from sympy import *
 import sympy.calculus.util
+import sys
+import threading
+import pickle
+import os
+from time import sleep
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+
+def quit_function(fn_name):
+    # print to stderr, unbuffered in Python 2.
+    print('{0} took too long'.format(fn_name), file=sys.stderr)
+    sys.stderr.flush() # Python 3 stderr is likely buffered.
+    thread.interrupt_main() # raises KeyboardInterrupt
+
+def exit_after(s):
+    '''
+    use as decorator to exit process if 
+    function takes longer than s seconds
+    '''
+    def outer(fn):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer.start()
+            try:
+                result = fn(*args, **kwargs)
+            finally:
+                timer.cancel()
+            return result
+        return inner
+    return outer
 
 class time_to_collision(specification_monitor):
 
     DISTANCE_THRESHOLD = 5
     TTC_THRESHOLD = 2
     
+    @exit_after(30)
     def __init__(self):
         v1x, v1y, v2x, v2y = symbols('v_{1x} v_{1y} v_{2x} v_{2y}')
         x10, y10, x20, y20 = symbols('x_{10} y_{10} x_{20} y_{20}')
@@ -67,6 +101,7 @@ class braking_projection(specification_monitor):
     DISTANCE_THRESHOLD = 5
     MAX_ACCELERATION = -4.5
     
+    @exit_after(30)
     def __init__(self):
         v1x, v1y, v2x, v2y = symbols('v_{1x} v_{1y} v_{2x} v_{2y}')
         x10, y10, x20, y20 = symbols('x_{10} y_{10} x_{20} y_{20}')
@@ -205,5 +240,14 @@ class staying_in_lane(specification_monitor):
 
     def __init__(self):
         def specification(simulation):
-            return np.mean(simulation.scene.params['distToLaneCenter'])
+            return 0.5 - np.mean(np.abs(simulation.scene.params['distToLaneCenter']))
+        super().__init__(specification)
+
+class reached_destination(specification_monitor):
+
+    def __init__(self):
+        def specification(simulation):
+            start = simulation.result.trajectory[0][0]
+            end = simulation.result.trajectory[-1][0]
+            return start.distanceTo(end) - 5
         super().__init__(specification)

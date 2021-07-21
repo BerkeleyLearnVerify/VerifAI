@@ -212,9 +212,9 @@ class ScenicSampler(FeatureSampler):
         super().__init__(space)
 
     @classmethod
-    def fromScenario(cls, path, maxIterations=None, ignoredProperties=None, model=None, **params):
+    def fromScenario(cls, path, maxIterations=None, ignoredProperties=None, model=None, scenario=None, **params):
         """Create a sampler corresponding to a Scenic program."""
-        scenario = scenic.scenarioFromFile(path, params=params, model=model)
+        scenario = scenic.scenarioFromFile(path, params=params, model=model, scenario=scenario)
         return cls(scenario, maxIterations=maxIterations,
                    ignoredProperties=ignoredProperties)
 

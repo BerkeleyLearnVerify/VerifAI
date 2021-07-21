@@ -159,6 +159,8 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
     def _add_to_running(self, ce):
         if ce in self.counterexamples:
             return True
+        if not any(ce):
+            return False
         to_remove = set()
         # if there is already a better counterexample, don't add this.
         if len(self.counterexamples) > 0:
