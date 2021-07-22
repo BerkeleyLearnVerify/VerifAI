@@ -76,7 +76,13 @@ away from any vehicle at any point, a counterexample is returned.
 class distance(specification_monitor):
     def __init__(self):
         def specification(simulation):
-            positions = np.array(simulation.result.trajectory)
+            positions = []
+            for timestep in simulation.result.trajectory:
+                all_pos = []
+                for pos in timestep:
+                    all_pos.append([pos.x, pos.y])
+                positions.append(all_pos)
+            positions = np.array(positions)
             distances = positions[:, [0], :] - positions[:, 1:, :]
             distances = np.linalg.norm(distances, axis=2)
             if not all(distances.shape):
