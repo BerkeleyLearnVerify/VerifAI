@@ -76,18 +76,16 @@ away from any vehicle at any point, a counterexample is returned.
 class distance(specification_monitor):
     def __init__(self):
         def specification(simulation):
-            positions = []
+            min_dist = np.inf
             for timestep in simulation.result.trajectory:
-                all_pos = []
-                for pos in timestep:
-                    all_pos.append([pos.x, pos.y])
-                positions.append(all_pos)
-            positions = np.array(positions)
-            distances = positions[:, [0], :] - positions[:, 1:, :]
-            distances = np.linalg.norm(distances, axis=2)
-            if not all(distances.shape):
-                return np.inf
-            rho = np.min(distances) - 5
+                num_vehicles = len(timestep)
+                if num_vehicles < 2:
+                    continue
+                ego_pos = timestep[0]
+                for other_pos in timestep[1:]:
+                    dist = ego_pos.distanceTo(other_pos)
+                    min_dist = min(min_dist, dist)
+            rho = min_dist - 5
             return rho
         
         super().__init__(specification)
