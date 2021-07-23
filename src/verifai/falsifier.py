@@ -154,6 +154,8 @@ class falsifier(ABC):
             server_samples.append(sample)
             if not multi:
                 counterexamples.append(rho <= self.fal_thres)
+            elif isinstance(rho, int):
+                counterexamples.append(True)
             else:
                 counterexamples.append(any([r <= self.fal_thres for r in rho]))
             rhos.append(rho)

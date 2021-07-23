@@ -62,7 +62,9 @@ class time_to_collision(specification_monitor):
                 x10, y10, x20, y20
         ), t2)
         def specification(simulation):
-            positions = np.array(simulation.result.trajectory)
+            positions = np.array(simulation.result.trajectory[1:])
+            if positions.shape[1] < 2:
+                return np.inf
             velocities = np.diff(positions, axis=0) / simulation.timestep
             accelerations = np.diff(velocities, axis=0) / simulation.timestep
             ego_x, ego_v, ego_a = positions[2:, 0, :], velocities[1:, 0, :], accelerations[:, 0, :]
@@ -144,6 +146,8 @@ class braking_projection(specification_monitor):
         ), dist_2D)
         def specification(simulation):
             positions = np.array(simulation.result.trajectory)
+            if positions.shape[1] < 2:
+                return np.inf
             velocities = np.diff(positions, axis=0) / simulation.timestep
             accelerations = np.diff(velocities, axis=0) / simulation.timestep
             ego_x, ego_v = positions[2:, 0, :], velocities[1:, 0, :]

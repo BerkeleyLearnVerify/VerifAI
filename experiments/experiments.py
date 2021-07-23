@@ -95,7 +95,7 @@ Runs all experiments in a directory.
 """
 def run_experiments(path, parallel=False, multi_objective=False, model=None,
                    sampler_type=None, headless=False, num_workers=5, output_dir='outputs',
-                   experiment_name=None, map_path=None, lgsvl=False):
+                   experiment_name=None, map_path=None, lgsvl=False, scenario=None):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     paths = []
@@ -111,7 +111,7 @@ def run_experiments(path, parallel=False, multi_objective=False, model=None,
         # try:
         falsifier = run_experiment(p, parallel=parallel,
         model=model, sampler_type=sampler_type, headless=headless,
-        num_workers=num_workers)
+        num_workers=num_workers, scenario=scenario)
     # except:
         # announce(f'ERROR FOR SCRIPT {p}:\n\n{traceback.format_exc()}')
             # breakpoint()
@@ -158,10 +158,10 @@ def run_experiment(path, parallel=False, model=None,
     num_objectives = sampler.scenario.params.get('N', 1)
     multi = num_objectives > 1
     falsifier_params = DotMap(
-        n_iters=50,
+        n_iters=None,
         save_error_table=True,
         save_safe_table=True,
-        max_time=None,
+        max_time=1800,
     )
     server_options = DotMap(maxSteps=200, verbosity=0)
     monitor = make_multi_objective_monitor(
@@ -208,7 +208,8 @@ if __name__ == '__main__':
     parser.add_argument('--model', '-m', type=str, default=None)
     parser.add_argument('--headless', action='store_true')
     parser.add_argument('--lgsvl', '-l', action='store_true')
+    parser.add_argument('--scenario', type=str, default=None)
     args = parser.parse_args()
     run_experiments(args.path, args.parallel, args.multi_objective,
     model=args.model, sampler_type=args.sampler_type, headless=args.headless,
-    num_workers=args.num_workers, experiment_name=args.experiment_name, lgsvl=args.lgsvl)
+    num_workers=args.num_workers, experiment_name=args.experiment_name, lgsvl=args.lgsvl, scenario=args.scenario)
