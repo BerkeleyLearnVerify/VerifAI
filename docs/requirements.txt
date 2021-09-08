@@ -36,7 +36,7 @@ opencv-python==4.2.0.34
 packaging==20.4
 pandas==1.1.3
 parsimonious==0.8.1
-pillow==7.2.0
+pillow==8.3.2
 pluggy==0.13.1
 py==1.9.0
 pygame==2.0.0.dev18
