@@ -93,7 +93,7 @@ class distance(specification_monitor):
 """
 Runs all experiments in a directory.
 """
-def run_experiments(path, parallel=False, multi_objective=False, model=None,
+def run_experiments(path, parallel=False, multi_objective=False, model=None, num_iters=5,
                    sampler_type=None, headless=False, num_workers=5, output_dir='outputs',
                    experiment_name=None, map_path=None, lgsvl=False, scenario=None):
     if not os.path.exists(output_dir):
@@ -109,7 +109,7 @@ def run_experiments(path, parallel=False, multi_objective=False, model=None,
         paths = [path]
     for p in paths:
         # try:
-        falsifier = run_experiment(p, parallel=parallel,
+        falsifier = run_experiment(p, parallel=parallel, num_iters=num_iters,
         model=model, sampler_type=sampler_type, headless=headless,
         num_workers=num_workers, scenario=scenario)
     # except:
@@ -146,7 +146,7 @@ Arguments:
     headless: Whether or not to display each simulation.
     num_workers: Number of parallel workers. Only used if parallel is true.
 """
-def run_experiment(path, parallel=False, model=None,
+def run_experiment(path, parallel=False, model=None, num_iters=5,
                    sampler_type=None, headless=False, num_workers=5, scenario=None):
     announce(f'RUNNING SCENIC SCRIPT {path}')
     model = f'scenic.simulators.{model}.model' if model else None
@@ -158,19 +158,13 @@ def run_experiment(path, parallel=False, model=None,
     num_objectives = sampler.scenario.params.get('N', 1)
     multi = num_objectives > 1
     falsifier_params = DotMap(
-        n_iters=None,
+        n_iters=num_iters,
         save_error_table=True,
         save_safe_table=True,
-        max_time=1800,
+        max_time=None,
     )
     server_options = DotMap(maxSteps=200, verbosity=0)
-    monitor = make_multi_objective_monitor(
-        distance,
-        time_to_collision,
-        # braking_projection,
-        staying_in_lane,
-        reached_destination,
-    ) if not multi else distance_multi(num_objectives)
+    monitor = distance() if not multi else distance_multi(num_objectives)
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
     
@@ -198,6 +192,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--path', '-p', type=str, default='uberCrashNewton.scenic',
     help='Path to Scenic script')
+    parser.add_argument('--num-iters', '-n', type=int, default=5, help='Number of simulations to run')
     parser.add_argument('--parallel', action='store_true')
     parser.add_argument('--num-workers', type=int, default=5, help='Number of parallel workers')
     parser.add_argument('--sampler-type', '-s', type=str, default=None,
@@ -211,5 +206,5 @@ if __name__ == '__main__':
     parser.add_argument('--scenario', type=str, default=None)
     args = parser.parse_args()
     run_experiments(args.path, args.parallel, args.multi_objective,
-    model=args.model, sampler_type=args.sampler_type, headless=args.headless,
+    model=args.model, sampler_type=args.sampler_type, headless=args.headless, num_iters=args.num_iters,
     num_workers=args.num_workers, experiment_name=args.experiment_name, lgsvl=args.lgsvl, scenario=args.scenario)
