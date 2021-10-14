@@ -2,12 +2,12 @@
 Getting Started with VerifAI
 ############################################
 
-VerifAI requires **Python 3.6** or newer.
+VerifAI requires **Python 3.8** or newer.
 To install VerifAI from PyPI, execute::
 
 	pip install verifai
 
-Alternatively, you can download or clone the `VerifAI repository <https://github.com/BerkelelyLearnVerify/VerifAI>`_, which also contains the examples used in the :doc:`tutorial <tutorial>`.
+Alternatively, if you want to run the examples used in the :doc:`tutorial <tutorial>`, you can download or clone the `VerifAI repository <https://github.com/BerkelelyLearnVerify/VerifAI>`_.
 Install `Poetry <https://python-poetry.org/>`_ and then run::
 
 	poetry install
@@ -16,6 +16,10 @@ This will install VerifAI into your current virtual environment (or create a new
 If you will be developing VerifAI, add the ``-E dev`` option when invoking Poetry.
 
 Some features of VerifAI require additional packages: the tool will prompt you if they are needed but not installed.
+
+.. note::
+
+        For Windows, we recommend using `bashonwindows (the Windows subsystem for Linux) <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_ on Windows 10.  Instructions for installing Poetry on bashonwindows can be found `here <https://python-poetry.org/docs/#osx-linux-bashonwindows-install-instructions>`__.
 
 .. note::
 

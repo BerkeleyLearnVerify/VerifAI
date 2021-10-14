@@ -1,11 +1,11 @@
-###########
+#################
 Search Techniques
-###########
+#################
 
 VerifAI provides several techniques for exploring the semantic search space for verification, testing, and synthesis.
 These are largely based on sampling and optimization methods. In the tool, we refer to all of these as "samplers".
 
-There are three active samplers (i.e. cross entropy, simulated annealing, and bayesian optimization samplers) and two passive samplers (i.e. random and halton samplers) supported. The details of their implementation can be found in verifai/samplers directory. 
+There are four active samplers (i.e. cross-entropy, simulated annealing, Bayesian optimization, and multi-armed bandit) and two passive samplers (i.e. random and Halton samplers) supported. The details of their implementation can be found in verifai/samplers directory. 
 
 
 How to add a new sampler?
