@@ -77,7 +77,7 @@ Runs all experiments in a directory.
 """
 def run_experiments(path, parallel=False, multi_objective=False, model=None,
                    sampler_type=None, headless=False, num_workers=5, output_dir='outputs',
-                   experiment_name=None, map_path=None, lgsvl=False):
+                   experiment_name=None):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     paths = []
@@ -93,7 +93,7 @@ def run_experiments(path, parallel=False, multi_objective=False, model=None,
         try:
             falsifier = run_experiment(p, parallel=parallel, multi_objective=multi_objective,
             model=model, sampler_type=sampler_type, headless=headless,
-            num_workers=num_workers, map_path=map_path)
+            num_workers=num_workers)
         except:
             announce(f'ERROR FOR SCRIPT {p}:\n\n{traceback.format_exc()}')
             continue
@@ -127,7 +127,7 @@ Arguments:
     headless: Whether or not to display each simulation.
     num_workers: Number of parallel workers. Only used if parallel is true.
 """
-def run_experiment(path, parallel=False, model=None,
+def run_experiment(path, parallel=False, model=None, multi_objective=False,
                    sampler_type=None, headless=False, num_workers=5):
     announce(f'RUNNING SCENIC SCRIPT {path}')
     model = f'scenic.simulators.{model}.model' if model else None
@@ -182,8 +182,7 @@ if __name__ == '__main__':
     parser.add_argument('--multi-objective', action='store_true')
     parser.add_argument('--model', '-m', type=str, default=None)
     parser.add_argument('--headless', action='store_true')
-    parser.add_argument('--lgsvl', '-l', action='store_true')
     args = parser.parse_args()
     run_experiments(args.path, args.parallel, args.multi_objective,
     model=args.model, sampler_type=args.sampler_type, headless=args.headless,
-    num_workers=args.num_workers, experiment_name=args.experiment_name, lgsvl=args.lgsvl)
+    num_workers=args.num_workers, experiment_name=args.experiment_name)

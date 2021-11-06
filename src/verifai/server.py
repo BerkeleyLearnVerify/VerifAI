@@ -54,7 +54,7 @@ def choose_sampler(sample_space, sampler_type,
             sample_space, ce_params=ce_params)
         return 'ce', sampler
     if sampler_type == 'mab':
-\        if sampler_params is None:
+        if sampler_params is None:
             ce_params = default_sampler_params('ce')
         else:
             ce_params = default_sampler_params('ce')

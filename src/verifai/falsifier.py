@@ -6,9 +6,7 @@ from dotmap import DotMap
 from verifai.monitor import mtl_specification, specification_monitor, multi_objective_monitor
 from verifai.error_table import error_table
 import numpy as np
-import pickle
 import progressbar
-import ray
 from statsmodels.stats.proportion import proportion_confint
 import time
 
@@ -129,14 +127,17 @@ class falsifier(ABC):
         rhos = []
         self.total_sample_time = 0
         self.total_simulate_time = 0
-        # print(f'Running falsifier; server class is {type(self.server)}')
-        if self.n_iters is not None:
-            bar = progressbar.ProgressBar(max_value=self.n_iters)
-        else:
-            widgets = ['Scenes generated: ', progressbar.Counter('%(value)d'),
-               ' (', progressbar.Timer(), ')']
-            bar = progressbar.ProgressBar(widgets=widgets)
-        # bar = progressbar.ProgressBar(max_value=self.n_iters)
+        if self.verbosity >= 2:
+            print(f'Running falsifier; server class is {type(self.server)}')
+
+        if self.verbosity >= 1:
+            if self.n_iters is not None:
+                bar = progressbar.ProgressBar(max_value=self.n_iters)
+            else:
+                widgets = ['Scenes generated: ', progressbar.Counter('%(value)d'),
+                ' (', progressbar.Timer(), ')']
+                bar = progressbar.ProgressBar(widgets=widgets)
+
         while True:
             try:
                 sample, rho, (sample_time, simulate_time) = self.server.run_server()
@@ -147,14 +148,15 @@ class falsifier(ABC):
                 if self.verbosity >= 1:
                     print("Sampler has generated all possible samples")
                 break
-            # if self.verbosity >= 1:
-            #     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
+            if self.verbosity >= 2:
+                print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
             server_samples.append(sample)
             counterexamples.append(rho <= self.fal_thres)
             rhos.append(rho)
             i += 1
-            bar.update(i)
+            if self.verbosity >= 1:
+                bar.update(i)
             if i == 1:
                 t0 = time.time()
             if self.n_iters is not None and i == self.n_iters:
@@ -162,7 +164,15 @@ class falsifier(ABC):
             if self.max_time is not None and time.time() - t0 >= self.max_time:
                 break
         if isinstance(self.monitor, multi_objective_monitor):
-            counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
+            counterexamples = (self.server
+                .sampler
+                .scenario
+                .externalSampler
+                .sampler
+                .domainSampler
+                .split_sampler
+                .samplers[0]
+                .counterexample_values)
         for sample, ce, rho in zip(server_samples, counterexamples, rhos):
             # if isinstance(rho, (list, tuple)):
             #     check_var = rho[-1]
@@ -251,7 +261,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         i = 0
         ce_num = 0
         outputs = self.server.run_server()
-        samples, rhos = zip(*outputs)
+        samples, rhos, counterexamples = zip(*outputs)
         if isinstance(self.monitor, multi_objective_monitor):
             counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
         else:
@@ -260,10 +270,6 @@ class generic_parallel_falsifier(parallel_falsifier):
             if self.verbosity >= 1:
                 print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
-            # if isinstance(rho, (list, tuple)):
-            #     check_var = rho[-1]
-            # else:
-            #     check_var = rho
             if ce:
                 if self.save_error_table:
                     self.populate_error_table(sample, rho)
@@ -272,5 +278,3 @@ class generic_parallel_falsifier(parallel_falsifier):
                     break
             elif self.save_safe_table:
                 self.populate_error_table(sample, rho, error=False)
-        # while True:
-        # ray.get(self.server.terminate.remote())
