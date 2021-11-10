@@ -82,7 +82,7 @@ class DummySampler(VerifaiSampler):
 @ray.remote
 class SampleSimulator():
 
-    def __init__(self, scenic_path, worker_num, monitor, options={}, use_carla=False,
+    def __init__(self, scenic_path, worker_num, monitor, options={},
     scenario_params={}):
         print(scenario_params)
         scenario_params.update({
@@ -150,7 +150,7 @@ class SampleSimulator():
 class ParallelScenicServer(ScenicServer):
 
     def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor,
-    options={}, use_carla=False, max_time=None, scenario_params={}, sampler=None):
+    options={}, max_time=None, scenario_params={}, sampler=None):
         if not ray.is_initialized():
             ray.init(ignore_reinit_error=True)
         self.total_workers = total_workers
@@ -161,7 +161,7 @@ class ParallelScenicServer(ScenicServer):
         super().__init__(sampling_data, monitor, options)
         print(f'Sampler class is {type(self.sampler)}')
         self.sample_simulators = [SampleSimulator.remote(scenic_path, i, monitor, options,
-        use_carla, scenario_params)
+        scenario_params)
         for i in range(self.total_workers)]
 
     def _generate_next_sample(self, worker_num):

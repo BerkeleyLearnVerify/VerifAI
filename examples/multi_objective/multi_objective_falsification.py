@@ -75,9 +75,9 @@ class distance(specification_monitor):
 """
 Runs all experiments in a directory.
 """
-def run_experiments(path, parallel=False, multi_objective=False, model=None,
+def run_experiments(path, parallel=False, model=None,
                    sampler_type=None, headless=False, num_workers=5, output_dir='outputs',
-                   experiment_name=None):
+                   experiment_name=None, max_time=None, n_iters=None):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     paths = []
@@ -91,9 +91,9 @@ def run_experiments(path, parallel=False, multi_objective=False, model=None,
         paths = [path]
     for p in paths:
         try:
-            falsifier = run_experiment(p, parallel=parallel, multi_objective=multi_objective,
+            falsifier = run_experiment(p, parallel=parallel,
             model=model, sampler_type=sampler_type, headless=headless,
-            num_workers=num_workers)
+            num_workers=num_workers, max_time=max_time, n_iters=n_iters)
         except:
             announce(f'ERROR FOR SCRIPT {p}:\n\n{traceback.format_exc()}')
             continue
@@ -105,8 +105,6 @@ def run_experiments(path, parallel=False, multi_objective=False, model=None,
             outfile = root.split('/')[-1]
             if parallel:
                 outfile += '_parallel'
-            if multi_objective:
-                outfile += '_multi'
             if model:
                 outfile += f'_{model}'
             if sampler_type:
@@ -127,8 +125,9 @@ Arguments:
     headless: Whether or not to display each simulation.
     num_workers: Number of parallel workers. Only used if parallel is true.
 """
-def run_experiment(path, parallel=False, model=None, multi_objective=False,
-                   sampler_type=None, headless=False, num_workers=5):
+def run_experiment(path, parallel=False, model=None,
+                   sampler_type=None, headless=False, num_workers=5, max_time=None,
+                   n_iters=5):
     announce(f'RUNNING SCENIC SCRIPT {path}')
     model = f'scenic.simulators.{model}.model' if model else None
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
@@ -139,12 +138,13 @@ def run_experiment(path, parallel=False, model=None, multi_objective=False,
     num_objectives = sampler.scenario.params.get('N', 1)
     multi = num_objectives > 1
     falsifier_params = DotMap(
-        n_iters=None,
+        n_iters=n_iters,
         save_error_table=True,
         save_safe_table=True,
-        max_time=1800,
+        max_time=max_time,
     )
-    server_options = DotMap(maxSteps=300, verbosity=0)
+    server_options = DotMap(maxSteps=300, verbosity=0,
+    scenic_path=path, scenario_params=params, num_workers=num_workers)
     monitor = distance() if not multi else distance_multi(num_objectives)
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
@@ -152,8 +152,7 @@ def run_experiment(path, parallel=False, model=None, multi_objective=False,
     falsifier = falsifier_cls(sampler=sampler, falsifier_params=falsifier_params,
                                   server_class=ScenicServer,
                                   server_options=server_options,
-                                  monitor=monitor, scenic_path=path,
-                                  scenario_params=params, num_workers=num_workers)
+                                  monitor=monitor)
     t0 = time.time()
     print('Running falsifier')
     falsifier.run_falsifier()
@@ -179,10 +178,14 @@ if __name__ == '__main__':
     help='verifaiSamplerType to use')
     parser.add_argument('--experiment-name', '-e', type=str, default=None,
     help='verifaiSamplerType to use')
-    parser.add_argument('--multi-objective', action='store_true')
     parser.add_argument('--model', '-m', type=str, default=None)
     parser.add_argument('--headless', action='store_true')
+    parser.add_argument('--n-iters', '-n', type=int, default=None, help='Number of simulations to run')
+    parser.add_argument('--max-time', type=int, default=None, help='Maximum amount of time to run simulations')
     args = parser.parse_args()
-    run_experiments(args.path, args.parallel, args.multi_objective,
-    model=args.model, sampler_type=args.sampler_type, headless=args.headless,
-    num_workers=args.num_workers, experiment_name=args.experiment_name)
+    if args.n_iters is None and args.max_time is None:
+        raise ValueError('At least one of --n-iters or --max-time must be set')
+    run_experiments(args.path, args.parallel,model=args.model,
+    sampler_type=args.sampler_type, headless=args.headless,
+    num_workers=args.num_workers, experiment_name=args.experiment_name,
+    max_time=args.max_time, n_iters=args.n_iters)

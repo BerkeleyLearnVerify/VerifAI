@@ -104,7 +104,6 @@ class Domain:
         standardizedDimension and standardizedIntervals: for primitive Domains,
         at least one will return the 'not supported' value."""
         coords = []
-        print('inside standardize')
         self.standardizeOnto(point, coords)
         return tuple(coords)
 
@@ -158,7 +157,6 @@ class Domain:
             return None, self
 
     def rejoinPoints(self, *components):
-        # print(f'components = {components}')
         """Join points from the partitioned components of a Domain."""
         assert sum(int(component is not None) for component in components) == 1
         for component in components:

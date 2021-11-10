@@ -24,9 +24,15 @@ class DomainSampler:
 
     def __init__(self, domain):
         self.domain = domain
+        self.last_sample = None
 
     def getSample(self):
-        """Generate the next sample, given the current distribution."""
+        """Generate the next sample, given the current distribution.
+
+        Must return a pair consisting of the sample and arbitrary
+        sampler-specific info, which will be passed to the `update`
+        method after the sample is evaluated.
+        """
         raise NotImplementedError('tried to use abstract Sampler')
     
     def update(self, sample, info, rho):
@@ -40,6 +46,16 @@ class DomainSampler:
             rho: the result of the sample, returned by the falsifier.
         """
         pass
+
+    def nextSample(self, feedback=None):
+        """Generate the next sample, given feedback from the last sample."""
+        if self.last_sample is not None and feedback is not None:
+            self.update(self.last_sample, self.last_info, feedback)
+        self.last_sample, self.last_info = self.getSample()
+        return self.last_sample, self.last_info
+
+    def getVector(self):
+        raise NotImplementedError('tried to use abstract Sampler')
 
     def nextSample(self, feedback=None):
         """Generate the next sample, given feedback from the last sample."""
@@ -70,22 +86,12 @@ class SplitSampler(DomainSampler):
         super().__init__(domain)
         self.samplers = tuple(samplers)
 
-    def nextSample(self, feedback=None):
-        samples, infos = [], []
-        for sampler in self.samplers:
-            sample, info = sampler.nextSample(feedback)
-            samples.append(sample)
-            infos.append(info)
-        # print(f'samples = {samples}, infos = {infos}')
-        return self.domain.rejoinPoints(*samples), infos
-
     def getSample(self):
         samples, infos = [], []
         for sampler in self.samplers:
             sample, info = sampler.getSample()
             samples.append(sample)
             infos.append(info)
-        # print(f'samples = {samples}, infos = {infos}')
         return self.domain.rejoinPoints(*samples), infos
 
     def update(self, sample, info, rho):
@@ -150,17 +156,12 @@ class BoxSampler(DomainSampler):
             raise RuntimeError(f'{self.__class__.__name__} supports only'
                                ' continuous standardizable Domains')
         super().__init__(domain)
-
-    def nextSample(self, feedback=None):
-        sample, info = self.nextVector(feedback)
-        # print(f'inside BoxSampler.nextSample and sample = {sample}')
-        return self.domain.unstandardize(sample), info
     
     def getSample(self):
         sample, info = self.nextVector()
         return self.domain.unstandardize(sample), info
 
-    def nextVector(self, feedback=None):
+    def getVector(self, feedback=None):
         raise NotImplementedError('tried to use abstract BoxSampler')
 
 class DiscreteBoxSampler(DomainSampler):
@@ -171,10 +172,6 @@ class DiscreteBoxSampler(DomainSampler):
             raise RuntimeError(f'{self.__class__.__name__} supports only'
                                ' discrete standardizable Domains')
         super().__init__(domain)
-
-    def nextSample(self, feedback=None):
-        sample, info = self.nextVector(feedback)
-        return self.domain.unstandardize(sample), info
 
     def getSample(self):
         sample, info = self.nextVector()

@@ -61,6 +61,7 @@ progressbar2 = "^3.53.1"
 networkx = "^2.5"
 statsmodels = "^0.12.2"
 sympy = "^1.8"
+scenic = "2.1.0b1"
 
 [tool.poetry.extras]
 bayesopt = ["GPy", "GPyOpt"]

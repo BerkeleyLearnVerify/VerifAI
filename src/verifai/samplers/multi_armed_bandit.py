@@ -45,9 +45,6 @@ class MultiArmedBanditSampler(DomainSampler):
                 assert self.rand_sampler is None
                 self.rand_sampler = subsampler
 
-    def nextSample(self, feedback=None):
-        return self.split_sampler.nextSample(feedback)
-
     def getSample(self):
         return self.split_sampler.getSample()
 
@@ -83,8 +80,7 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         self.rho_values = []
         self.restart_every = restart_every
 
-    def nextVector(self, feedback=None):
-        self.update(None, self.current_sample, feedback)
+    def getVector(self):
         return self.generateSample()
     
     def generateSample(self):
@@ -99,9 +95,7 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
         return ret, bucket_samples
     
     def update(self, sample, info, rho):
-        if rho is None:
-            return
-        # print(rho)
+        assert rho is not None
         self.t += 1
         # "random restarts" to generate a new topological sort of the priority graph
         # every restart_every samples.
@@ -114,17 +108,13 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
             self.counts[i][b] += 1.
             if rho < self.thres:
                 self.errors[i][b] += 1.
-        # print(self.errors / self.counts)
 
     def set_graph(self, graph):
         self.priority_graph = graph
-        try:
+        if graph is not None:
             self.thres = [self.thres] * graph.number_of_nodes()
-        except Exception as e:
-            print(e)
-            assert len(self.thres) == graph.number_of_nodes(), 'Must have as many thresholds as graph nodes'
-        self.num_properties = graph.number_of_nodes()
-        self.is_multi = True
+            self.num_properties = graph.number_of_nodes()
+            self.is_multi = True
 
     # is rho1 better than rho2?
     # partial pre-ordering on objective functions, so it is possible that:

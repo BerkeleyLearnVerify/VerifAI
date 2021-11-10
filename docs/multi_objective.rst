@@ -38,7 +38,7 @@ Additionally, a *rulebook* is defined in the ``priority_graph`` variable, which 
 
 Special Samplers
 ================
-To mitigate issues with sensitivity to results of initial samples, VerifAI implements the *multi-armed bandit sampler*, an active sampler which uses the Upper Confidence Bound (UCB) algorithm to tradeoff exploration of new regions of the feature space as well as exploitation of previously found counterexamples. To use the multi-armed bandit sampler, simply include the following line in your Scenic script:
+To mitigate issues with sensitivity to results of initial samples, VerifAI implements the *multi-armed bandit sampler*, an active sampler which uses the Upper Confidence Bound (UCB) algorithm to tradeoff exploration of new regions of the feature space as well as exploitation of previously found counterexamples. To use the multi-armed bandit sampler, either use MultiArmedBanditSampler class or, if using Scenic, add the line
 
 .. code:: python
 

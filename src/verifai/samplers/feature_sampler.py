@@ -26,6 +26,7 @@ class FeatureSampler:
 
     def __init__(self, space):
         self.space = space
+        self.last_sample = None
 
     @classmethod
     def samplerFor(cls, space):
@@ -65,7 +66,7 @@ class FeatureSampler:
 
     @staticmethod
     def epsilonGreedySamplerFor(space, ce_params):
-        """Creates a cross-entropy sampler for a given space.
+        """Creates an epsilon-greedy sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable."""
@@ -132,6 +133,7 @@ class FeatureSampler:
 
     def getSample(self):
         """Generate the next sample, given the current distribution."""
+        raise NotImplementedError('tried to use abstract FeatureSampler')
         return self.nextSample(feedback=None)
     
     def update(self, sample, info, rho):
@@ -140,7 +142,10 @@ class FeatureSampler:
 
     def nextSample(self, feedback=None):
         """Generate the next sample, given feedback from the last sample."""
-        raise NotImplementedError('tried to use abstract FeatureSampler')
+        if self.last_sample is not None and feedback is not None:
+            self.update(self.last_sample, self.last_info, feedback)
+        self.last_sample, self.last_info = self.getSample()
+        return self.last_sample, self.last_info
 
     def saveToFile(self, path):
         with open(path, 'wb') as outfile:
@@ -191,24 +196,9 @@ class LateFeatureSampler(FeatureSampler):
             self.feedbacks = { length: None for length in fixedDomains }
             self.lastLength = None
 
-    def nextSample(self, feedback=None):
-        if self.lengthSampler is None:
-            domainPoint, info = self.domainSampler.nextSample(feedback)
-            # print(f'domainPoint = {domainPoint}')
-        else:
-            if self.lastLength is not None:
-                self.feedbacks[self.lastLength] = feedback
-            length, info1 = self.lengthSampler.nextSample(feedback)
-            self.lastLength = length
-            lastFeedback = self.feedbacks[length]
-            domainPoint, info2 = self.domainSamplers[length].nextSample(lastFeedback)
-            info = (info1, info2)
-        return self.space.makePoint(*domainPoint), info
-    
     def getSample(self):
         if self.lengthSampler is None:
             domainPoint, info = self.domainSampler.getSample()
-            # print(f'domainPoint = {domainPoint}')
         else:
             length, info1 = self.lengthSampler.getSample()
             self.lastLength = length

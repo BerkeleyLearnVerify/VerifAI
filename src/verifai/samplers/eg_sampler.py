@@ -42,9 +42,6 @@ class EpsilonGreedySampler(DomainSampler):
                 assert self.rand_sampler is None
                 self.rand_sampler = subsampler
 
-    def nextSample(self, feedback=None):
-        return self.split_sampler.nextSample(feedback)
-
     def getSample(self):
         return self.split_sampler.getSample()
 
@@ -81,10 +78,6 @@ class ContinuousEpsilonGreedySampler(BoxSampler):
         return self.generateSample()
     
     def generateSample(self):
-        # proportions = self.errors / self.counts
-        # # print(proportions)
-        # Q = proportions + np.sqrt(2 / self.counts * np.log(1 + self.t*np.log(self.t)**2))
-        # bucket_samples = np.array([np.argmax(Q[i]) for i in range(len(self.buckets))])
         if self.sample_randomly:
             bucket_samples = np.array([np.random.choice(int(b))
                                     for i, b in enumerate(self.buckets)])
