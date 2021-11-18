@@ -129,4 +129,3 @@ def test_driving_dynamic(pathToLocalFile):
                                   server_class=ScenicServer,
                                   server_options=server_options)
     falsifier.run_falsifier()
-    print('end of test')

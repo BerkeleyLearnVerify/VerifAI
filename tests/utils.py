@@ -7,7 +7,7 @@ def sampleWithFeedback(sampler, num_samples, f):
     feedback = None
     samples = []
     for i in range(num_samples):
-        sample = sampler.nextSample(feedback)
+        sample, _ = sampler.nextSample(feedback)
         feedback = f(sample)
         print(f'Sample #{i}:')
         print(sample)

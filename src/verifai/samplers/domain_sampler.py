@@ -158,11 +158,16 @@ class BoxSampler(DomainSampler):
         super().__init__(domain)
     
     def getSample(self):
-        sample, info = self.nextVector()
+        sample, info = self.getVector()
         return self.domain.unstandardize(sample), info
 
-    def getVector(self, feedback=None):
+    def getVector(self):
         raise NotImplementedError('tried to use abstract BoxSampler')
+
+    def nextVector(self, feedback=None):
+        if self.last_sample is not None and feedback is not None:
+            self.update(self.last_sample, self.last_info, feedback)
+        return self.getVector()
 
 class DiscreteBoxSampler(DomainSampler):
     """Samplers defined only over discrete hyperboxes"""
@@ -174,11 +179,8 @@ class DiscreteBoxSampler(DomainSampler):
         super().__init__(domain)
 
     def getSample(self):
-        sample, info = self.nextVector()
+        sample, info = self.getVector()
         return self.domain.unstandardize(sample), info
-
-    def nextVector(self, feedback=None):
-        raise NotImplementedError('tried to use abstract DiscreteBoxSampler')
 
 class IteratorSampler(DomainSampler):
     """Samplers defined using a generator function."""

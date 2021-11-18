@@ -143,7 +143,6 @@ class falsifier(ABC):
                 sample, rho, (sample_time, simulate_time) = self.server.run_server()
                 self.total_sample_time += sample_time
                 self.total_simulate_time += simulate_time
-                # print(f'sample = {sample}, rho = {rho}')
             except TerminationException:
                 if self.verbosity >= 1:
                     print("Sampler has generated all possible samples")
@@ -174,10 +173,6 @@ class falsifier(ABC):
                 .samplers[0]
                 .counterexample_values)
         for sample, ce, rho in zip(server_samples, counterexamples, rhos):
-            # if isinstance(rho, (list, tuple)):
-            #     check_var = rho[-1]
-            # else:
-            #     check_var = rho
             if ce:
                 if self.save_error_table:
                     self.populate_error_table(sample, rho)
@@ -225,7 +220,7 @@ class parallel_falsifier(falsifier):
 
 class generic_parallel_falsifier(parallel_falsifier):
     def __init__(self, monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=Server, num_workers=5):
+                 falsifier_params=None, server_options={}, server_class=Server):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):
@@ -238,7 +233,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         super().__init__(sample_space=sample_space, sampler_type=sampler_type,
                          monitor=monitor, falsifier_params=falsifier_params,
                          server_options=server_options, server_class=server_class,
-                         num_workers=num_workers, sampler=sampler)
+                         sampler=sampler)
 
     def init_server(self, server_options, server_class):
         if self.verbosity >= 1:
@@ -258,7 +253,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         i = 0
         ce_num = 0
         outputs = self.server.run_server()
-        samples, rhos, counterexamples = zip(*outputs)
+        samples, rhos = zip(*outputs)
         if isinstance(self.monitor, multi_objective_monitor):
             counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
         else:

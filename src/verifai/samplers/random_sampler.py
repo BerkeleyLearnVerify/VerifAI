@@ -9,7 +9,7 @@ class RandomSampler(DomainSampler):
         super().__init__(domain)
         self.distribution = distribution
 
-    def nextSample(self, feedback=None):
+    def getSample(self):
         if self.distribution is None:
             return self.domain.uniformPoint(), None
         else:

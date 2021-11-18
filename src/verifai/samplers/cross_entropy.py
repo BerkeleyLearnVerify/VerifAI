@@ -73,8 +73,7 @@ class ContinuousCrossEntropySampler(BoxSampler):
         self.thres = thres
         self.current_sample = None
 
-    def nextVector(self, feedback=None):
-        self.update(None, self.current_sample, feedback)
+    def getVector(self):
         return self.generateSample()
     
     def generateSample(self):
@@ -106,18 +105,19 @@ class DiscreteCrossEntropySampler(DiscreteBoxSampler):
         self.thres = thres
         self.current_sample = None
 
-    def nextVector(self, feedback=None):
-        if feedback < self.thres:
-            self.update_dist()
+    def getVector(self):
         self.current_sample=\
             tuple(left + np.random.choice(right-left+1, p=self.dist[i])
                      for i, (left, right) in enumerate(self.domain.standardizedIntervals))
         return self.current_sample, None
 
-    def update_dist(self):
+    def update(self, sample, info, rho):
+        assert rho is not None
+        if rho >= self.thres:
+            return
         update_dist = np.array([np.zeros(right-left+1)
                                 for left, right in self.domain.standardizedIntervals])
-        for i, (ud, b) in enumerate(zip(update_dist, self.current_sample)):
+        for i, (ud, b) in enumerate(zip(update_dist, info)):
             left, _ = self.domain.standardizedIntervals[i]
             ud[b-left] = 1.
 
@@ -134,8 +134,7 @@ class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
         super().__init__(domain, alpha, thres, buckets=10, dist=dist)
         self.counts = np.array([np.zeros(int(b)) for b in self.buckets])
 
-    def nextVector(self, feedback=None):
-        self.update(None, self.current_sample, feedback)
+    def getVector(self):
         return self.generateSample()
     
     def generateSample(self):
