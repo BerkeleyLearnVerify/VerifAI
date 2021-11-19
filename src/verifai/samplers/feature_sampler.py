@@ -132,20 +132,28 @@ class FeatureSampler:
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
     def getSample(self):
-        """Generate the next sample, given the current distribution."""
+        """Generate a sample, along with any sampler-specific info.
+
+        Must return a pair consisting of the sample and arbitrary
+        sampler-specific info, which will be passed to the `update`
+        method after the sample is evaluated.
+        """
         raise NotImplementedError('tried to use abstract FeatureSampler')
-        return self.nextSample(feedback=None)
     
     def update(self, sample, info, rho):
-        """Use the provided sample and rho value to update the state of the sampler."""
+        """Update the state of the sampler after evaluating a sample."""
         pass
 
     def nextSample(self, feedback=None):
-        """Generate the next sample, given feedback from the last sample."""
-        if self.last_sample is not None and feedback is not None:
+        """Generate the next sample, given feedback from the last sample.
+
+        This function exists only for backwards compatibility. It has been
+        superceded by the getSample and update APIs.
+        """
+        if self.last_sample is not None:
             self.update(self.last_sample, self.last_info, feedback)
         self.last_sample, self.last_info = self.getSample()
-        return self.last_sample, self.last_info
+        return self.last_sample
 
     def saveToFile(self, path):
         with open(path, 'wb') as outfile:
@@ -193,7 +201,6 @@ class LateFeatureSampler(FeatureSampler):
                 point: makeDomainSampler(domain)
                 for point, domain in fixedDomains.items()
             }
-            self.feedbacks = { length: None for length in fixedDomains }
             self.lastLength = None
 
     def getSample(self):
@@ -202,8 +209,7 @@ class LateFeatureSampler(FeatureSampler):
         else:
             length, info1 = self.lengthSampler.getSample()
             self.lastLength = length
-            lastFeedback = self.feedbacks[length]
-            domainPoint, info2 = self.domainSamplers[length].nextSample(lastFeedback)
+            domainPoint, info2 = self.domainSamplers[length].getSample()
             info = (info1, info2)
         return self.space.makePoint(*domainPoint), info
     
@@ -215,7 +221,7 @@ class LateFeatureSampler(FeatureSampler):
             lengths = []
             for name, feature in self.space.namedFeatures:
                 if feature.lengthDomain:
-                    lengths.append(len(getattr(sample, name)))
+                    lengths.append((len(getattr(sample, name)),))
             lengthPoint = self.lengthDomain.makePoint(*lengths)
             self.domainSamplers[lengthPoint].update(sample, info[1], rho)
 

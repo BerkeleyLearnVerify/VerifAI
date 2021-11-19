@@ -48,21 +48,15 @@ class DomainSampler:
         pass
 
     def nextSample(self, feedback=None):
-        """Generate the next sample, given feedback from the last sample."""
-        if self.last_sample is not None and feedback is not None:
+        """Generate the next sample, given feedback from the last sample.
+
+        This exists only for backwards-compatibility. It has been replaced by
+        the getSample and update APIs.
+        """
+        if self.last_sample is not None:
             self.update(self.last_sample, self.last_info, feedback)
         self.last_sample, self.last_info = self.getSample()
-        return self.last_sample, self.last_info
-
-    def getVector(self):
-        raise NotImplementedError('tried to use abstract Sampler')
-
-    def nextSample(self, feedback=None):
-        """Generate the next sample, given feedback from the last sample."""
-        if self.last_sample is not None and feedback is not None:
-            self.update(self.last_sample, self.last_info, feedback)
-        self.last_sample, self.last_info = self.getSample()
-        return self.last_sample, self.last_info
+        return self.last_sample
 
     def __iter__(self):
         try:
@@ -92,12 +86,12 @@ class SplitSampler(DomainSampler):
             sample, info = sampler.getSample()
             samples.append(sample)
             infos.append(info)
-        return self.domain.rejoinPoints(*samples), infos
+        return self.domain.rejoinPoints(*samples), (samples, infos)
 
     def update(self, sample, info, rho):
-        for sampler, i in zip(self.samplers, info):
-            if i is not None:
-                sampler.update(sample, i, rho)
+        samples, infos = info
+        for sampler, subsample, i in zip(self.samplers, samples, infos):
+            sampler.update(subsample, i, rho)
 
     @classmethod
     def fromPartition(cls, domain, partition, defaultSampler=None):
@@ -164,10 +158,11 @@ class BoxSampler(DomainSampler):
     def getVector(self):
         raise NotImplementedError('tried to use abstract BoxSampler')
 
-    def nextVector(self, feedback=None):
-        if self.last_sample is not None and feedback is not None:
-            self.update(self.last_sample, self.last_info, feedback)
-        return self.getVector()
+    def update(self, sample, info, rho):
+        self.updateVector(self.domain.standardize(sample), info, rho)
+
+    def updateVector(self, vector, info, rho):
+        pass
 
 class DiscreteBoxSampler(DomainSampler):
     """Samplers defined only over discrete hyperboxes"""
@@ -182,6 +177,15 @@ class DiscreteBoxSampler(DomainSampler):
         sample, info = self.getVector()
         return self.domain.unstandardize(sample), info
 
+    def getVector(self):
+        raise NotImplementedError('tried to use abstract DiscreteBoxSampler')
+
+    def update(self, sample, info, rho):
+        self.updateVector(self.domain.standardize(sample), info, rho)
+
+    def updateVector(self, vector, info, rho):
+        pass
+
 class IteratorSampler(DomainSampler):
     """Samplers defined using a generator function."""
 
@@ -189,16 +193,25 @@ class IteratorSampler(DomainSampler):
         super().__init__(domain)
         self.repeat = repeat
         self.iterator = iter(self)
+        self.lastFeedback = None
+        self.waitingForFeedback = False
 
-    def nextSample(self, feedback=None):
+    def getSample(self):
+        if self.waitingForFeedback:
+            raise RuntimeError('IteratorSampler does not support parallel sampling')
+        self.waitingForFeedback = True
         try:
-            return self.iterator.send(feedback)
+            return self.iterator.send(self.lastFeedback), None
         except StopIteration:
             if self.repeat:
                 self.iterator = iter(self)
-                return self.iterator.send(feedback)
+                return self.iterator.send(self.lastFeedback), None
             else:
                 raise TerminationException from None
+
+    def update(self, sample, info, rho):
+        self.lastFeedback = rho
+        self.waitingForFeedback = False
 
     def __iter__(self):
         raise NotImplementedError('tried to iterate abstract IteratorSampler')

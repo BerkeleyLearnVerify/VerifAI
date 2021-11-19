@@ -4,6 +4,7 @@
 import math
 import random
 import itertools
+import functools
 from collections import OrderedDict, namedtuple
 
 import numpy as np

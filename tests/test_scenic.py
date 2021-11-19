@@ -5,7 +5,7 @@ from dotmap import DotMap
 from verifai.samplers.scenic_sampler import ScenicSampler
 from verifai.scenic_server import ScenicServer
 from verifai.falsifier import generic_falsifier
-# from utils import sampleWithFeedback, checkSaveRestore
+from tests.utils import sampleWithFeedback, checkSaveRestore
 
 ## Basic
 

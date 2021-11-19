@@ -37,7 +37,7 @@ class HaltonSampler(BoxSampler):
             next(primes)
         self.prime_bases = [next(primes) for _ in range(self.dimension)]
 
-    def nextVector(self, feedback=None):
-        self.sample_index +=1
-        return tuple(halton_sequence(index=self.sample_index,
-                                     base=p) for p in self.prime_bases), None
+    def getVector(self):
+        self.sample_index += 1
+        return tuple(halton_sequence(index=self.sample_index, base=p)
+                     for p in self.prime_bases), None

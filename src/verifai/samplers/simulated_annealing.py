@@ -59,7 +59,7 @@ class SimulatedAnnealingSampler(BoxSampler):
     def nextVector(self, feedback=None):
         # num_epoch := total # of rise of temp
         if self.num_epoch <= 0:
-            raise SamplingError("Total Number of Epochs Executed")
+            raise TerminationException("all epochs finished")
 
         if feedback is None:    # First sample
             assert self.old_sample is None

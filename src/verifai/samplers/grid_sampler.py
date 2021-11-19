@@ -56,7 +56,7 @@ class ContinuousGridSampler(BoxSampler):
         self.iters = 0
         self.max_iters = np.prod(self.N)
 
-    def nextVector(self, feedback=None):
+    def getVector(self):
         sample_vec = []
         t = self.iters
         if t == self.max_iters:
@@ -78,7 +78,7 @@ class DiscreteGridSampler(DiscreteBoxSampler):
         for (left, right) in self.domain.standardizedIntervals:
             self.max_iters *= (right - left) + 1
 
-    def nextVector(self, feedback=None):
+    def getVector(self):
         if self.iters == self.max_iters:
             self.iters = 0
             raise TerminationException('finished discrete grid sampling')

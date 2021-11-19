@@ -9,12 +9,14 @@ class RejectionSampler(ConstrainedSampler):
     RejectionSampler(RandomSampler(domain), spec)
     """
 
-    def __init__(self, sampler, spec=None, maxRejections=1000):
+    def __init__(self, sampler, spec=None, rejectionRho=None, maxRejections=1000):
         super().__init__(sampler.domain, spec)
         self.sampler = sampler
+        self.specification = spec
+        self.rejectionRho = None
         self.maxRejections = maxRejections
 
-    def nextSample(self, feedback=None):
+    def getSample(self):
         reject = True
         samples = 0
         while reject:
@@ -23,15 +25,20 @@ class RejectionSampler(ConstrainedSampler):
                     f'exceeded RejectionSampler limit of {samples} rejections')
             samples += 1
             try:
-                sample, info = self.sampler.nextSample(feedback)
+                sample, info = self.sampler.getSample()
                 if self.specification is not None:
                     reject = not self.specification.isSatisfiedBy(sample)
                 else:
                     reject = False
+                if reject:
+                    self.sampler.update(sample, info, self.rejectionRho)
             except RejectionException:
                 reject = True
         return sample, info
 
+    def update(self, sample, info, rho):
+        self.sampler.update(sample, info, rho)
+
     def __repr__(self):
-        return (f'RejectionSampler({self.sampler}, {self.spec}, '
-                'maxRejections={self.maxRejections})')
+        return (f'RejectionSampler({self.sampler}, spec={self.specification}, '
+                f'maxRejections={self.maxRejections})')
