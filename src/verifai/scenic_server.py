@@ -30,8 +30,6 @@ class ScenicServer(Server):
         else:
             self.rejectionFeedback = extSampler.rejectionFeedback
         self.monitor = monitor
-        if isinstance(self.monitor, multi_objective_monitor):
-            self.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].set_graph(self.monitor.graph)
         self.lastValue = None
         defaults = DotMap(maxSteps=None, verbosity=0, maxIterations=1)
         defaults.update(options)

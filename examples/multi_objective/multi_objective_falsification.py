@@ -90,13 +90,9 @@ def run_experiments(path, parallel=False, model=None,
     else:
         paths = [path]
     for p in paths:
-        try:
-            falsifier = run_experiment(p, parallel=parallel,
-            model=model, sampler_type=sampler_type, headless=headless,
-            num_workers=num_workers, max_time=max_time, n_iters=n_iters)
-        except:
-            announce(f'ERROR FOR SCRIPT {p}:\n\n{traceback.format_exc()}')
-            continue
+        falsifier = run_experiment(p, parallel=parallel,
+        model=model, sampler_type=sampler_type, headless=headless,
+        num_workers=num_workers, max_time=max_time, n_iters=n_iters)
         df = pd.concat([falsifier.error_table.table, falsifier.safe_table.table])
         if experiment_name is not None:
             outfile = experiment_name
@@ -164,8 +160,6 @@ def run_experiment(path, parallel=False, model=None,
         print(f'Sampling time: {falsifier.total_sample_time}')
         print(f'Simulation time: {falsifier.total_simulate_time}')
     print(f'Confidence interval: {falsifier.get_confidence_interval()}')
-    if multi:
-        print(f'Counterexamples found: {falsifier.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexamples.keys()}')
     return falsifier
 
 if __name__ == '__main__':

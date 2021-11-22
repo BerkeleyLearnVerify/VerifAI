@@ -164,6 +164,13 @@ class BoxSampler(DomainSampler):
     def updateVector(self, vector, info, rho):
         pass
 
+    def set_graph(self, graph):
+        self.priority_graph = graph
+        if graph is not None:
+            self.thres = [self.thres] * graph.number_of_nodes()
+            self.num_properties = graph.number_of_nodes()
+            self.is_multi = True
+
 class DiscreteBoxSampler(DomainSampler):
     """Samplers defined only over discrete hyperboxes"""
     def __init__(self, domain):

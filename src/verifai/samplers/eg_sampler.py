@@ -89,7 +89,7 @@ class ContinuousEpsilonGreedySampler(BoxSampler):
               in zip(self.buckets, bucket_samples))
         return ret, bucket_samples
     
-    def update(self, sample, info, rho):
+    def updateVector(self, vector, info, rho):
         if rho is None or rho >= self.thres:
             return
         self.t += 1

@@ -155,6 +155,9 @@ class FeatureSampler:
         self.last_sample, self.last_info = self.getSample()
         return self.last_sample
 
+    def set_graph(self, graph):
+        self.scenario.set_graph(graph)
+
     def saveToFile(self, path):
         with open(path, 'wb') as outfile:
             randState = random.getstate()

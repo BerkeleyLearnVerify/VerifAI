@@ -14,6 +14,7 @@ SOURCE: NHSTA, #30
 param map = localPath('maps/Town05.xodr')
 param carla_map = 'Town05'
 param verifaiSamplerType = 'halton'
+param N = 5
 model scenic.simulators.carla.model
 
 #################################

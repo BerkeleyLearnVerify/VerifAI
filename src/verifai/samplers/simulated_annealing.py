@@ -55,32 +55,19 @@ class SimulatedAnnealingSampler(BoxSampler):
         self.num_iter_in_epoch = 0
         self.old_sample = self.best_sample = None
         self.old_loss = None
+        self.is_first_sample = True
 
-    def nextVector(self, feedback=None):
-        # num_epoch := total # of rise of temp
-        if self.num_epoch <= 0:
-            raise TerminationException("all epochs finished")
-
-        if feedback is None:    # First sample
+    def updateVector(self, vector, info, rho):
+        if rho is None:    # First sample
             assert self.old_sample is None
-            sample = np.random.uniform(0,1, self.dimension)
-            self.old_sample = sample
-            self.old_loss = None
-
-            ### Update Parameters before Returning ###
-            # update temperature
-            self.T = self.temp_f(self.T)
-
-            # update iteration count within an epoch and total iteration count
-            self.num_iter_in_epoch += 1
-
-            return sample, None
+            self.is_first_sample = False
+            return
 
         if self.old_loss is None:
-            self.old_loss = feedback
+            self.old_loss = rho
         else:
             ## Compute the loss of the sample
-            new_loss = feedback
+            new_loss = rho
 
             # Compute the probability of whether this sample should be accepted
             alpha = min(1, np.exp((self.old_loss - new_loss)/self.T))
@@ -89,7 +76,7 @@ class SimulatedAnnealingSampler(BoxSampler):
             if ((new_loss < self.old_loss) or (np.random.uniform() < alpha)):
                 # Accept proposed solution
                 self.old_loss = new_loss
-                self.old_sample = self.last_sample
+                self.old_sample = vector
 
             ### Update Parameters before Returning ###
             # update temperature
@@ -108,9 +95,27 @@ class SimulatedAnnealingSampler(BoxSampler):
                 self.num_epoch -= 1 # starting new round of epoch
                 self.num_iter_in_epoch = 0
 
-        ## Sample the next scenario
-        new_sample = self.proposal_f(self.old_sample, self.num_iter_in_epoch,
-                                     self.decay_rate, self.dimension)
-        self.last_sample = new_sample
+    def getVector(self):
+        # num_epoch := total # of rise of temp
+        if self.num_epoch <= 0:
+            raise TerminationException("all epochs finished")
 
-        return new_sample, None
+        ## Sample the next scenario
+        if self.is_first_sample:
+            old_sample = np.random.uniform(0,1, self.dimension)
+            self.old_sample = old_sample
+            self.old_loss = None
+
+            ### Update Parameters before Returning ###
+            # update temperature
+            self.T = self.temp_f(self.T)
+
+            # update iteration count within an epoch and total iteration count
+            self.num_iter_in_epoch += 1
+            return old_sample, None
+        else:
+            new_sample = self.proposal_f(self.old_sample, self.num_iter_in_epoch,
+                                        self.decay_rate, self.dimension)
+            self.last_sample = new_sample
+
+            return new_sample, None

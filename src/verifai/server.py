@@ -4,7 +4,6 @@ from dotmap import DotMap
 
 from verifai.features.features import *
 from verifai.samplers.feature_sampler import *
-import functools
 import ray
 
 def default_sampler_params(sampler_type):
@@ -69,6 +68,8 @@ def choose_sampler(sample_space, sampler_type,
                 ce_params.alpha = sampler_params.alpha
             if 'thres' in sampler_params:
                 ce_params.thres = sampler_params.thres
+            if 'priority_graph' in sampler_params:
+                ce_params.priority_graph = sampler_params.priority_graph
         sampler = FeatureSampler.multiArmedBanditSamplerFor(
             sample_space, ce_params=ce_params)
         return 'mab', sampler

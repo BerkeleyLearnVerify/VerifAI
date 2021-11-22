@@ -35,6 +35,9 @@ class falsifier(ABC):
             params.update(falsifier_params)
         if params.sampler_params is None:
             params.sampler_params = DotMap(thres=params.fal_thres)
+        self.multi = isinstance(self.monitor, multi_objective_monitor)
+        if self.multi:
+            params.sampler_params.priority_graph = self.monitor.graph
         self.save_error_table = params.save_error_table
         self.save_safe_table = params.save_safe_table
         self.error_table_path = params.error_table_path
@@ -122,7 +125,6 @@ class falsifier(ABC):
     def run_falsifier(self):
         i = 0
         ce_num = 0
-        counterexamples = []
         server_samples = []
         rhos = []
         self.total_sample_time = 0
@@ -151,7 +153,6 @@ class falsifier(ABC):
                 print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
             self.samples[i] = sample
             server_samples.append(sample)
-            counterexamples.append(rho <= self.fal_thres)
             rhos.append(rho)
             i += 1
             if self.verbosity >= 1:
@@ -162,17 +163,8 @@ class falsifier(ABC):
                 break
             if self.max_time is not None and time.time() - t0 >= self.max_time:
                 break
-        if isinstance(self.monitor, multi_objective_monitor):
-            counterexamples = (self.server
-                .sampler
-                .scenario
-                .externalSampler
-                .sampler
-                .domainSampler
-                .split_sampler
-                .samplers[0]
-                .counterexample_values)
-        for sample, ce, rho in zip(server_samples, counterexamples, rhos):
+        for sample, rho in zip(server_samples, rhos):
+            ce = any([r <= self.fal_thres for r in rho]) if self.multi else rho <= self.fal_thres
             if ce:
                 if self.save_error_table:
                     self.populate_error_table(sample, rho)
@@ -255,7 +247,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         outputs = self.server.run_server()
         samples, rhos = zip(*outputs)
         if isinstance(self.monitor, multi_objective_monitor):
-            counterexamples = self.server.sampler.scenario.externalSampler.sampler.domainSampler.split_sampler.samplers[0].counterexample_values
+            counterexamples = [any([r <= self.fal_thres for r in rho]) for rho in rhos]
         else:
             counterexamples = [r <= self.fal_thres for r in rhos]
         for i, (sample, ce, rho) in enumerate(zip(samples, counterexamples, rhos)):
