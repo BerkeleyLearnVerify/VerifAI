@@ -75,7 +75,7 @@ class ScenicServer(Server):
 class DummySampler(VerifaiSampler):
 
     def nextSample(self, feedback):
-        return self.last_sample, None
+        return self.last_sample
 
 @ray.remote
 class SampleSimulator():
@@ -164,10 +164,8 @@ class ParallelScenicServer(ScenicServer):
 
     def _generate_next_sample(self, worker_num):
         i = 0
-        feedback = self.lastValue
         ext = self.sampler.scenario.externalSampler
         while i < 2000:
-            t0 = time.time()
             ext.cachedSample, info = ext.getSample()
             sample = ext.cachedSample
             sim = self.sample_simulators[worker_num]
@@ -180,12 +178,10 @@ class ParallelScenicServer(ScenicServer):
                 return None, None
             except RejectionException as e:
                 i += 1
-                feedback = ext.rejectionFeedback
                 continue
         return None, None
 
     def run_server(self):
-        startTime = time.time()
         results = []
         futures = []
         samples = []
@@ -206,7 +202,6 @@ class ParallelScenicServer(ScenicServer):
         while True:
             done, _ = ray.wait(futures)
             result = ray.get(done[0])
-            t = time.time() - startTime
             index, sample, rho = result
             self.lastValue = rho
             results.append((sample, rho))

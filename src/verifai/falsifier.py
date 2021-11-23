@@ -81,6 +81,7 @@ class falsifier(ABC):
             self.safe_table = error_table(space = self.server.sample_space)
 
     def populate_error_table(self, sample, rho, error=True):
+        print(f'populate_error_table: rho = {rho}')
         if error:
             self.error_table.update_error_table(sample, rho)
             if self.error_table_path:
