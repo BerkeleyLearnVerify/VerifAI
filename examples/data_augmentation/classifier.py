@@ -19,7 +19,7 @@ class Classifier(Client):
 		port = classifier_data.port
 		bufsize = classifier_data.bufsize
 		super().__init__(port, bufsize)
-		self.sess = tf.Session()
+		self.sess = tf.compat.v1.Session()
 		self.nn = Model()
 		self.nn.init(classifier_data.graph_path, classifier_data.checkpoint_path, self.sess)
 		self.lib = getLib()
