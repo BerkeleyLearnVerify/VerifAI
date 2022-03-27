@@ -239,8 +239,8 @@ class ScenicSampler(FeatureSampler):
         assert scene.egoObject is scene.objects[0]
         objDomain = dom.domainNamed['objects']
         assert len(objDomain.domains) == len(scene.objects)
-        objects = (pointForObject(subdom, obj)
-                   for subdom, obj in zip(objDomain.domains, scene.objects))
+        objects = (pointForObject(objDomain.domainNamed[f'object{i}'], obj)
+                   for i, obj in enumerate(scene.objects))
         objPoint = objDomain.makePoint(*objects)
 
         paramDomain = dom.domainNamed['params']
