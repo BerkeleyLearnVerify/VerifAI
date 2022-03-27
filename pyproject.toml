@@ -39,12 +39,11 @@ pandas = "^1.3.5"
 scikit-learn = "^1.0"
 pygame = "^2.1.0"
 kmodes = "^0.10.2"
-scenic = "^2.1.0b2"
+scenic = "^2.1.0b3"
 ray = "^1.10.0"
 progressbar2 = "^3.53.1"
 networkx = "^2.6.3"
 statsmodels = "^0.12.2"
-sympy = "^1.9"
 
 GPy = {version = "^1.9.9", optional = true}
 GPyOpt = {version = "^1.2.6", optional = true}
@@ -86,6 +85,10 @@ dev = [
 	"sphinx-autodoc-typehints",
 	"sphinx-rtd-theme",
 	"recommonmark"
+]
+test = [	# minimum dependencies for running tests (used for tox virtualenvs)
+	"pytest-randomly",
+	"pytest",
 ]
 
 [build-system]
