@@ -30,7 +30,6 @@ extensions = [
 	'recommonmark',
 	'sphinx.ext.autodoc',
 	'sphinx.ext.autosummary',
-	'sphinx_autodoc_typehints',
 	'sphinx.ext.napoleon',
 	'sphinx.ext.viewcode',
 ]

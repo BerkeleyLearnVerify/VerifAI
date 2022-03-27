@@ -1,6 +1,6 @@
-###########
+#################
 Search Techniques
-###########
+#################
 
 VerifAI provides several techniques for exploring the semantic search space for verification, testing, and synthesis.
 These are largely based on sampling and optimization methods. In the tool, we refer to all of these as "samplers".
