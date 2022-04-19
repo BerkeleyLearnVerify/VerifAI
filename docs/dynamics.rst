@@ -18,4 +18,4 @@ The major difference is that the maximum number of timesteps to run each simulat
     )
     server_options = DotMap(maxSteps=300, verbosity=0) # maximum number of timesteps to run each simulation.
 
-For an example of using dynamic Scenic with VerifAI, see the `Github repository <https://github.com/BerkeleyLearnVerify/VerifAI/tree/kesav-v/multi-objective/examples/multi_objective>`_.
+For an example of using dynamic Scenic with VerifAI, see the :file:`examples/multi_objective` folder.

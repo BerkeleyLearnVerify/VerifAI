@@ -1,6 +1,6 @@
-##########################################
-Multi-Objective Falsification with VerifAI
-##########################################
+#############################
+Multi-Objective Falsification
+#############################
 
 Specification of Objectives
 ===========================
@@ -36,12 +36,13 @@ VerifAI now provides the ability to run falsification on multiple metrics at the
 The monitor computes the distance between the ego vehicle and every other vehicle in the scenario and returns all of these distances. Note that the monitor class extends the ``multi_objective_monitor`` class, written specifically for vector-valued objectives.
 Additionally, a *rulebook* is defined in the ``priority_graph`` variable, which is a partial ordering over the metrics providing some pairwise information about which metrics are considered most important. This rulebook is encoded as a directed acyclic graph (DAG) using the `NetworkX library <https://networkx.org/>`_.
 
-Special Samplers
-================
-To mitigate issues with sensitivity to results of initial samples, VerifAI implements the *multi-armed bandit sampler*, an active sampler which uses the Upper Confidence Bound (UCB) algorithm to tradeoff exploration of new regions of the feature space as well as exploitation of previously found counterexamples. To use the multi-armed bandit sampler, either use MultiArmedBanditSampler class or, if using Scenic, add the line
+Samplers Supporting Multiple Objectives
+=======================================
+
+To mitigate issues with sensitivity to results of initial samples, VerifAI implements the *multi-armed bandit sampler*, an active sampler which uses the Upper Confidence Bound (UCB) algorithm to tradeoff exploration of new regions of the feature space as well as exploitation of previously found counterexamples. To use the multi-armed bandit sampler, either use the ``MultiArmedBanditSampler`` class or, if using Scenic, add the line
 
 .. code:: python
 
     param verifaiSamplerType = 'mab'
 
-For an example of using multi-objective sampling, see the `Github repository <https://github.com/BerkeleyLearnVerify/VerifAI/tree/kesav-v/multi-objective/examples/multi_objective>`_.
+For an example of using multi-objective sampling, see the :file:`examples/multi_objective` folder.
