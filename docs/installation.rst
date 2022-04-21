@@ -2,7 +2,7 @@
 Getting Started with VerifAI
 ############################################
 
-VerifAI requires **Python 3.6** or newer.
+VerifAI requires **Python 3.7** or newer.
 To install VerifAI from PyPI, execute::
 
 	pip install verifai
