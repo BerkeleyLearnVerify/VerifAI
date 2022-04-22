@@ -1,34 +1,51 @@
-from verifai.samplers.scenic_sampler import ScenicSampler
+
 from dotmap import DotMap
+
+from verifai.samplers.scenic_sampler import ScenicSampler
+from verifai.scenic_server import ScenicServer
 from verifai.falsifier import generic_falsifier
+import os
+from scenic.core.vectors import Vector
+import math
+from verifai.monitor import specification_monitor, mtl_specification
 
+## Dynamic scenarios
+path_dir = './'
+path = os.path.join(path_dir, 'carlaChallenge1.scenic')
+sampler = ScenicSampler.fromScenario(path)
 
-path_to_scenic_file = 'adjacentOpposingPair.sc'
-sampler = ScenicSampler.fromScenario(path_to_scenic_file)
+class MyMonitor(specification_monitor):
+    ''' This class defines the specification (i.e. evaluation metric) '''
+    def __init__(self):
+        self.specification = mtl_specification(['G safe'])
+        super().__init__(self.specification)
 
-MAX_ITERS = 20
-PORT = 8888
-MAXREQS = 5
-BUFSIZE = 4096
+    def evaluate(self, traj):
+        eval_dictionary = {'safe' : [[index, self.compute_dist(traj[index])-5] for index in range(len(traj))]}
+        return self.specification.evaluate(eval_dictionary)
 
-falsifier_params = DotMap()
-falsifier_params.n_iters = MAX_ITERS
-falsifier_params.save_error_table = False
-falsifier_params.save_good_samples = False
+    def compute_dist(self, coords):
+        vector0 = coords[0]
+        vector1 = coords[1]
 
-server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
+        x0, y0 = vector0.x, vector0.y
+        x1, y1 = vector1.x, vector1.y
+        return math.sqrt(math.pow(x0-x1,2) +  math.pow(y0-y1,2))
 
-falsifier = generic_falsifier(sampler=sampler, sampler_type='scenic',
+falsifier_params = DotMap(
+    n_iters=5,
+    save_error_table=True,
+    save_safe_table=True,
+    error_table_path='error_table.csv',
+    safe_table_path='safe_table.csv'
+)
+server_options = DotMap(maxSteps=100, verbosity=0)
+falsifier = generic_falsifier(sampler=sampler,
+                              monitor = MyMonitor(),
                               falsifier_params=falsifier_params,
+                              server_class=ScenicServer,
                               server_options=server_options)
-
 falsifier.run_falsifier()
-
-print("Scenic Samples")
-for i in falsifier.samples.keys():
-    print("Sample: ", i)
-    print(falsifier.samples[i])
-
-
-# To save all samples: uncomment this
-# pickle.dump(falsifier.samples, open("generated_samples.pickle", "wb"))
+print('end of test')
+print("error_table: ", falsifier.error_table.table)
+print("safe_table: ", falsifier.safe_table.table)

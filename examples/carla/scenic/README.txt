@@ -1,4 +1,4 @@
-Town03.xodr is from the CARLA project, under the MIT license.
+Town01.xodr is from the CARLA project, under the MIT license.
 
 Copyright (c) 2017 Computer Vision Center (CVC) at the Universitat Autonoma de
 Barcelona (UAB).
