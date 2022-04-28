@@ -11,7 +11,7 @@ from verifai.monitor import specification_monitor, mtl_specification
 
 ## Dynamic scenarios
 path_dir = './'
-path = os.path.join(path_dir, 'carlaChallenge1.scenic')
+path = os.path.join(path_dir, 'carlaChallenge2.scenic')
 sampler = ScenicSampler.fromScenario(path)
 
 class MyMonitor(specification_monitor):
@@ -20,7 +20,8 @@ class MyMonitor(specification_monitor):
         self.specification = mtl_specification(['G safe'])
         super().__init__(self.specification)
 
-    def evaluate(self, traj):
+    def evaluate(self, simulation):
+        traj = simulation.trajectory
         eval_dictionary = {'safe' : [[index, self.compute_dist(traj[index])-5] for index in range(len(traj))]}
         return self.specification.evaluate(eval_dictionary)
 
