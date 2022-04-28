@@ -16,7 +16,10 @@ EGO_SPEED = 10
 ## DEFINING BEHAVIORS
 # EGO BEHAVIOR: Follow lane, and brake after passing a threshold distance to the leading car
 behavior EgoBehavior(speed=10):
-    do FollowLaneBehavior(speed)
+    try:
+        do FollowLaneBehavior(speed)
+    interrupt when withinDistanceToObjsInLane(self, 5):
+        take SetBrakeAction(1)
 
 ## DEFINING SPATIAL RELATIONS
 # Please refer to scenic/domains/driving/roads.py how to access detailed road infrastructure
@@ -30,9 +33,9 @@ ego = Car at start,
     with blueprint EGO_MODEL,
     with behavior EgoBehavior(EGO_SPEED)
 
-debris1 = Debris following roadDirection for Range(10, 20)
-debris2 = Debris following roadDirection from debris1 for Range(5, 10)
-debris3 = Debris following roadDirection from debris2 for Range(5, 10)
+debris1 = Cone following roadDirection for Range(10, 20)
+debris2 = Cone following roadDirection from debris1 for Range(5, 10)
+debris3 = Cone following roadDirection from debris2 for Range(5, 10)
 
 require (distance to intersection) > 50
 terminate when (distance from debris3 to ego) > 10 and (distance to start) > 50
