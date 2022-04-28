@@ -18,7 +18,7 @@ EGO_SPEED = 10
 behavior EgoBehavior(speed=10):
     try:
         do FollowLaneBehavior(speed)
-    interrupt when withinDistanceToObjsInLane(self, 5):
+    interrupt when withinDistanceToObjsInLane(self, Range(5,10)):
         take SetBrakeAction(1)
 
 ## DEFINING SPATIAL RELATIONS
