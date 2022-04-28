@@ -9,8 +9,30 @@ poetry install -E examples
 
 (Note: some of the examples require TensorFlow version 1, which does not support Python 3.8.)
 
+
+## Emergency Braking with CARLA
+In this example we have a car (in red) whose task is to stay within its lane using a PID controller, while maintaining safe distance of 5 meters with objects in front.
+
+**Task:** Falsify the PID lane keeping controller
+
+**Sample space:** distance from ego to obstacle
+
+**Relevant files:**
+1. `examples/scenic/carla/scenic_sampler.py` : Defines type of falsifier (sampler and number of iterations)
+2.  `examples/scenic/carla/carlaChallenge1.scenic` : Defines the ego vehicle's behavior (i.e. policy) and its environment
+
+**Running the falsifier:** To run this example go to `cd examples/scenic/carla`. Then run `python scenic_sampler.py`.
+
+The falsifier runs for 5 iterations, you can change this by modifying `MAX_ITERS` in `scenic_sampler.py`. At the end of the runs, you should see "end of test" in the terminal.
+
+**Expected Output:** 
+During the running of the falsifier you should the samples and the associated value of the specification satisfaction (rho). Rho represents the quantitative satisfaction of the specification such that the sample satisfies the specification if the rho is positive or falsifies the specification if the rho is negative. 
+
+You should see two tables in the first terminal, labeled **error_table** a collection of all falsified samples and **safe_table** a collection of all the samples which were safe. Also, these table(s) will be saved as `.csv` file(s) in `examples/scenic/carla` folder. 
+
+
 ## Emergency Braking with a SCENIC's inbuilt simulator
-**SCENIC** comes with an inbuilt simulator called a newtonian car simulator. In this example we have a car (in red) whose task is to stay within its lane using a PID controller, while avoiding collision.
+**SCENIC** comes with an inbuilt simulator called a newtonian car simulator. In this example we have a car (in red) whose task is to stay within its lane using a PID controller, while maintaining safe distance of 5 meters with objects in front.
 
 **Task:** Falsify the PID lane keeping controller
 
