@@ -9,7 +9,6 @@ poetry install -E examples
 
 (Note: some of the examples require TensorFlow version 1, which does not support Python 3.8.)
 
-
 ## Emergency Braking with CARLA
 In this example we have a car (in red) whose task is to stay within its lane using a PID controller, while maintaining safe distance of 5 meters with objects in front.
 
