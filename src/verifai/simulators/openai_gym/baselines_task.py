@@ -8,10 +8,16 @@ except ModuleNotFoundError:
     sys.exit('This functionality requires OpenAI-gym to be installed')
 
 try:
-    from baselines.run import *
-except ModuleNotFoundError:
+    from stable_baselines.common.policies import MlpPolicy
+except:
     import sys
-    sys.exit('This functionality requires baselines to be installed: Try installing from source')
+    sys.exit('stable baselines not installed')
+
+# try:
+#     from baselines.run import *
+# except ModuleNotFoundError:
+#     import sys
+#     sys.exit('This functionality requires baselines to be installed: Try installing from source')
 
 try:
     import tensorflow as tf
@@ -59,8 +65,11 @@ class control_task:
     def train(self):
         print("Training ", self.env_id, " with ", self.alg, " with ", self.num_timesteps)
         self.build_args()
-        self.model = main(self.args)
-
+        print("self.args: ",self.args)
+        # self.model = main(self.args)
+        env = gym.make('CartPole-v1')
+        self.model = PPO2(MlpPolicy, env, verbose=1)
+        model.learn(total_timesteps=10000)
 
     def play(self):
         state = self.model.initial_state if hasattr(self.model, 'initial_state') else None
@@ -74,7 +83,7 @@ class control_task:
             i += 1
             obs_a = np.array(obs).reshape(1, len(obs))
             if state is not None:
-                actions, _, state, _ = self.model.step(obs_a,S=state, M=dones)
+                actions, _, state, _ = self.model.step(obs_a, S=state, M=dones)
             else:
                 actions, _, _, _ = self.model.step(obs_a)
             obs, _, done, _ = self.env.step(actions[0])
