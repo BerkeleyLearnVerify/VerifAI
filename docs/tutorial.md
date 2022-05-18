@@ -30,7 +30,7 @@ During the running of the falsifier you should the samples and the associated va
 You should see two tables in the first terminal, labeled **error_table** a collection of all falsified samples and **safe_table** a collection of all the samples which were safe. Also, these table(s) will be saved as `.csv` file(s) in `examples/scenic/carla` folder. 
 
 
-## Emergency Braking with a SCENIC's inbuilt simulator
+## Emergency Braking with the Newtonian inbuilt simulator
 **SCENIC** comes with an inbuilt simulator called a newtonian car simulator. In this example we have a car (in red) whose task is to stay within its lane using a PID controller, while maintaining safe distance of 5 meters with objects in front.
 
 **Task:** Falsify the PID lane keeping controller
