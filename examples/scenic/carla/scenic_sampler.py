@@ -40,7 +40,7 @@ falsifier_params = DotMap(
     error_table_path='error_table.csv',
     safe_table_path='safe_table.csv'
 )
-server_options = DotMap(maxSteps=100, verbosity=0)
+server_options = DotMap(maxSteps=60, verbosity=0)
 falsifier = generic_falsifier(sampler=sampler,
                               monitor = MyMonitor(),
                               falsifier_params=falsifier_params,
