@@ -130,7 +130,8 @@ def test_driving(pathToLocalFile):
 
 def test_driving_dynamic(pathToLocalFile):
     path = pathToLocalFile('scenic_driving.scenic')
-    sampler = ScenicSampler.fromScenario(path)
+    sampler = ScenicSampler.fromScenario(path, model='scenic.simulators.newtonian.model',
+                                         render=False)
     falsifier_params = DotMap(
         n_iters=3,
         save_error_table=False,

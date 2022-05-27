@@ -103,6 +103,8 @@ def choose_sampler(sample_space, sampler_type,
             sample_space, BO_params=bo_params)
         return 'bo', sampler
 
+    raise ValueError(f'unknown sampler type "{sampler_type}"')
+
 class Server:
     def __init__(self, sampling_data, monitor, options={}):
         defaults = DotMap(port=8888, bufsize=4096, maxreqs=5)

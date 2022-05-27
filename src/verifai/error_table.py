@@ -65,7 +65,8 @@ class error_table():
                 print("Updating column type")
                 self.column_type["rho"] = False
         self.ignore_locs = list(set(tuple(self.ignore_locs)))
-        self.table = self.table.append(sample_dict, ignore_index=True)
+        new_row = pd.DataFrame(sample_dict, index=[0])
+        self.table = pd.concat([self.table, new_row], ignore_index=True)
 
 
     def get_column_by_index(self, index):
