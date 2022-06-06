@@ -23,7 +23,6 @@ class ScenicServer(Server):
         if not isinstance(self.sampler, ScenicSampler):
             raise RuntimeError('only a ScenicSampler can be used with ScenicServer')
         self.sample_space = self.sampler.space
-        self.simulator = self.sampler.scenario.getSimulator()
         extSampler = self.sampler.scenario.externalSampler
         if extSampler is None:
             self.rejectionFeedback = None
@@ -31,11 +30,15 @@ class ScenicServer(Server):
             self.rejectionFeedback = extSampler.rejectionFeedback
         self.monitor = monitor
         self.lastValue = None
-        defaults = DotMap(maxSteps=None, verbosity=0, maxIterations=1)
+        defaults = DotMap(maxSteps=None, verbosity=0, maxIterations=1, simulator=None)
         defaults.update(options)
         self.maxSteps = defaults.maxSteps
         self.verbosity = defaults.verbosity
         self.maxIterations = defaults.maxIterations
+        if defaults.simulator is None:
+            self.simulator = self.sampler.scenario.getSimulator()
+        else:
+            self.simulator = defaults.simulator
 
     def run_server(self):
         start = time.time()

@@ -91,5 +91,5 @@ test = [	# minimum dependencies for running tests (used for tox virtualenvs)
 ]
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
