@@ -10,8 +10,7 @@ import math
 from verifai.monitor import specification_monitor, mtl_specification
 
 ## Dynamic scenarios
-path_dir = './'
-path = os.path.join(path_dir, 'carlaChallenge2.scenic')
+path = os.path.join(os.getcwd(), 'carlaChallenge2.scenic')
 sampler = ScenicSampler.fromScenario(path)
 
 class MyMonitor(specification_monitor):
