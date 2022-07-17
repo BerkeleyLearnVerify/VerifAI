@@ -12,13 +12,14 @@ model scenic.simulators.carla.model
 ## CONSTANTS
 EGO_MODEL = "vehicle.lincoln.mkz2017"
 EGO_SPEED = 10
+REACTION_DISTANCE = Range(5,10)
 
 ## DEFINING BEHAVIORS
 # EGO BEHAVIOR: Follow lane, and brake after passing a threshold distance to the leading car
 behavior EgoBehavior(speed=10):
     try:
         do FollowLaneBehavior(speed)
-    interrupt when withinDistanceToObjsInLane(self, Range(5,10)):
+    interrupt when withinDistanceToObjsInLane(self, REACTION_DISTANCE):
         take SetBrakeAction(1)
 
 ## DEFINING SPATIAL RELATIONS
