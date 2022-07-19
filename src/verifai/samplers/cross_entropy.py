@@ -63,7 +63,7 @@ class ContinuousCrossEntropySampler(BoxSampler):
         if dist is not None:
             assert (len(dist) == len(buckets))
         if dist is None:
-            dist = np.array([np.ones(int(b))/b for b in buckets])
+            dist = [np.ones(int(b))/b for b in buckets]
         self.buckets = buckets
         self.dist = dist
         self.alpha = alpha
@@ -81,10 +81,9 @@ class ContinuousCrossEntropySampler(BoxSampler):
     def updateVector(self, vector, info, rho):
         if rho is None or rho >= self.thres:
             return
-        update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
-        for ud,b in zip(update_dist, info):
-            ud[b] = 1.
-        self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
+        for row, b in zip(self.dist, info):
+            row *= self.alpha
+            row[b] += 1 - self.alpha
 
 class DiscreteCrossEntropySampler(DiscreteBoxSampler):
     def __init__(self, domain, alpha, thres, dist=None):
@@ -92,8 +91,8 @@ class DiscreteCrossEntropySampler(DiscreteBoxSampler):
         if dist is not None:
             assert (len(dist) == len(domain.standardizedIntervals))
         if dist is None:
-            dist = np.array([np.ones(right-left+1)/(right-left+1) for
-                             left, right in domain.standardizedIntervals])
+            dist = [np.ones(right-left+1)/(right-left+1)
+                    for left, right in domain.standardizedIntervals]
         self.dist = dist
         self.alpha = alpha
         self.thres = thres
@@ -109,13 +108,9 @@ class DiscreteCrossEntropySampler(DiscreteBoxSampler):
         assert rho is not None
         if rho >= self.thres:
             return
-        update_dist = np.array([np.zeros(right-left+1)
-                                for left, right in self.domain.standardizedIntervals])
-        for i, (ud, b) in enumerate(zip(update_dist, vector)):
-            left, _ = self.domain.standardizedIntervals[i]
-            ud[b-left] = 1.
-
-        self.dist = self.alpha * self.dist + (1 - self.alpha) * update_dist
+        for row, (left, right), b in zip(self.dist, self.domain.standardizedIntervals, vector):
+            row *= self.alpha
+            row[b-left] += 1 - self.alpha
 
 class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
     
@@ -165,9 +160,8 @@ class MultiContinuousCrossEntropySampler(ContinuousCrossEntropySampler):
                 for subnode in nx.descendants(self.priority_graph, node):
                     to_update[subnode] = False
         num_updates = sum(to_update)
-        update_dist = np.array([np.zeros(int(b)) for b in self.buckets])
-        for i, (ud, b) in enumerate(zip(update_dist, info)):
-            ud[b] = 1.
-            self.counts[i][b] += 1
-        for _ in range(num_updates):
-            self.dist = self.alpha*self.dist + (1-self.alpha)*update_dist
+        for crow, drow, b in zip(self.counts, self.dist, info):
+            crow[b] += 1
+            for _ in range(num_updates):
+                row *= self.alpha
+                row[b] += 1 - self.alpha
