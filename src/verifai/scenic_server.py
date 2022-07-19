@@ -16,6 +16,16 @@ from ray.util.multiprocessing import Pool
 import progressbar
 
 class ScenicServer(Server):
+    """`Server` for use with dynamic Scenic scenarios.
+
+    Supported server options:
+
+        * ``maxSteps``: maximum number of time steps to run a simulation;
+        * ``verbosity``: verbosity level (as in the Scenic :option:`--verbosity` option);
+        * ``maxIterations``: maximum number of iterations for rejection sampling;
+        * ``simulator``: Scenic :obj:`~scenic.core.simulators.Simulator` to use, or
+          `None` (the default) to use one specified in the scenario.
+    """
     def __init__(self, sampling_data, monitor, options={}):
         if sampling_data.sampler is None:
             raise RuntimeError('ScenicServer created without sampler')

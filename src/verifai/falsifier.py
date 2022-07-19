@@ -81,7 +81,6 @@ class falsifier(ABC):
             self.safe_table = error_table(space = self.server.sample_space)
 
     def populate_error_table(self, sample, rho, error=True):
-        print(f'populate_error_table: rho = {rho}')
         if error:
             self.error_table.update_error_table(sample, rho)
             if self.error_table_path:
@@ -141,29 +140,32 @@ class falsifier(ABC):
                 ' (', progressbar.Timer(), ')']
                 bar = progressbar.ProgressBar(widgets=widgets)
 
-        while True:
-            try:
-                sample, rho, (sample_time, simulate_time) = self.server.run_server()
-                self.total_sample_time += sample_time
-                self.total_simulate_time += simulate_time
-            except TerminationException:
+        try:
+            while True:
+                try:
+                    sample, rho, (sample_time, simulate_time) = self.server.run_server()
+                    self.total_sample_time += sample_time
+                    self.total_simulate_time += simulate_time
+                except TerminationException:
+                    if self.verbosity >= 1:
+                        print("Sampler has generated all possible samples")
+                    break
+                if self.verbosity >= 2:
+                    print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
+                self.samples[i] = sample
+                server_samples.append(sample)
+                rhos.append(rho)
+                i += 1
                 if self.verbosity >= 1:
-                    print("Sampler has generated all possible samples")
-                break
-            if self.verbosity >= 2:
-                print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
-            self.samples[i] = sample
-            server_samples.append(sample)
-            rhos.append(rho)
-            i += 1
-            if self.verbosity >= 1:
-                bar.update(i)
-            if i == 1:
-                t0 = time.time()
-            if self.n_iters is not None and i == self.n_iters:
-                break
-            if self.max_time is not None and time.time() - t0 >= self.max_time:
-                break
+                    bar.update(i)
+                if i == 1:
+                    t0 = time.time()
+                if self.n_iters is not None and i == self.n_iters:
+                    break
+                if self.max_time is not None and time.time() - t0 >= self.max_time:
+                    break
+        finally:
+            self.server.terminate()
         for sample, rho in zip(server_samples, rhos):
             ce = any([r <= self.fal_thres for r in rho]) if self.multi else rho <= self.fal_thres
             if ce:
@@ -174,8 +176,6 @@ class falsifier(ABC):
                     break
             elif self.save_safe_table:
                 self.populate_error_table(sample, rho, error=False)
-        self.server.terminate()
-
 
 class generic_falsifier(falsifier):
     def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,
@@ -245,7 +245,10 @@ class generic_parallel_falsifier(parallel_falsifier):
     def run_falsifier(self):
         i = 0
         ce_num = 0
-        outputs = self.server.run_server()
+        try:
+            outputs = self.server.run_server()
+        finally:
+            self.server.terminate()
         samples, rhos = zip(*outputs)
         if isinstance(self.monitor, multi_objective_monitor):
             counterexamples = [any([r <= self.fal_thres for r in rho]) for rho in rhos]

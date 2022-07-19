@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../verifai'))
 # -- Project information -----------------------------------------------------
 
 project = 'VerifAI'
-copyright = '2020, Daniel J. Fremont, Shromona Ghosh, Edward Kim, and Sanjit A. Seshia.'
+copyright = '2022, Daniel J. Fremont, Shromona Ghosh, Edward Kim, and Sanjit A. Seshia.'
 author = 'Tommaso Dreossi, Daniel J. Fremont, Shromona Ghosh, Edward Kim, Hadi Ravanbaksh, Marcell Vazquez-Chanlatte, and Sanjit A. Seshia'
 
 # -- General configuration ---------------------------------------------------
@@ -30,6 +30,8 @@ extensions = [
 	'recommonmark',
 	'sphinx.ext.autodoc',
 	'sphinx.ext.autosummary',
+	'sphinx.ext.doctest',
+	'sphinx.ext.intersphinx',
 	'sphinx.ext.napoleon',
 	'sphinx.ext.viewcode',
 ]
@@ -45,7 +47,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.pytest_cache']
 
 default_role = 'any'
 
@@ -56,6 +58,15 @@ autodoc_member_order = 'bysource'
 napoleon_numpy_docstring = False
 napoleon_use_rtype = False
 napoleon_use_ivar = True
+
+autodoc_default_options = {
+    'members': None,
+}
+
+intersphinx_mapping = {
+	'python': ('https://docs.python.org/3', None),
+	'scenic': ('https://scenic-lang.readthedocs.io/en/latest/', None),
+}
 
 # -- Options for HTML output -------------------------------------------------
 

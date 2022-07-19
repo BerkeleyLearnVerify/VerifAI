@@ -6,22 +6,13 @@ from verifai.features.features import *
 from verifai.samplers.feature_sampler import *
 import ray
 
-def default_sampler_params(sampler_type):
-    if sampler_type == 'random':
-        return
-    if sampler_type == 'halton':
-        return DotMap(sample_index =0, bases_skipped=0)
-    if sampler_type == 'ce':
-        cont = DotMap(buckets=5, dist=None)
-        disc = DotMap(dist=None)
-        return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
-    if sampler_type == 'bo':
-        return DotMap(init_num=5)
-
 def choose_sampler(sample_space, sampler_type,
                    sampler_params=None):
     if sampler_type == 'random':
         return 'random', FeatureSampler.randomSamplerFor(sample_space)
+
+    if sampler_type == 'grid':
+        return 'grid', FeatureSampler.gridSamplerFor(sample_space)
 
     if sampler_type == 'halton':
         if sampler_params is None:
@@ -106,6 +97,7 @@ def choose_sampler(sample_space, sampler_type,
     raise ValueError(f'unknown sampler type "{sampler_type}"')
 
 class Server:
+    """Generic server for communicating with an external simulator."""
     def __init__(self, sampling_data, monitor, options={}):
         defaults = DotMap(port=8888, bufsize=4096, maxreqs=5)
         defaults.update(options)
