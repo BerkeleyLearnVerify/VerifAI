@@ -4,7 +4,6 @@ from dotmap import DotMap
 
 from verifai.features.features import *
 from verifai.samplers.feature_sampler import *
-import ray
 
 def choose_sampler(sample_space, sampler_type,
                    sampler_params=None):
@@ -194,6 +193,12 @@ class Server:
         self.lastValue = self.evaluate_sample(sample)
         return sample, self.lastValue
 
-@ray.remote
-class ParallelServer(Server):
-    pass
+try:
+    import ray
+    @ray.remote
+    class ParallelServer(Server):
+        pass
+except ModuleNotFoundError:
+    class ParallelServer(Server):
+        def __init__(*args, **kwargs):
+            raise RuntimeError('ParallelServer requires ray to be installed')
