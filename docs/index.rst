@@ -25,6 +25,7 @@ Table of Contents
    tutorial
    feature_api
    samplers
+   server_client
    dynamics
    parallel_falsification
    multi_objective

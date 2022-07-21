@@ -57,15 +57,14 @@ class error_table():
                 sample_dict["rho_"+str(i)]  = r
             sample_dict["rho"] = rho[-1]
             if isinstance(rho[-1], bool) and self.column_type["rho"]:
-                print("Updating column type")
                 self.column_type["rho"] = False
         else:
             sample_dict["rho"] = rho
             if isinstance(rho, bool) and self.column_type["rho"]:
-                print("Updating column type")
                 self.column_type["rho"] = False
         self.ignore_locs = list(set(tuple(self.ignore_locs)))
-        self.table = self.table.append(sample_dict, ignore_index=True)
+        new_row = pd.DataFrame(sample_dict, index=[0])
+        self.table = pd.concat([self.table, new_row], ignore_index=True)
 
 
     def get_column_by_index(self, index):
@@ -216,7 +215,6 @@ class error_table():
             kmeans = KMeans(n_clusters=k, random_state=0).fit(X)
             centers = kmeans.cluster_centers_
             labels = kmeans.labels_
-            #print(centers, labels)
             for label, center in enumerate(centers):
                 center = (center*range_elems) + min_elems
                 result['clusters'][label] = center

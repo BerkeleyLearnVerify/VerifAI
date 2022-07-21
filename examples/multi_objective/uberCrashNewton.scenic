@@ -1,8 +1,9 @@
 #SET MAP AND MODEL (i.e. definitions of all referenceable vehicle types, road library, etc)
-param map = localPath('maps/Town01.xodr')  # or other CARLA map that definitely works
-param carla_map = localPath('maps/Town01.xodr')
+mapPath = localPath('maps/Town05.xodr')
+param map = mapPath
+param carla_map = mapPath
 param render = True
-model scenic.simulators.newtonian.model #located in scenic/simulators/newtonian/model.scenic
+model scenic.simulators.newtonian.model
 param verifaiSamplerType = 'ce'
 
 # Parameters of the scenario.

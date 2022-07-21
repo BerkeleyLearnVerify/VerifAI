@@ -1,5 +1,9 @@
 
-"""Features, feature spaces, and domains."""
+"""Features, feature spaces, and domains.
+
+.. testsetup::
+    from verifai.features import *
+"""
 
 import math
 import random
@@ -547,6 +551,7 @@ class Array(Domain):
 
         This is similar to numpy.reshape, building a multidimensional array
         from a flat list of elements. For example:
+
         >>> elts = [1, 2, 3, 4, 5, 6]
         >>> array = Array(Real(), (2, 3))
         >>> array.pointWithElements(elts)
@@ -571,6 +576,7 @@ class Array(Domain):
 
         This is similar to numpy.flatten, turning a multidimensional array into
         a flat list of elements. For example:
+
         >>> array = Array(Real(), (3, 2))
         >>> list(array.elementsOfPoint(((1, 2), (3, 4), (5, 6))))
         [1, 2, 3, 4, 5, 6]
@@ -692,7 +698,8 @@ class ScalarArray(Array):
     """An array whose elements are integers or reals.
 
     This is a specialized implementation of Array optimized for large arrays of
-    scalars like images."""
+    scalars like images.
+    """
 
     def __init__(self, domain, shape):
         super().__init__(domain, shape)
@@ -898,15 +905,17 @@ class Feature:
         lengthDistribution (optional): distribution over lengths;
         distanceMetric (optional): if not None, custom distance metric.
 
-    >>> # Feature consisting of list of 10 cars
-    >>> carDomain = Struct({
-    >>>     'position': Array(Real(), [3]),
-    >>>     'heading': Box((0, math.pi))
-    >>> })
-    >>> Feature(Array(carDomain, [10]))
-    >>> # Feature consisting of list of 1-10 cars
-    >>> carDist = Uniform(range(1, 11))
-    >>> Feature(carDomain, lengthDistribution=carDist)
+    .. testcode::
+
+        # Feature consisting of list of 10 cars
+        carDomain = Struct({
+            'position': Array(Real(), [3]),
+            'heading': Box((0, math.pi))
+        })
+        Feature(Array(carDomain, [10]))
+
+        # Feature consisting of list of 1-10 cars
+        Feature(carDomain, lengthDomain=DiscreteBox((1, 10)))
     """
     def __init__(self,
                  domain,
@@ -969,11 +978,13 @@ class Feature:
 class FeatureSpace:
     """A space consisting of named features.
 
-    >>> FeatureSpace({
-    >>>     'weather': Feature(DiscreteBox([0, 12])),
-    >>>     'egoCar': Feature(carDomain),
-    >>>     'traffic': Feature(Array(carDomain, [4]))
-    >>> })
+    .. testcode::
+
+        FeatureSpace({
+            'weather': Feature(DiscreteBox([0, 12])),
+            'egoCar': Feature(carDomain),
+            'traffic': Feature(Array(carDomain, [4]))
+        })
     """
 
     def __init__(self, features, distanceMetric=None):

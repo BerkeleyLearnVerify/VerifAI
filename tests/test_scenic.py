@@ -5,6 +5,7 @@ from dotmap import DotMap
 from verifai.samplers.scenic_sampler import ScenicSampler
 from verifai.scenic_server import ScenicServer
 from verifai.falsifier import generic_falsifier
+from verifai.monitor import specification_monitor
 from tests.utils import sampleWithFeedback, checkSaveRestore
 
 ## Basic
@@ -128,9 +129,43 @@ def test_driving(pathToLocalFile):
 
 ## Dynamic scenarios
 
+basic_scenario = """\
+param verifaiSamplerType = 'grid'
+param render = False
+model scenic.simulators.newtonian.model
+ego = Object with velocity (0, VerifaiOptions([0, 10]))
+Object at (10, 0), with velocity (-10, 10)
+terminate after 1 seconds
+"""
+
+def test_dynamic():
+    sampler = ScenicSampler.fromScenicCode(basic_scenario)
+
+    class distance_spec(specification_monitor):
+        def __init__(self):
+            def specification(simulation):
+                egoPos, otherPos = simulation.result.trajectory[-1]
+                dist = egoPos.distanceTo(otherPos)
+                return dist - 1
+            super().__init__(specification)
+
+    falsifier = generic_falsifier(
+        sampler=sampler,
+        monitor=distance_spec(),
+        falsifier_params=DotMap(n_iters=2, save_safe_table=True),
+        server_class=ScenicServer
+    )
+    falsifier.run_falsifier()
+    assert len(falsifier.error_table.table) == 1
+    assert len(falsifier.safe_table.table) == 1
+
 def test_driving_dynamic(pathToLocalFile):
     path = pathToLocalFile('scenic_driving.scenic')
-    sampler = ScenicSampler.fromScenario(path)
+    sampler = ScenicSampler.fromScenario(
+        path,
+        model='scenic.simulators.newtonian.driving_model',
+        render=False
+    )
     falsifier_params = DotMap(
         n_iters=3,
         save_error_table=False,
