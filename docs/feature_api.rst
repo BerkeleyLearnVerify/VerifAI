@@ -4,6 +4,10 @@
 Feature APIs in VerifAI
 #################################
 
+.. testsetup::
+
+	from verifai.features import *
+
 .. automodule:: verifai.features
 
 .. autoclass:: verifai.features.Feature

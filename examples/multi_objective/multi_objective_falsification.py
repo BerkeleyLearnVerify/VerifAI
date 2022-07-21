@@ -116,7 +116,7 @@ Runs a single falsification experiment.
 Arguments:
     path: Path to Scenic script to be run.
     parallel: Whether or not to enable parallelism.
-    model: Which simulator model to use (e.g. carla, lgsvl, newtonian, etc.)
+    model: Which simulator model to use (e.g. scenic.simulators.newtonian.driving_model)
     sampler_type: Which VerifAI sampelr to use (e.g. halton, scenic, ce, mab, etc.)
     headless: Whether or not to display each simulation.
     num_workers: Number of parallel workers. Only used if parallel is true.
@@ -125,12 +125,9 @@ def run_experiment(path, parallel=False, model=None,
                    sampler_type=None, headless=False, num_workers=5, max_time=None,
                    n_iters=5):
     announce(f'RUNNING SCENIC SCRIPT {path}')
-    model = f'scenic.simulators.{model}.model' if model else None
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
     params['render'] = not headless
-    if model:
-        params['model'] = model
-    sampler = ScenicSampler.fromScenario(path, **params)
+    sampler = ScenicSampler.fromScenario(path, params=params, model=model)
     num_objectives = sampler.scenario.params.get('N', 1)
     multi = num_objectives > 1
     falsifier_params = DotMap(

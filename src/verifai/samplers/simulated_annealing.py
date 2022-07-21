@@ -25,28 +25,13 @@ class SimulatedAnnealingSampler(BoxSampler):
         super().__init__(domain)
 
         ## Initialize three functions :
-        if sa_params.temp_f is None :
-            self.temp_f = lambda t: 0.8*t
-        else :
-            self.temp_f = sa_params.temp_f
-
-        if sa_params.iter_f is None :
-            self.iter_f = lambda length: int(math.ceil(1.1*length))
-        else :
-            self.iter_f = sa_params.iter_f
-
-        if sa_params.proposal_f is None :
-            self.proposal_f = proposal_func
-        else :
-            self.proposal_f = sa_params.proposal_f
-
+        self.temp_f = sa_params.get('temp_f', lambda t: 0.8*t)
+        self.iter_f = sa_params.get('iter_f',
+                                    lambda length: int(math.ceil(1.1*length)))
+        self.proposal_f = sa_params.get('proposal_f', proposal_func)
 
         ## Initialize Parameters :
-        if sa_params.reset_temp is None :
-            self.reset_temp = 0.01
-        else :
-            self.reset_temp = sa_params.reset_temp
-
+        self.reset_temp = sa_params.get('reset_temp', 0.01)
         
         self.T = self.init_T = sa_params.T
         self.decay_rate = sa_params.decay_rate

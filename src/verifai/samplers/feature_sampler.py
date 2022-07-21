@@ -4,7 +4,9 @@ specifications.
 """
 
 import random
+
 import dill
+from dotmap import DotMap
 import numpy as np
 
 from verifai.features import FilteredDomain
@@ -45,6 +47,8 @@ class FeatureSampler:
         Uses random sampling for lengths of feature lists and any
         Domains that are not continous and standardizable.
         """
+        if halton_params is None:
+            halton_params = default_sampler_params('halton')
         def makeDomainSampler(domain):
             return SplitSampler.fromPredicate(
                 domain,
@@ -55,34 +59,43 @@ class FeatureSampler:
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
     @staticmethod
-    def crossEntropySamplerFor(space, ce_params):
+    def crossEntropySamplerFor(space, ce_params=None):
         """Creates a cross-entropy sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
-        that are not standardizable."""
+        that are not standardizable.
+        """
+        if ce_params is None:
+            ce_params = default_sampler_params('ce')
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: CrossEntropySampler(domain=domain,
                                                ce_params=ce_params))
 
     @staticmethod
-    def epsilonGreedySamplerFor(space, ce_params):
+    def epsilonGreedySamplerFor(space, eg_params=None):
         """Creates an epsilon-greedy sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
-        that are not standardizable."""
+        that are not standardizable.
+        """
+        if eg_params is None:
+            eg_params = default_sampler_params('eg')
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: EpsilonGreedySampler(domain=domain,
-                                               ce_params=ce_params))
+                                                eg_params=eg_params))
 
     @staticmethod
-    def multiArmedBanditSamplerFor(space, ce_params):
+    def multiArmedBanditSamplerFor(space, mab_params=None):
         """Creates a multi-armed bandit sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
-        that are not standardizable."""
+        that are not standardizable.
+        """
+        if mab_params is None:
+            mab_params = default_sampler_params('mab')
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: MultiArmedBanditSampler(domain=domain,
-                                               ce_params=ce_params))
+                                                   mab_params=mab_params))
 
     @staticmethod
     def gridSamplerFor(space, grid_params=None):
@@ -101,11 +114,14 @@ class FeatureSampler:
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
     @staticmethod
-    def simulatedAnnealingSamplerFor(space, sa_params):
+    def simulatedAnnealingSamplerFor(space, sa_params=None):
         """Creates a cross-entropy sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
-        that are not continuous and standardizable."""
+        that are not continuous and standardizable.
+        """
+        if sa_params is None:
+            sa_params = default_sampler_params('sa')
         def makeDomainSampler(domain):
             return SplitSampler.fromPredicate(
                 domain,
@@ -116,12 +132,14 @@ class FeatureSampler:
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
     @staticmethod
-    def bayesianOptimizationSamplerFor(space, BO_params):
+    def bayesianOptimizationSamplerFor(space, BO_params=None):
         """Creates a Bayesian Optimization sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any
         Domains that are not continous and standardizable.
         """
+        if BO_params is None:
+            BO_params = default_sampler_params('bo')
         def makeDomainSampler(domain):
             return SplitSampler.fromPredicate(
                 domain,
@@ -148,7 +166,7 @@ class FeatureSampler:
         """Generate the next sample, given feedback from the last sample.
 
         This function exists only for backwards compatibility. It has been
-        superceded by the getSample and update APIs.
+        superceded by the `getSample` and `update` APIs.
         """
         if self.last_sample is not None:
             self.update(self.last_sample, self.last_info, feedback)
@@ -236,3 +254,14 @@ def makeRandomSampler(domain):
     if domain.requiresRejection:
         sampler = RejectionSampler(sampler)
     return sampler
+
+def default_sampler_params(sampler_type):
+    if sampler_type == 'halton':
+        return DotMap(sample_index=0, bases_skipped=0)
+    elif sampler_type in ('ce', 'eg', 'mab'):
+        cont = DotMap(buckets=5, dist=None)
+        disc = DotMap(dist=None)
+        return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
+    elif sampler_type == 'bo':
+        return DotMap(init_num=5)
+    return DotMap()

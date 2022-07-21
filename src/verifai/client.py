@@ -4,6 +4,10 @@ import dill
 
 
 class Client(ABC):
+    """Generic client for running simulations based on samples from the server.
+
+    Users must implement the abstract method `simulate` to run a simulation.
+    """
 
     def __init__(self, port, bufsize):
         self.port = port
@@ -39,15 +43,23 @@ class Client(ABC):
 
     def run_client(self):
         self.initialize()
-        success, sample = self.receive()
-        if not success:
-            print("No new sample received from server.")
-            return False
-        sim = self.simulate(sample)
-        self.send(sim)
-        self.close()
-        return True
+        try:
+            success, sample = self.receive()
+            if not success:
+                print("No new sample received from server.")
+                return False
+            sim = self.simulate(sample)
+            self.send(sim)
+            return True
+        finally:
+            self.close()
 
     @abstractmethod
-    def simulate(self,sample):
+    def simulate(self, sample):
+        """Run a simulation from the given sample.
+
+        Returns:
+            The outcome of the simulation (e.g. trajectories of objects), to be
+            passed to the monitor.
+        """
         pass

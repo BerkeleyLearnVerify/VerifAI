@@ -100,13 +100,13 @@ def pointForValue(dom, scenicValue):
         raise RuntimeError(
             f'Scenic value {scenicValue} has unexpected domain {dom}')
 
-# global parameters not included when sampling
+#: Scenic global parameters not included in generated samples
 ignoredParameters = {
     'externalSampler', 'externalSamplerRejectionFeedback',
     'verifaiSamplerType', 'verifaiSamplerParams',
     'behavior',
 }
-# properties not included when sampling
+#: Scenic object properties not included in generated samples
 defaultIgnoredProperties = {
     'viewAngle', 'visibleDistance', 'cameraOffset',
     'allowCollisions', 'requireVisible', 'regionContainedIn',
@@ -197,9 +197,11 @@ def spaceForScenario(scenario, ignoredProperties):
 class ScenicSampler(FeatureSampler):
     """Samples from the induced distribution of a Scenic scenario.
 
-    maxIterations controls Scenic's internal rejection sampling, and
-    ignoredProperties specifies which Object properties should not be included
-    in the sampled points.
+    Created using the `fromScenario` and `fromScenicCode` class methods.
+
+    See :ref:`scene generation` in the Scenic documentation for details of how
+    Scenic's sampler works. Note that VerifAI's other samplers can be used from
+    within a Scenic scenario by defining :term:`external parameters`.
     """
 
     def __init__(self, scenario, maxIterations=None, ignoredProperties=None):
@@ -212,14 +214,34 @@ class ScenicSampler(FeatureSampler):
         super().__init__(space)
 
     @classmethod
-    def fromScenario(cls, path, maxIterations=None, ignoredProperties=None, model=None, **params):
-        """Create a sampler corresponding to a Scenic program."""
+    def fromScenario(cls, path, maxIterations=None,
+                     params={}, model=None, scenario=None,
+                     ignoredProperties=None):
+        """Create a sampler corresponding to a Scenic program.
+
+        The only required argument is ``path``, and ``maxIterations`` may be useful if
+        your scenario requires a very large number of rejection sampling iterations.
+        See `scenic.scenarioFromFile` for details on the optional arguments used to
+        customize compilation of the Scenic file.
+
+        Args:
+            path (str): path to a Scenic file.
+            maxIterations (int): maximum number of rejection sampling iterations
+              (default 2000).
+            params (dict): global parameters to override; see `scenic.scenarioFromFile`.
+            model (str): :term:`world model` to use; see `scenic.scenarioFromFile`.
+            scenario (str): :term:`modular scenario` to use; see `scenic.scenarioFromFile`.
+            ignoredProperties: properties of Scenic objects to not include in
+              generated samples (see ``defaultIgnoredProperties`` for the default).
+        """
         scenario = scenic.scenarioFromFile(path, params=params, model=model)
         return cls(scenario, maxIterations=maxIterations,
                    ignoredProperties=ignoredProperties)
 
     @classmethod
-    def fromScenicCode(cls, code, maxIterations=None, ignoredProperties=None):
+    def fromScenicCode(cls, code, maxIterations=None,
+                       params={}, model=None, scenario=None,
+                       ignoredProperties=None):
         """As above, but given a Scenic program as a string."""
         scenario = scenic.scenarioFromString(code)
         return cls(scenario, maxIterations=maxIterations,
@@ -233,7 +255,7 @@ class ScenicSampler(FeatureSampler):
         return self.pointForScene(self.lastScene)
 
     def pointForScene(self, scene):
-        """Convert a sampled Scenic Scene to a point in the Scenario's space."""
+        """Convert a sampled Scenic :obj:`Scene` to a point in our feature space."""
         lengths, dom = self.space.domains
         assert lengths is None
         assert scene.egoObject is scene.objects[0]
@@ -253,7 +275,7 @@ class ScenicSampler(FeatureSampler):
         return self.space.makePoint(objects=objPoint, params=paramPoint)
 
     def paramDictForSample(self, sample):
-        """Recover the dict of global parameters from a ScenicSampler sample."""
+        """Recover the dict of global parameters from a `ScenicSampler` sample."""
         params = sample.params._asdict()
         corrected = {}
         for newName, quotedParam in self.quotedParams.items():
