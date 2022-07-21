@@ -3,7 +3,7 @@ mapPath = localPath('maps/Town05.xodr')
 param map = mapPath
 param carla_map = mapPath
 param render = True
-model scenic.simulators.newtonian.model
+model scenic.domains.driving.model
 param verifaiSamplerType = 'ce'
 
 # Parameters of the scenario.

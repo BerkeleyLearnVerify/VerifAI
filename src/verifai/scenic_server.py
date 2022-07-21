@@ -96,13 +96,15 @@ if ray:
     @ray.remote
     class SampleSimulator():
 
-        def __init__(self, scenic_path, worker_num, monitor, options={},
-                     scenario_params={}):
+        def __init__(self, scenic_path, worker_num, monitor, options={}):
+            scenario_params = options.get('scenario_params', {})
+            scenario_model = options.get('scenario_model', None)
             scenario_params.update({
                 'port': 2000 + 2*worker_num
             })
             self.sampler = ScenicSampler.fromScenario(scenic_path, maxIterations=1,
-                                                      params=scenario_params)
+                                                      params=scenario_params,
+                                                      model=scenario_model)
             # reset self.sampler.scenario.externalSampler to dummy sampler
             # that reads argument
             self.worker_num = worker_num
@@ -165,7 +167,7 @@ if ray:
 class ParallelScenicServer(ScenicServer):
 
     def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor,
-                 options={}, max_time=None, scenario_params={}, sampler=None):
+                 options={}, max_time=None, sampler=None):
         if not ray:
             raise RuntimeError('ParallelScenicServer requires ray to be installed')
 
@@ -177,7 +179,7 @@ class ParallelScenicServer(ScenicServer):
         sampling_data.sampler = sampler
         super().__init__(sampling_data, monitor, options)
         self.sample_simulators = [
-            SampleSimulator.remote(scenic_path, i, monitor, options, scenario_params)
+            SampleSimulator.remote(scenic_path, i, monitor, options)
             for i in range(self.total_workers)
         ]
 

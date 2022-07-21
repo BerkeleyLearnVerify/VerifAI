@@ -137,7 +137,8 @@ def run_experiment(path, parallel=False, model=None,
         max_time=max_time,
     )
     server_options = DotMap(maxSteps=300, verbosity=0,
-    scenic_path=path, scenario_params=params, num_workers=num_workers)
+                            scenic_path=path, scenario_params=params, scenario_model=model,
+                            num_workers=num_workers)
     monitor = distance() if not multi else distance_multi(num_objectives)
 
     falsifier_cls = generic_parallel_falsifier if parallel else generic_falsifier
@@ -169,7 +170,7 @@ if __name__ == '__main__':
     help='verifaiSamplerType to use')
     parser.add_argument('--experiment-name', '-e', type=str, default=None,
     help='verifaiSamplerType to use')
-    parser.add_argument('--model', '-m', type=str, default=None)
+    parser.add_argument('--model', '-m', type=str, default='scenic.simulators.newtonian.driving_model')
     parser.add_argument('--headless', action='store_true')
     parser.add_argument('--n-iters', '-n', type=int, default=None, help='Number of simulations to run')
     parser.add_argument('--max-time', type=int, default=None, help='Maximum amount of time to run simulations')

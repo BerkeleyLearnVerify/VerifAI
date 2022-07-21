@@ -4,7 +4,7 @@ AUTHOR: Francis Indaheng, findaheng@berkeley.edu
 DESCRIPTION: Ego vehicle goes straight at 4-way intersection and must 
 suddenly stop to avoid collision when adversary vehicle from opposite 
 lane makes a left turn.
-SOURCE: NHSTA, #30
+SOURCE: NHTSA, #30
 """
 
 #################################
@@ -15,7 +15,7 @@ param map = localPath('maps/Town05.xodr')
 param carla_map = 'Town05'
 param verifaiSamplerType = 'halton'
 param N = 5
-model scenic.simulators.carla.model
+model scenic.domains.driving.model
 
 #################################
 # CONSTANTS                     #

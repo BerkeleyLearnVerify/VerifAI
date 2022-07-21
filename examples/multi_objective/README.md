@@ -1,15 +1,19 @@
-# Installation of VerifAI and Scenic
+# Multi-objective & Parallel Falsification Examples
 
-1. Clone this repository and [Scenic](https://github.com/BerkeleyLearnVerify/Scenic).
-2. Checkout the `kesav-v/multi-objective` branch of VerifAI and the `kesav-v/multi-objective` branch of Scenic.
-3. Install `poetry` if you haven’t already done so.
-4. Run `poetry shell` from the VerifAI repo and make sure it spawns an environment with Python 3.8+.
-5. Run `poetry install`.
-6. Go to the location where `Scenic` was cloned and run `poetry install` (while in the same environment that was used for VerifAI).
-7. Any other missing packages when running the falsifier script can be installed using `pip`.
+This folder contains examples of performing falsification with multiple objectives and in parallel.
+These examples all use dynamic Scenic, so if you aren't familiar with how to use Scenic with VerifAI, you might want to start with the examples in the `examples/scenic` folder.
 
-# Running the Newtonian Simulator
+The driver code for all of the examples is in the `multi_objective_falsification.py` file.
+The file takes a variety of options to configure the experiment to be run; for example, here are several possibilities:
 
-1. Using the VerifAI environment, go to the `experiments` folder inside VerifAI
-2. Run `python experiments.py --newtonian`
-3. You should see the Uber crash scenario open up in a pygame window.
+```
+# Run falsification for 5 iterations
+python multi_objective_falsification.py -n 5
+# Likewise, with a different scenario
+python multi_objective_falsification.py -n 5 -p intersection_01.scenic
+# Run falsification for 15 iterations, with 4 parallel workers
+python multi_objective_falsification.py -n 15 --parallel --num-workers 4
+```
+
+The script uses Scenic's built-in Newtonian simulator by default, so for each of the above commands you should see one or more ``pygame`` windows appear to visualize the simulations being run.
+The example scenarios we have provided will also work in CARLA and other simulators supporting Scenic's abstract driving domain.

@@ -239,8 +239,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         sampling_data.sampler_params = self.sampler_params
 
         self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
-        self.monitor, options=server_options, max_time=self.max_time,
-        scenario_params=self.scenario_params, sampler=self.sampler)
+        self.monitor, options=server_options, max_time=self.max_time, sampler=self.sampler)
 
     def run_falsifier(self):
         i = 0
