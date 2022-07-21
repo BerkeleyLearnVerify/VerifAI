@@ -64,7 +64,7 @@ Method 2: Using Scenic
 	path = 'examples/webots/controllers/scenic_cones_supervisor/lane_cones.sc'
 	scenic_sampler = ScenicSampler.fromScenario(path)
 
-Scenic's sampler, by default, does random sampling.
+Scenic's sampler, by default, does random sampling (see :obj:`~verifai.samplers.ScenicSampler` for the available configuration options).
 However, it is possible to invoke VerifAI's other samplers from within the scenario using Scenic's :term:`external parameters`.
 
 

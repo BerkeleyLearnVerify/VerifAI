@@ -97,17 +97,19 @@ if ray:
     class SampleSimulator():
 
         def __init__(self, scenic_path, worker_num, monitor, options={},
-        scenario_params={}):
-            print(scenario_params)
+                     scenario_params={}):
             scenario_params.update({
                 'port': 2000 + 2*worker_num
             })
-            self.sampler = ScenicSampler.fromScenario(scenic_path, maxIterations=1, **scenario_params)
+            self.sampler = ScenicSampler.fromScenario(scenic_path, maxIterations=1,
+                                                      params=scenario_params)
             # reset self.sampler.scenario.externalSampler to dummy sampler
             # that reads argument
             self.worker_num = worker_num
-            self.sampler.scenario.externalSampler = DummySampler(self.sampler.scenario.externalParams,
-            self.sampler.scenario.params)
+            self.sampler.scenario.externalSampler = DummySampler(
+                self.sampler.scenario.externalParams,
+                self.sampler.scenario.params
+            )
             self.simulator = self.sampler.scenario.getSimulator()
             self.monitor = monitor
             extSampler = self.sampler.scenario.externalSampler
@@ -126,7 +128,6 @@ if ray:
             self.full_sample = self.sampler.nextSample(sample)
 
         def simulate(self, sample):
-
             '''
             Need to generate scene from sample here.
             '''
@@ -164,7 +165,7 @@ if ray:
 class ParallelScenicServer(ScenicServer):
 
     def __init__(self, total_workers, n_iters, sampling_data, scenic_path, monitor,
-    options={}, max_time=None, scenario_params={}, sampler=None):
+                 options={}, max_time=None, scenario_params={}, sampler=None):
         if not ray:
             raise RuntimeError('ParallelScenicServer requires ray to be installed')
 
@@ -173,13 +174,12 @@ class ParallelScenicServer(ScenicServer):
         self.total_workers = total_workers
         self.n_iters = n_iters
         self.max_time = max_time
-        # sampler = ScenicSampler.fromScenario(scenic_path, **scenario_params)
         sampling_data.sampler = sampler
         super().__init__(sampling_data, monitor, options)
-        print(f'Sampler class is {type(self.sampler)}')
-        self.sample_simulators = [SampleSimulator.remote(scenic_path, i, monitor, options,
-        scenario_params)
-        for i in range(self.total_workers)]
+        self.sample_simulators = [
+            SampleSimulator.remote(scenic_path, i, monitor, options, scenario_params)
+            for i in range(self.total_workers)
+        ]
 
     def _generate_next_sample(self, worker_num):
         i = 0
@@ -208,7 +208,6 @@ class ParallelScenicServer(ScenicServer):
         if self.n_iters is not None:
             bar = progressbar.ProgressBar(max_value=self.n_iters)
         else:
-            print(f'Creating widgets with max_time = {self.max_time}')
             widgets = ['Scenes generated: ', progressbar.Counter('%(value)d'),
                ' (', progressbar.Timer(), ')']
             bar = progressbar.ProgressBar(widgets=widgets)

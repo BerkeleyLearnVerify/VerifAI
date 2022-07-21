@@ -3,9 +3,9 @@ Based on 2019 Carla Challenge Traffic Scenario 03.
 Leading vehicle decelerates suddenly due to an obstacle and 
 ego-vehicle must react, performing an emergency brake or an avoidance maneuver.
 """
-param map = localPath('../map/Town01.xodr')  # or other CARLA map that definitely works
+param map = localPath('../../../tests/Town01.xodr')
 param carla_map = 'Town01'
-model scenic.simulators.newtonian.model
+model scenic.simulators.newtonian.driving_model
 
 #CONSTANTS
 EGO_SPEED = 10

@@ -5,7 +5,7 @@ The ego-vehicle loses control due to bad conditions on the road and it must reco
 """
 
 ## SET MAP AND MODEL (i.e. definitions of all referenceable vehicle types, road library, etc)
-param map = localPath('../map/Town01.xodr')  # or other CARLA map that definitely works
+param map = localPath('../../../tests/Town01.xodr')
 param carla_map = 'Town01'
 model scenic.simulators.carla.model
 
@@ -26,7 +26,7 @@ behavior EgoBehavior(speed=10):
 # Please refer to scenic/domains/driving/roads.py how to access detailed road infrastructure
 # 'network' is the 'class Network' object in roads.py
 
-# make sure to put '*' to uniformly randomly select from all elements of the list, 'lanes'
+# make sure to put '*' to uniformly randomly select from all elements of the list 'lanes'
 lane = Uniform(*network.lanes)
 
 start = OrientedPoint on lane.centerline
