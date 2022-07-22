@@ -3,7 +3,7 @@ from dotmap import DotMap
 from verifai.falsifier import generic_falsifier
 
 
-path_to_scenic_file = 'lane_cones.sc'
+path_to_scenic_file = 'lane_cones.scenic'
 sampler = ScenicSampler.fromScenario(path_to_scenic_file)
 
 MAX_ITERS = 20

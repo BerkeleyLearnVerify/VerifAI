@@ -61,7 +61,7 @@ Method 2: Using Scenic
 
 	from verifai.samplers import ScenicSampler
 
-	path = 'examples/webots/controllers/scenic_cones_supervisor/lane_cones.sc'
+	path = 'examples/webots/controllers/scenic_cones_supervisor/lane_cones.scenic'
 	scenic_sampler = ScenicSampler.fromScenario(path)
 
 Scenic's sampler, by default, does random sampling (see :obj:`~verifai.samplers.ScenicSampler` for the available configuration options).
