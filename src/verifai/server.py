@@ -44,43 +44,43 @@ def choose_sampler(sample_space, sampler_type,
         return 'ce', sampler
     if sampler_type == 'mab':
         if sampler_params is None:
-            ce_params = default_sampler_params('ce')
+            mab_params = default_sampler_params('mab')
         else:
-            ce_params = default_sampler_params('ce')
+            mab_params = default_sampler_params('mab')
             if 'cont' in sampler_params:
                 if 'buckets' in sampler_params.cont:
-                    ce_params.cont.buckets = sampler_params.cont.buckets
+                    mab_params.cont.buckets = sampler_params.cont.buckets
                 if 'dist' in sampler_params.cont:
-                    ce_params.cont.dist = sampler_params.cont.dist
+                    mab_params.cont.dist = sampler_params.cont.dist
             if 'dist' in sampler_params.disc:
-                ce_params.disc.dist = sampler_params.disc.dist
+                mab_params.disc.dist = sampler_params.disc.dist
             if 'alpha' in sampler_params:
-                ce_params.alpha = sampler_params.alpha
+                mab_params.alpha = sampler_params.alpha
             if 'thres' in sampler_params:
-                ce_params.thres = sampler_params.thres
+                mab_params.thres = sampler_params.thres
             if 'priority_graph' in sampler_params:
-                ce_params.priority_graph = sampler_params.priority_graph
+                mab_params.priority_graph = sampler_params.priority_graph
         sampler = FeatureSampler.multiArmedBanditSamplerFor(
-            sample_space, ce_params=ce_params)
+            sample_space, mab_params=mab_params)
         return 'mab', sampler
     if sampler_type == 'eg':
         if sampler_params is None:
-            ce_params = default_sampler_params('ce')
+            eg_params = default_sampler_params('eg')
         else:
-            ce_params = default_sampler_params('ce')
+            eg_params = default_sampler_params('eg')
             if 'cont' in sampler_params:
                 if 'buckets' in sampler_params.cont:
-                    ce_params.cont.buckets = sampler_params.cont.buckets
+                    eg_params.cont.buckets = sampler_params.cont.buckets
                 if 'dist' in sampler_params.cont:
-                    ce_params.cont.dist = sampler_params.cont.dist
+                    eg_params.cont.dist = sampler_params.cont.dist
             if 'dist' in sampler_params.disc:
-                ce_params.disc.dist = sampler_params.disc.dist
+                eg_params.disc.dist = sampler_params.disc.dist
             if 'alpha' in sampler_params:
-                ce_params.alpha = sampler_params.alpha
+                eg_params.alpha = sampler_params.alpha
             if 'thres' in sampler_params:
-                ce_params.thres = sampler_params.thres
+                eg_params.thres = sampler_params.thres
         sampler = FeatureSampler.epsilonGreedySamplerFor(
-            sample_space, ce_params=ce_params)
+            sample_space, eg_params=eg_params)
         return 'eg', sampler
 
     if sampler_type == 'bo':

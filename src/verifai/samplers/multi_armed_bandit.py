@@ -8,13 +8,13 @@ from verifai.samplers.cross_entropy import DiscreteCrossEntropySampler
 from verifai.samplers.multi_objective import MultiObjectiveSampler
 
 class MultiArmedBanditSampler(DomainSampler):
-    def __init__(self, domain, ce_params):
+    def __init__(self, domain, mab_params):
         super().__init__(domain)
-        self.alpha = ce_params.alpha
-        self.thres = ce_params.thres
-        self.cont_buckets = ce_params.cont.buckets
-        self.cont_dist = ce_params.cont.dist
-        self.disc_dist = ce_params.disc.dist
+        self.alpha = mab_params.alpha
+        self.thres = mab_params.thres
+        self.cont_buckets = mab_params.cont.buckets
+        self.cont_dist = mab_params.cont.dist
+        self.disc_dist = mab_params.disc.dist
         self.cont_ce = lambda domain: ContinuousMultiArmedBanditSampler(domain=domain,
                                                      buckets=self.cont_buckets,
                                                      dist=self.cont_dist,
@@ -36,8 +36,8 @@ class MultiArmedBanditSampler(DomainSampler):
         for subsampler in self.split_sampler.samplers:
             if isinstance(subsampler, ContinuousMultiArmedBanditSampler):
                 assert self.cont_sampler is None
-                if 'priority_graph' in ce_params:
-                    subsampler.set_graph(ce_params.priority_graph)
+                if 'priority_graph' in mab_params:
+                    subsampler.set_graph(mab_params.priority_graph)
                 self.cont_sampler = subsampler
             elif isinstance(subsampler, DiscreteMultiArmedBanditSampler):
                 assert self.disc_sampler is None

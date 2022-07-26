@@ -5,13 +5,13 @@ from verifai.samplers.random_sampler import RandomSampler
 from verifai.samplers.cross_entropy import DiscreteCrossEntropySampler
 
 class EpsilonGreedySampler(DomainSampler):
-    def __init__(self, domain, ce_params):
+    def __init__(self, domain, eg_params):
         super().__init__(domain)
-        self.alpha = ce_params.alpha
-        self.thres = ce_params.thres
-        self.cont_buckets = ce_params.cont.buckets
-        self.cont_dist = ce_params.cont.dist
-        self.disc_dist = ce_params.disc.dist
+        self.alpha = eg_params.alpha
+        self.thres = eg_params.thres
+        self.cont_buckets = eg_params.cont.buckets
+        self.cont_dist = eg_params.cont.dist
+        self.disc_dist = eg_params.disc.dist
         self.cont_ce = lambda domain: ContinuousEpsilonGreedySampler(domain=domain,
                                                      buckets=self.cont_buckets,
                                                      dist=self.cont_dist,
