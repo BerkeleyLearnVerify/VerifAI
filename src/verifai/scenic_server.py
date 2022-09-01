@@ -10,7 +10,7 @@ try:
 except ModuleNotFoundError:
     ray = None   # ignore for now; we'll raise an error below if ray is actually needed
 
-from verifai.server import Server
+from verifai.server import Server, ServerTimings
 from verifai.samplers.scenic_sampler import ScenicSampler
 from verifai.monitor import multi_objective_monitor
 from scenic.core.simulators import SimulationCreationError
@@ -52,20 +52,15 @@ class ScenicServer(Server):
         else:
             self.simulator = defaults.simulator
 
-    def run_server(self):
-        start = time.time()
-        sample = self.sampler.nextSample(self.lastValue)
+    def evaluate_sample(self, sample):
         scene = self.sampler.lastScene
         assert scene
-        after_sampling = time.time()
         result = self._simulate(scene)
         if result is None:
-            self.lastValue = self.rejectionFeedback
-        else:
-            self.lastValue = (0 if self.monitor is None
-                              else self.monitor.evaluate(result))
-        after_simulation = time.time()
-        return sample, self.lastValue, (after_sampling - start, after_simulation - after_sampling)
+            return self.rejectionFeedback
+        value = (0 if self.monitor is None
+                 else self.monitor.evaluate(result))
+        return value
 
     def _simulate(self, scene):
         startTime = time.time()

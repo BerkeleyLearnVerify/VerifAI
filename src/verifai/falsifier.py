@@ -29,6 +29,7 @@ class falsifier(ABC):
             save_error_table=True, save_safe_table=True,
             error_table_path=None, safe_table_path=None,
             n_iters=1000, ce_num_max=np.inf, fal_thres=0,
+            max_time=None,
             sampler_params=None, verbosity=0,
         )
         if falsifier_params is not None:
@@ -45,10 +46,7 @@ class falsifier(ABC):
         if not hasattr(self, 'num_workers'):
             self.num_workers = 1
         self.n_iters, self.ce_num_max = params.n_iters, params.ce_num_max
-        if self.n_iters is None:
-            self.max_time = params.max_time
-        else:
-            self.max_time = None
+        self.max_time = params.max_time
         self.fal_thres = params.fal_thres
         self.sampler_params = params.sampler_params
         self.verbosity = params.verbosity
@@ -72,6 +70,8 @@ class falsifier(ABC):
         sampling_data.sampler = self.sampler
 
         self.server = server_class(sampling_data, self.monitor, options=server_options)
+        if self.verbosity >= 1:
+            print("Server ready")
 
     def init_error_table(self):
         # Initializing error table
@@ -129,23 +129,30 @@ class falsifier(ABC):
         rhos = []
         self.total_sample_time = 0
         self.total_simulate_time = 0
+        if self.verbosity >= 1:
+            suffix = ''
+            if self.n_iters:
+                suffix = f' for {self.n_iters} iterations'
+            if self.max_time:
+                suffix += f' for {self.max_time:.0f} seconds'
+            print('Running falsification' + suffix)
         if self.verbosity >= 2:
-            print(f'Running falsifier; server class is {type(self.server)}')
+            print(f'Server class is {type(self.server)}')
 
         if self.verbosity >= 1:
             if self.n_iters is not None:
                 bar = progressbar.ProgressBar(max_value=self.n_iters)
             else:
-                widgets = ['Scenes generated: ', progressbar.Counter('%(value)d'),
+                widgets = ['Samples generated: ', progressbar.Counter('%(value)d'),
                 ' (', progressbar.Timer(), ')']
                 bar = progressbar.ProgressBar(widgets=widgets)
 
         try:
             while True:
                 try:
-                    sample, rho, (sample_time, simulate_time) = self.server.run_server()
-                    self.total_sample_time += sample_time
-                    self.total_simulate_time += simulate_time
+                    sample, rho, timings = self.server.run_server()
+                    self.total_sample_time += timings.sample_time
+                    self.total_simulate_time += timings.simulate_time
                 except TerminationException:
                     if self.verbosity >= 1:
                         print("Sampler has generated all possible samples")
@@ -165,6 +172,8 @@ class falsifier(ABC):
                 if self.max_time is not None and time.time() - t0 >= self.max_time:
                     break
         finally:
+            if self.verbosity >= 1:
+                bar.finish()
             self.server.terminate()
         for sample, rho in zip(server_samples, rhos):
             ce = any([r <= self.fal_thres for r in rho]) if self.multi else rho <= self.fal_thres
@@ -176,6 +185,8 @@ class falsifier(ABC):
                     break
             elif self.save_safe_table:
                 self.populate_error_table(sample, rho, error=False)
+        if self.verbosity >= 1:
+            print('Falsification complete.')
 
 class generic_falsifier(falsifier):
     def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,

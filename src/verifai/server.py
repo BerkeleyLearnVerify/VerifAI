@@ -1,4 +1,7 @@
+from dataclasses import dataclass
 import socket
+import time
+
 import dill
 from dotmap import DotMap
 
@@ -189,9 +192,14 @@ class Server:
         return value
 
     def run_server(self):
+        start = time.time()
         sample = self.get_sample(self.lastValue)
+        after_sampling = time.time()
         self.lastValue = self.evaluate_sample(sample)
-        return sample, self.lastValue
+        after_simulation = time.time()
+        timings = ServerTimings(sample_time=(after_sampling - start),
+                                simulate_time=(after_simulation - after_sampling))
+        return sample, self.lastValue, timings
 
 try:
     import ray
@@ -202,3 +210,8 @@ except ModuleNotFoundError:
     class ParallelServer(Server):
         def __init__(*args, **kwargs):
             raise RuntimeError('ParallelServer requires ray to be installed')
+
+@dataclass
+class ServerTimings:
+    sample_time: float
+    simulate_time: float

@@ -41,10 +41,10 @@ See the README in the `examples/scenic` folder for more options the `falsify_dis
 **Sample space:** Initial x-position, angle of rotation, and cruising speed. 
 
 **Relevant files:**
-1. `verifai/simulators/car_simulator/examples/lanekeeping_LQR/lanekeeping_falsifier.py` : Defines the sample space and type of falsifier (sampler and number of iterations)
-2.  `verifai/simulators/car_simulator/examples/lanekeeping_LQR/lanekeeping_simulation.py` : Defines the controller and the simulation environment
+1. `src/verifai/simulators/car_simulator/examples/lanekeeping_LQR/lanekeeping_falsifier.py` : Defines the sample space and type of falsifier (sampler and number of iterations)
+2.  `src/verifai/simulators/car_simulator/examples/lanekeeping_LQR/lanekeeping_simulation.py` : Defines the controller and the simulation environment
 
-**Running the falsifier:** To run this example open two terminal shells and go to `cd verifai/simulators/car_simulator` in each of them. Then in first one run `python examples/lanekeeping_LQR/lanekeeping_falsifier.py` and wait till you see "Initialized sampler" in the terminal; then run `python examples/lanekeeping_LQR/lanekeeping_simulation.py` in the other one.
+**Running the falsifier:** To run this example open two terminal shells and go to `src/verifai/simulators/car_simulator` in each of them. Then in first one run `python examples/lanekeeping_LQR/lanekeeping_falsifier.py` and wait till you see "Server ready" in the terminal; then run `python examples/lanekeeping_LQR/lanekeeping_simulation.py` in the other one.
 
 The falsifier runs for 20 iterations, you can change this by modifying `MAX_ITERS` in `examples/lanekeeping_LQR/lanekeeping_falsifier.py`. At the end of the runs, you should see "End of all simulations" in the terminal where you ran `python examples/lanekeeping_LQR/lanekeeping_simulation.py`.
 
@@ -66,7 +66,7 @@ We re-create the data augmentation example from [this](https://arxiv.org/abs/180
 1. `examples/data_augmentation/falsifier.py` : Defines the sample space and type of falsifier (sampler and number of iterations)
 2.  `examples/data_augmentation/classifier.py` : Interface to the picture renderer and instantiate the NN
 
-**Running the falsifier:** Open two terminal shells and go to `cd data_augmentation` in each of them. Then in first one run `python falsifier.py` and wait till you see "Initialized sampler" in the terminal; then run `python classifier.py` in other one.
+**Running the falsifier:** Open two terminal shells and go to `examples/data_augmentation` in each of them. Then in first one run `python falsifier.py` and wait till you see "Server ready" in the terminal; then run `python classifier.py` in other one.
 
 The falsifier runs for 20 iterations, you can change this by modifying `MAX_ITERS` in `examples/data_augmenatation/falsifier.py`. At the end of the runs, you should see "End of all classifier calls" in the terminal where you ran `python classifier.py`.
 

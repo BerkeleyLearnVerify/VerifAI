@@ -18,8 +18,13 @@ class Client(ABC):
         self.host = '127.0.0.1'
         try:
             self.socket.connect((self.host, self.port))
+        except ConnectionResetError:
+            self.close()
+            return False
         except OSError as e:
+            self.close()
             raise RuntimeError('unable to connect to server') from e
+        return True
 
     def receive(self):
         data = []
@@ -37,14 +42,16 @@ class Client(ABC):
     def send(self, data):
         msg = dill.dumps(data)
         self.socket.send(msg)
+        self.socket.shutdown(socket.SHUT_WR)
 
     def close(self):
         self.socket.close()
 
     def run_client(self):
-        self.initialize()
+        success = self.initialize()
         try:
-            success, sample = self.receive()
+            if success:
+                success, sample = self.receive()
             if not success:
                 print("No new sample received from server.")
                 return False

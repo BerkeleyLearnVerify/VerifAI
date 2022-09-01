@@ -39,10 +39,10 @@ PORT = 8888
 MAXREQS = 5
 BUFSIZE = 4096
 
-falsifier_params = DotMap()
-falsifier_params.n_iters = MAX_ITERS
-falsifier_params.compute_error_table = True
-falsifier_params.fal_thres = 0.5
+falsifier_params = DotMap(n_iters=MAX_ITERS,
+                          compute_error_table=True,
+                          fal_thres=0.5,
+                          verbosity=1)
 
 server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
 

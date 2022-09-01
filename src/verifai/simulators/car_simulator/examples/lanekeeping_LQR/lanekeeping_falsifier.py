@@ -20,6 +20,7 @@ specification = ["G(xdeviation)"]
 
 falsifier_params = DotMap()
 falsifier_params.n_iters = MAX_ITERS
+falsifier_params.verbosity = 1
 falsifier_params.compute_error_table = True
 falsifier_params.fal_thres = 0.0
 

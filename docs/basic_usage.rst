@@ -106,7 +106,8 @@ Defining Falsifier Parameters
 	
 	from dotmap import DotMap
 	falsifier_params = DotMap(
-		n_iters=1000,   # Number of simulations to run
+		n_iters=1000,   # Number of simulations to run (or None for no limit)
+		max_time=None,	# Time limit in seconds, if any
 		save_error_table=True,   # Record samples that violated the monitor/specification
 		save_good_samples=False,  # Don't record samples that satisfied the monitor/specification
 		fal_thres=0.5,    # Monitor return value below which a sample is considered a violation

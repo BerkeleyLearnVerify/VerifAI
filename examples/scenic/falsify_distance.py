@@ -45,6 +45,7 @@ class MyMonitor(specification_monitor):
 # Set up the falsifier
 falsifier_params = DotMap(
     n_iters=5,
+    verbosity=1,
     save_error_table=True,
     save_safe_table=True,
     # uncomment to save these tables to files; we'll print them out below
@@ -59,9 +60,7 @@ falsifier = generic_falsifier(sampler=sampler,
                               server_options=server_options)
 
 # Perform falsification and print the results
-print(f'Running falsification for {falsifier.n_iters} iterations.')
 falsifier.run_falsifier()
-print('Falsification complete.')
 print('Error table:')
 print(falsifier.error_table.table)
 print('Safe table:')
