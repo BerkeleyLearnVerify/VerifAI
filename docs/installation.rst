@@ -7,7 +7,7 @@ To install VerifAI from PyPI, execute::
 
 	pip install verifai
 
-Alternatively, you can download or clone the `VerifAI repository <https://github.com/BerkelelyLearnVerify/VerifAI>`_, which also contains the examples used in the :doc:`tutorial <tutorial>`.
+Alternatively, you can download or clone the `VerifAI repository <https://github.com/BerkeleyLearnVerify/VerifAI>`_, which also contains the examples used in the :doc:`tutorial <tutorial>`.
 Install `Poetry <https://python-poetry.org/>`_ and then run::
 
 	poetry install
