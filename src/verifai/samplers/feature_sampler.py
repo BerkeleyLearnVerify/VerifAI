@@ -20,6 +20,7 @@ from verifai.samplers.eg_sampler import EpsilonGreedySampler
 from verifai.samplers.bayesian_optimization import BayesOptSampler
 from verifai.samplers.simulated_annealing import SimulatedAnnealingSampler
 from verifai.samplers.grid_sampler import GridSampler
+from verifai.samplers.glis_optimization import GLISSampler
 
 ### Samplers defined over FeatureSpaces
 
@@ -147,6 +148,22 @@ class FeatureSampler:
                 lambda domain: BayesOptSampler(domain=domain,
                                                BO_params=BO_params),
                 makeRandomSampler)
+        return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
+
+    def glisSamplerFor(space, params):
+        """Creates a GLIS Optimization sampler for a given space.
+        Uses random sampling for lengths of feature lists and any
+        Domains that are not continous and standardizable.
+        """
+
+        def makeDomainSampler(domain):
+            return SplitSampler.fromPredicate(
+                domain,
+                lambda d: d.standardizedDimension > 0,
+                lambda domain: GLISSampler(domain=domain,
+                                           params=params),
+                makeRandomSampler)
+
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
     def getSample(self):

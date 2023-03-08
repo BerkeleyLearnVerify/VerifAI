@@ -96,6 +96,11 @@ def choose_sampler(sample_space, sampler_type,
             sample_space, BO_params=bo_params)
         return 'bo', sampler
 
+    if sampler_type == 'glis':
+        sampler = FeatureSampler.samplerFor(
+            sample_space, sampler_params)
+        return 'glis', sampler
+
     raise ValueError(f'unknown sampler type "{sampler_type}"')
 
 class Server:

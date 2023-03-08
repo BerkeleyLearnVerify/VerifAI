@@ -5,41 +5,35 @@ from glis.solvers import GLIS
 from verifai.samplers.domain_sampler import BoxSampler
 
 class GLISSampler(BoxSampler):
-    def __init__(self, domain, n_initial_random):
+    '''
+    Integrates the GLIS sampler with VerifAI
+    ---
+    Parameters:
+        domain : FeatureSpace
+        params : DotMap
+    ---
+    Note: see the definition of the GLIS class for the available parameters or the GLIS documentation
+    https://pypi.org/project/glis/
+    '''
+    def __init__(self, domain, params):
         super().__init__(domain)
-        from numpy import array, zeros, ones
+        from numpy import zeros, ones
 
-        # Extract lower and upper bounds of Verifai ranges
+        self.rho = None
+
         dim = domain.flattenedDimension
-        #lb = list()
-        #ub = list()
         self.lb = zeros(dim)
         self.ub = ones(dim)
-        #for bound in self.domain.domains:
-        #    lb.append(bound.intervals[0][0])
-        #    ub.append(bound.intervals[0][1])
-        #self.lb = array(lb)
-        #self.ub = array(ub)
-        #self.prob = GLIS(bounds=(lb, ub), n_initial_random=n_initial_random)
-        self.prob = GLIS(bounds=(self.lb, self.ub), n_initial_random=n_initial_random)
+        self.sampler = GLIS(bounds=(self.lb, self.ub), **params)
 
 
-    def nextVector(self, feedback=None):
-        if feedback is None or feedback == int(1):
-            x = self.prob.initialize()
+    def getVector(self):
+        if self.rho is None or self.rho == int(1):
+            x = self.sampler.initialize()
         else:
-            x = self.prob.update(feedback)
-        # normalize to [0,1]
-        #x = (x - self.lb)/(self.ub - self.lb)
-
-        return tuple(x)
-
-    def getVector(self, feedback=None):
-        if feedback is None or feedback == int(1):
-            x = self.prob.initialize()
-        else:
-            x = self.prob.update(feedback)
-        # normalize to [0,1]
-        #x = (x - self.lb)/(self.ub - self.lb)
+            x = self.sampler.update(self.rho)
 
         return tuple(x), None
+
+    def updateVector(self, vector, info, rho):
+        self.rho = rho
