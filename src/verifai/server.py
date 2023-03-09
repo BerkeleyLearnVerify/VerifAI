@@ -97,7 +97,7 @@ def choose_sampler(sample_space, sampler_type,
         return 'bo', sampler
 
     if sampler_type == 'glis':
-        sampler = FeatureSampler.samplerFor(
+        sampler = FeatureSampler.glisSamplerFor(
             sample_space, sampler_params)
         return 'glis', sampler
 
