@@ -28,12 +28,12 @@ class GLISSampler(BoxSampler):
 
 
     def getVector(self):
-        if self.rho is None or self.rho == int(1):
-            x = self.sampler.initialize()
-        else:
-            x = self.sampler.update(self.rho)
+        if self.rho is None:
+            self.x = self.sampler.initialize()
+        elif not self.rho == int(1):
+            self.x = self.sampler.update(self.rho)
 
-        return tuple(x), None
+        return tuple(self.x), None
 
     def updateVector(self, vector, info, rho):
         self.rho = rho
