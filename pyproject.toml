@@ -43,6 +43,7 @@ scenic = "^2.1.0b4"
 progressbar2 = "^3.53.1"
 networkx = "^2.6.3"
 statsmodels = "^0.13.2"
+glis = ">=2"
 
 GPy = {version = "^1.9.9", optional = true}
 GPyOpt = {version = "^1.2.6", optional = true}
