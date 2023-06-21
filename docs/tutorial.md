@@ -4,7 +4,7 @@ This page describes how to run many of the examples included in the VerifAI repo
 After cloning the repository, you can install the extra dependencies needed for the examples by running:
 
 ```
-poetry install -E examples
+python -m pip install -e ".[examples]"
 ```
 
 ## Emergency Braking with a simple Newtonian simulator
@@ -177,7 +177,7 @@ We would welcome a pull request updating them to use an RL library which is acti
 
 These examples require at least version 0.1.6 of the `baselines` package.
 As of May 2020, the version on PyPI is too old and will not work, so you need to install `baselines` from its [repository](https://github.com/openai/baselines").
-Follow the installation instructions given there, remembering to first activate your virtual environment if necessary (if you used poetry to install VerifAI, you can run ``poetry shell`` to get a terminal inside the corresponding environment).
+Follow the installation instructions given there, remembering to first activate your virtual environment if necessary.
 
 ### Cartpole
 In this example we want to test the robustness of a controllers to changes in model parameters and initial states of the cartpole from <a href="https://gym.openai.com">openAI gym</a>.

@@ -71,6 +71,7 @@ dev = [
 	"tox ~= 3.14",
 	"sphinx >= 4.1.0, <6",
 	"sphinx-rtd-theme >= 0.5.2",
+	"sphinx-tabs ~= 3.4.1",
 	"recommonmark >= 0.6.0",
 ]
 

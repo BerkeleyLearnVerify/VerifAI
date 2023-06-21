@@ -4,7 +4,7 @@ Running Falsification in Parallel
 
 VerifAI now supports running falsification in parallel, with worker processes simultaneously running dynamic simulations of samples. This API uses the package `RAY <https://ray.io/>`_ from UC Berkeley's RiSE lab, which provides encapsulation for process-level parallelism in Python.
 
-To enable parallel falsification, use the option ``-E parallel`` when running ``poetry install``; if you installed VerifAI using ``pip``, then just run ``pip install ray``.
+To enable parallel falsification, run ``pip install ray`` or use the ``parallel`` extra when installing VerifAI (i.e. ``pip install ".[parallel]"`` from the repository, or ``pip install "verifai[parallel]"`` from PyPI).
 
 Setting up the Falsifier
 ========================
