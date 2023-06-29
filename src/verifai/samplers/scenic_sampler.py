@@ -178,6 +178,11 @@ def pointForObject(dom, obj):
     for prop, subdom in dom.domainNamed.items():
         if prop == 'type':      # special case for 'type' pseudo-property
             scenicValue = type(obj).__name__
+        elif (prop == 'speed'
+              and isinstance(subdom, Constant)
+              and scenicMajorVersion < 3):
+            # work around bug in Scenic 2.1
+            scenicValue = subdom.value
         else:
             scenicValue = getattr(obj, prop)
         values.append(pointForValue(subdom, scenicValue))
