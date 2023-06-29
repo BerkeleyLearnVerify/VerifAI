@@ -24,7 +24,7 @@ behavior EgoBehavior(speed=10):
 
 
 #PLACEMENT
-obstacle = Car at 171.87 @ 2.04
+obstacle = new Car at 171.87 @ 2.04
 
-ego = Car following roadDirection from obstacle.position for EGO_TO_OBSTACLE,
+ego = new Car following roadDirection from obstacle.position for EGO_TO_OBSTACLE,
     with behavior EgoBehavior(EGO_SPEED)

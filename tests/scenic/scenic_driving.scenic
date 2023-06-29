@@ -3,4 +3,4 @@ param carla_map = 'Town01'
 
 model scenic.domains.driving.model
 
-ego = Car at Range(-5, 5) @ 2, with behavior FollowLaneBehavior
+ego = new Car at Range(-5, 5) @ 2, with behavior FollowLaneBehavior

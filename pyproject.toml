@@ -39,9 +39,9 @@ dependencies = [
 	"scikit-learn ~= 1.0",
 	"pygame ~= 2.1",
 	"kmodes <= 0.10.2",
-	"scenic ~= 2.1",
+	"scenic >= 2.1.0b1, <4",
 	"progressbar2 ~= 3.53",
-	"networkx ~= 2.6",
+	"networkx >= 2.6",
 	"statsmodels >= 0.13.2",
 ]
 

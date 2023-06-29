@@ -42,8 +42,8 @@ crossing_car_trajectory = [left_maneuver.startLane, left_maneuver.connectingLane
 uberSpawnPoint = startLane.centerline[-1]
 crossingSpawnPoint = otherLane.centerline[-1]
 
-ego = Car following roadDirection from uberSpawnPoint for globalParameters.DISTANCE_TO_INTERSECTION,
+ego = new Car following roadDirection from uberSpawnPoint for globalParameters.DISTANCE_TO_INTERSECTION,
         with behavior EgoBehavior(trajectory = ego_trajectory)
 
-crossing_car = Car at crossingSpawnPoint,
+crossing_car = new Car at crossingSpawnPoint,
                 with behavior CrossingCarBehavior(crossing_car_trajectory)

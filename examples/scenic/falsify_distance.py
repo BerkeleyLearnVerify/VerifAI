@@ -15,7 +15,7 @@ if len(sys.argv) > 1:
     path = sys.argv[1]
 else:
     path = os.path.join(os.path.dirname(__file__), 'newtonian/carlaChallenge2.scenic')
-sampler = ScenicSampler.fromScenario(path)
+sampler = ScenicSampler.fromScenario(path, mode2D=True)
 
 # Define the specification (i.e. evaluation metric) as an MTL formula.
 # Our example spec will say that the ego object stays at least 5 meters away

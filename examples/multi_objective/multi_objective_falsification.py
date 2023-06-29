@@ -127,7 +127,7 @@ def run_experiment(path, parallel=False, model=None,
     announce(f'RUNNING SCENIC SCRIPT {path}')
     params = {'verifaiSamplerType': sampler_type} if sampler_type else {}
     params['render'] = not headless
-    sampler = ScenicSampler.fromScenario(path, params=params, model=model)
+    sampler = ScenicSampler.fromScenario(path, params=params, model=model, mode2D=True)
     num_objectives = sampler.scenario.params.get('N', 1)
     multi = num_objectives > 1
     falsifier_params = DotMap(
