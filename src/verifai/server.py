@@ -14,7 +14,7 @@ def choose_sampler(sample_space, sampler_type,
         return 'random', FeatureSampler.randomSamplerFor(sample_space)
 
     if sampler_type == 'grid':
-        return 'grid', FeatureSampler.gridSamplerFor(sample_space)
+        return 'grid', FeatureSampler.gridSamplerFor(sample_space, sampler_params)
 
     if sampler_type == 'halton':
         if sampler_params is None:
