@@ -26,7 +26,7 @@ classifiers = [
 ]
 
 dependencies = [
-	"numpy ~= 1.21",
+	"numpy >= 1.21",
 	"scipy ~= 1.7",
 	"dotmap ~= 1.3",
 	"metric-temporal-logic >= 0.1.5",
