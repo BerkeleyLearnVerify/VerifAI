@@ -5,7 +5,7 @@ The ego-vehicle loses control due to bad conditions on the road and it must reco
 """
 
 ## SET MAP AND MODEL (i.e. definitions of all referenceable vehicle types, road library, etc)
-param map = localPath('../../../tests/Town01.xodr')
+param map = localPath('../../../tests/scenic/Town01.xodr')
 param carla_map = 'Town01'
 model scenic.simulators.carla.model
 
