@@ -3,8 +3,29 @@ import itertools
 import os.path
 
 from verifai.features import (Struct, Array, Box, DiscreteBox,
-                              Feature, FeatureSpace)
+                              Feature, TimeSeriesFeature, FeatureSpace)
 from verifai.samplers import RandomSampler, FeatureSampler
+
+def test_feature_sampling():
+    space = FeatureSpace({
+        'a': Feature(DiscreteBox([0, 12])),
+        'b': Feature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2))),
+        'c': TimeSeriesFeature(Box((2,5)), lengthDomain=DiscreteBox((0,4)))
+    },
+    timeBound=10)
+    sampler = FeatureSampler.randomSamplerFor(space)
+
+    static_sample = sampler.getSample()
+
+    static_dict = static_sample[0]._asdict()
+    assert "a" in static_dict
+    assert "b" in static_dict
+    assert "c" not in static_dict
+
+    assert len(static_dict["a"]) == 1
+    assert 0 <= static_dict["a"][0] <= 12
+    assert 0 <= len(static_dict["b"]) <= 2
+    assert all(0 <= v <= 1 for v in static_dict["b"])
 
 ## Random sampling
 

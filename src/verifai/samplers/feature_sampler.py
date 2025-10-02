@@ -8,8 +8,10 @@ import random
 import dill
 from dotmap import DotMap
 import numpy as np
+from abc import ABC, abstractmethod
+from contextlib import contextmanager
 
-from verifai.features import FilteredDomain
+from verifai.features import FilteredDomain, TimeSeriesFeature
 from verifai.samplers.domain_sampler import SplitSampler, TerminationException
 from verifai.samplers.rejection import RejectionSampler
 from verifai.samplers.halton import HaltonSampler
@@ -23,7 +25,7 @@ from verifai.samplers.grid_sampler import GridSampler
 
 ### Samplers defined over FeatureSpaces
 
-class FeatureSampler:
+class FeatureSampler(ABC):
     """Abstract class for samplers over FeatureSpaces."""
 
     def __init__(self, space):
@@ -149,6 +151,7 @@ class FeatureSampler:
                 makeRandomSampler)
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
+    @abstractmethod
     def getSample(self):
         """Generate a sample, along with any sampler-specific info.
 
@@ -156,8 +159,8 @@ class FeatureSampler:
         sampler-specific info, which will be passed to the `update`
         method after the sample is evaluated.
         """
-        raise NotImplementedError('tried to use abstract FeatureSampler')
-    
+        pass
+
     def update(self, sample, info, rho):
         """Update the state of the sampler after evaluating a sample."""
         pass
@@ -211,10 +214,14 @@ class LateFeatureSampler(FeatureSampler):
 
     def __init__(self, space, makeLengthSampler, makeDomainSampler):
         super().__init__(space)
+
+        if any(isinstance(f, TimeSeriesFeature) for f in self.space.features) and self.space.timeBound is None:
+            raise RuntimeError("Used LateFeatureSampler on FeatureSpace with includes TimeSeriesFeature but has no timeBound.")
+
         lengthDomain, fixedDomains = space.domains
         if lengthDomain is None:    # space has no feature lists
             self.lengthSampler = None
-            self.domainSampler = makeDomainSampler(fixedDomains)
+            self.domainSamplers = {None: makeDomainSampler(fixedDomains)}
         else:
             self.lengthDomain = lengthDomain
             self.lengthSampler = makeLengthSampler(lengthDomain)
@@ -224,16 +231,32 @@ class LateFeatureSampler(FeatureSampler):
             }
             self.lastLength = None
 
-    def getSample(self):
+    def _sampleInternal(self):
         if self.lengthSampler is None:
-            domainPoint, info = self.domainSampler.getSample()
+            length, info1 = None, None
         else:
             length, info1 = self.lengthSampler.getSample()
-            self.lastLength = length
-            domainPoint, info2 = self.domainSamplers[length].getSample()
-            info = (info1, info2)
-        return self.space.makePoint(*domainPoint), info
-    
+
+        self.lastLength = length
+        domainPoint, info2 = self.domainSamplers[length].getSample()
+        info = (info1, info2)
+
+        # Make static points and iterable over dynamic points
+        static_features = [v for v in domainPoint._asdict().items()
+                            if v[0] in self.space.staticFeatureNames]
+        dynamic_features = [v for v in domainPoint._asdict().items()
+                            if v[0] not in self.space.staticFeatureNames]
+        static_point = self.space.makeStaticPoint(*static_features.values())
+
+        dyna
+
+        return (static_point, info)
+
+    @contextmanager
+    def getSample(self):
+        return self._sampleInternal()
+        
+
     def update(self, sample, info, rho):
         if self.lengthSampler is None:
             self.domainSampler.update(sample, info, rho)

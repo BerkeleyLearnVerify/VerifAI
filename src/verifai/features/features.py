@@ -964,19 +964,26 @@ class Feature:
         else:
             return self.distanceMetric(valueA, valueB)
 
-    @cached_property
-    def fixedDomains(self):
+    @staticmethod
+    def _timeExpandDomain(domain, timeBound):
+        return domain
+
+    def fixedDomains(self, timeBound):
         """Return the fixed-length Domains associated with this feature."""
+        timeExpandedDomain = self._timeExpandDomain(self.domain, timeBound)
+
         if not self.lengthDomain:
-            return self.domain
-        domains = {}
-        for length in self.lengthDomain:
-            length = length[0]
-            domains[length] = Array(self.domain, (length,))
+            domains = timeExpandedDomain
+        else:
+            domains = {}
+            for length in self.lengthDomain:
+                length = length[0]
+                domains[length] = Array(timeExpandedDomain, (length,))
+        
         return domains
 
     def __repr__(self):
-        rep = f'Feature({self.domain}'
+        rep = f'{self.__class__.__name__}({self.domain}'
         if self.distribution is not None:
             rep += f', distribution={self.distribution}'
         if self.lengthDomain is not None:
@@ -986,6 +993,11 @@ class Feature:
         if self.distanceMetric is not None:
             rep += f', distanceMetric={self.distanceMetric}'
         return rep + ')'
+
+class TimeSeriesFeature(Feature):
+    @staticmethod
+    def _timeExpandDomain(domain, timeBound):
+        return Array(domain, (timeBound,))
 
 ### Feature spaces
 
@@ -1001,30 +1013,43 @@ class FeatureSpace:
         })
     """
 
-    def __init__(self, features, distanceMetric=None):
+    def __init__(self, features, distanceMetric=None, timeBound=None):
         self.namedFeatures = tuple(sorted(features.items(), key=lambda i: i[0]))
         self.featureNamed = OrderedDict(self.namedFeatures)
         self.features = tuple(self.featureNamed.values())
-        self.makePoint = namedtuple('SpacePoint', self.featureNamed.keys())
+
+        self.staticFeatureNames = OrderedDict({name: feat for name, feat in self.featureNamed.items()
+                                               if not isinstance(feat, TimeSeriesFeature)})
+        self.dynamicFeatureNames = OrderedDict({name: feat for name, feat in self.featureNamed.items()
+                                               if isinstance(feat, TimeSeriesFeature)})
+
+        self.makePoint = namedtuple('SpacePoint', self.featureNamed)
+        self.makeStaticPoint = namedtuple('SpacePoint', self.staticFeatureNames)
+        self.makeDynamicPoint = namedtuple('SpacePoint', self.dynamicFeatureNames)
+
         self.distanceMetric = distanceMetric
+        self.timeBound = timeBound
 
     @cached_property
     def domains(self):
-        """Return the domain or domains associated with this space.
+        """Return the expanded domain or domains associated with this space.
 
         Returns a pair consisting of the Domain of all lengths of feature
         lists, plus a dict mapping each (flattened) point in that Domain to the
         corresponding Domain of other features. If the FeatureSpace has no
         feature lists, then returns (None, dom) where dom is the fixed Domain
-        of all features.
+        of all features. If any Features are TimeSeriesFeatures then they are
+        expanded to the a max of timeBound.
         """
+        assert self.timeBound is not None
+
         fixedDomains = {}
         lengthDomains = {}
         variableDomains = {}
         for name, feature in self.namedFeatures:
             if feature.lengthDomain:
                 lengthDomains[name] = feature.lengthDomain
-                variableDomains[name] = feature.fixedDomains
+                variableDomains[name] = feature.fixedDomains(self.timeBound)
             else:
                 fixedDomains[name] = feature.domain
         if len(lengthDomains) == 0:
@@ -1065,7 +1090,7 @@ class FeatureSpace:
             if feature.lengthDomain:
                 length = len(value)
                 flattened.append(length)
-                fixedDomain = feature.fixedDomains[length]
+                fixedDomain = feature.fixedDomains(self.timeBound)[length]
                 fixedDomain.flattenOnto(value, flattened)
                 if fixedDimension:      # add padding to maximum length
                     sizePerElt = domain.flattenedDimension
@@ -1180,7 +1205,7 @@ class FeatureSpace:
             domain = feature.domain
             if feature.lengthDomain:
                 length = next(iterator)
-                fixedDomain = feature.fixedDomains[length]
+                fixedDomain = feature.fixedDomains(self.timeBound)[length]
                 values.append(fixedDomain.unflattenIterator(iterator))
                 if fixedDimension:      # consume padding
                     sizePerElt = domain.flattenedDimension
