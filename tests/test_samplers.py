@@ -10,22 +10,39 @@ def test_feature_sampling():
     space = FeatureSpace({
         'a': Feature(DiscreteBox([0, 12])),
         'b': Feature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2))),
-        'c': TimeSeriesFeature(Box((2,5)), lengthDomain=DiscreteBox((0,4)))
+        'c': TimeSeriesFeature(Box((2,5))),
+        'd': TimeSeriesFeature(Box((5,6)), lengthDomain=DiscreteBox((0,2)))
     },
     timeBound=10)
     sampler = FeatureSampler.randomSamplerFor(space)
 
-    static_sample = sampler.getSample()
+    static_sample, dynamic_points_gen = sampler.getSample()
+    static_point = static_sample[0]
 
-    static_dict = static_sample[0]._asdict()
+    static_dict = static_point._asdict()
     assert "a" in static_dict
     assert "b" in static_dict
     assert "c" not in static_dict
+    assert "d" not in static_dict
 
     assert len(static_dict["a"]) == 1
     assert 0 <= static_dict["a"][0] <= 12
     assert 0 <= len(static_dict["b"]) <= 2
-    assert all(0 <= v <= 1 for v in static_dict["b"])
+    assert all(0 <= v[0] <= 1 for v in static_dict["b"])
+
+    for _ in range(space.timeBound):
+        dynamic_point = next(dynamic_points_gen)
+        print(dynamic_point)
+        dynamic_dict = dynamic_point._asdict()
+        assert "a" not in dynamic_dict
+        assert "b" not in dynamic_dict
+        assert "c" in dynamic_dict
+        assert "d" in dynamic_dict
+
+        assert len(dynamic_dict["c"]) == 1
+        assert 2 <= dynamic_dict["c"][0] <= 5
+        assert 0 <= len(dynamic_dict["d"]) <= 2
+        assert all(5 <= v[0] <= 6 for v in dynamic_dict["d"])
 
 ## Random sampling
 

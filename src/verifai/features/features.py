@@ -1018,14 +1018,14 @@ class FeatureSpace:
         self.featureNamed = OrderedDict(self.namedFeatures)
         self.features = tuple(self.featureNamed.values())
 
-        self.staticFeatureNames = OrderedDict({name: feat for name, feat in self.featureNamed.items()
+        self.staticFeatureNamed = OrderedDict({name: feat for name, feat in self.featureNamed.items()
                                                if not isinstance(feat, TimeSeriesFeature)})
-        self.dynamicFeatureNames = OrderedDict({name: feat for name, feat in self.featureNamed.items()
+        self.dynamicFeatureNamed = OrderedDict({name: feat for name, feat in self.featureNamed.items()
                                                if isinstance(feat, TimeSeriesFeature)})
 
         self.makePoint = namedtuple('SpacePoint', self.featureNamed)
-        self.makeStaticPoint = namedtuple('SpacePoint', self.staticFeatureNames)
-        self.makeDynamicPoint = namedtuple('SpacePoint', self.dynamicFeatureNames)
+        self.makeStaticPoint = namedtuple('SpacePoint', self.staticFeatureNamed)
+        self.makeDynamicPoint = namedtuple('SpacePoint', self.dynamicFeatureNamed)
 
         self.distanceMetric = distanceMetric
         self.timeBound = timeBound
@@ -1041,7 +1041,7 @@ class FeatureSpace:
         of all features. If any Features are TimeSeriesFeatures then they are
         expanded to the a max of timeBound.
         """
-        assert self.timeBound is not None
+        assert len(self.dynamicFeatureNamed) == 0 or self.timeBound is not None
 
         fixedDomains = {}
         lengthDomains = {}
@@ -1051,7 +1051,7 @@ class FeatureSpace:
                 lengthDomains[name] = feature.lengthDomain
                 variableDomains[name] = feature.fixedDomains(self.timeBound)
             else:
-                fixedDomains[name] = feature.domain
+                fixedDomains[name] = feature._timeExpandDomain(feature.domain, self.timeBound)
         if len(lengthDomains) == 0:
             return (None, Struct(fixedDomains))
         lengthDomain = Struct(lengthDomains)

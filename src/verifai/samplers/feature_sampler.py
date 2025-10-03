@@ -243,16 +243,36 @@ class LateFeatureSampler(FeatureSampler):
 
         # Make static points and iterable over dynamic points
         static_features = [v for v in domainPoint._asdict().items()
-                            if v[0] in self.space.staticFeatureNames]
+                            if v[0] in self.space.staticFeatureNamed]
         dynamic_features = [v for v in domainPoint._asdict().items()
-                            if v[0] not in self.space.staticFeatureNames]
-        static_point = self.space.makeStaticPoint(*static_features.values())
+                            if v[0] not in self.space.staticFeatureNamed]
+        static_point = self.space.makeStaticPoint(*[v[1] for v in static_features])
 
-        dyna
+        dynamic_points = []
+        for t in range(self.space.timeBound):
+            point_dict = {}
 
-        return (static_point, info)
+            for f, val in dynamic_features:
+                if not self.space.featureNamed[f].lengthDomain:
+                    point_dict[f] = val[t]
+                else:
+                    feat_list = []
+                    for l in range(len(val)):
+                        feat_list.append(val[l][t])
+                    point_dict[f] = tuple(feat_list)
+            
+            dynamic_points.append(self.space.makeDynamicPoint(*point_dict.values()))
 
-    @contextmanager
+        def gen_dynamic_points():
+            try:
+                for p in dynamic_points:
+                    yield p
+                raise RuntimeError("Exceeded provided timeBound")
+            finally:
+                pass
+
+        return (static_point, info), gen_dynamic_points()
+
     def getSample(self):
         return self._sampleInternal()
         
