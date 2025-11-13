@@ -17,8 +17,8 @@ def test_crossEntropy():
     })
 
     def f(sample):
-        print(sample.cars[0].heading[0] - 0.75)
-        return abs(sample.cars[0].heading[0] - 0.75)
+        print(sample.staticSample.cars[0].heading[0] - 0.75)
+        return abs(sample.staticSample.cars[0].heading[0] - 0.75)
 
     ce_params = DotMap()
     ce_params.alpha =0.9
@@ -37,8 +37,8 @@ def test_feedback_multiple_lengths():
     })
 
     def f(sample):
-        assert 1 <= len(sample.a) <= 2
-        return -1 if len(sample.a) == 1 and sample.a[0][0] < 0.5 else 1
+        assert 1 <= len(sample.staticSample.a) <= 2
+        return -1 if len(sample.staticSample.a) == 1 and sample.staticSample.a[0][0] < 0.5 else 1
 
     ce_params = DotMap(alpha=0.5, thres=0)
     ce_params.cont.buckets = 2

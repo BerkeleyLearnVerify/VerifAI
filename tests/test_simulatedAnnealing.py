@@ -45,7 +45,7 @@ def test_simulatedAnnealing():
     })
 
     def f(sample):
-        return sample.cars[0].heading[0] - 0.75
+        return sample.staticSample.cars[0].heading[0] - 0.75
 
     sampler = FeatureSampler.simulatedAnnealingSamplerFor(space, sa_params)
 
