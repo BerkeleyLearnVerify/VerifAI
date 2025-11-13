@@ -176,8 +176,8 @@ class Server:
     def close_connection(self):
         self.client_socket.close()
 
-    def get_sample(self, feedback):
-        return self.sampler.nextSample(feedback)
+    def get_sample(self):
+        return self.sampler.getSample()
 
     def flatten_sample(self, sample):
         return self.sampler.space.flatten(sample)
@@ -193,9 +193,10 @@ class Server:
 
     def run_server(self):
         start = time.time()
-        sample = self.get_sample(self.lastValue)
+        sample = self.get_sample()
         after_sampling = time.time()
         self.lastValue = self.evaluate_sample(sample)
+        sample.update(self.lastValue)
         after_simulation = time.time()
         timings = ServerTimings(sample_time=(after_sampling - start),
                                 simulate_time=(after_simulation - after_sampling))

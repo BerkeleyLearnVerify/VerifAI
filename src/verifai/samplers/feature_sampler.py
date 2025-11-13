@@ -8,8 +8,10 @@ import random
 import dill
 from dotmap import DotMap
 import numpy as np
+from abc import ABC, abstractmethod
+from contextlib import contextmanager
 
-from verifai.features import FilteredDomain
+from verifai.features import FilteredDomain, TimeSeriesFeature
 from verifai.samplers.domain_sampler import SplitSampler, TerminationException
 from verifai.samplers.rejection import RejectionSampler
 from verifai.samplers.halton import HaltonSampler
@@ -21,9 +23,32 @@ from verifai.samplers.bayesian_optimization import BayesOptSampler
 from verifai.samplers.simulated_annealing import SimulatedAnnealingSampler
 from verifai.samplers.grid_sampler import GridSampler
 
+class Sample(ABC):
+    def __init__(self, space):
+        self.space = space
+        self.dynamicSampleHistory = []
+
+    @property
+    @abstractmethod
+    def staticSample(self):
+        pass
+
+    @abstractmethod
+    def _getDynamicSample(self, info):
+        pass
+
+    def getDynamicSample(self, info=None):
+        sample = self._getDynamicSample(info)
+        self.dynamicSampleHistory.append(sample)
+        return sample
+
+    @abstractmethod
+    def update(self, rho):
+        pass
+
 ### Samplers defined over FeatureSpaces
 
-class FeatureSampler:
+class FeatureSampler(ABC):
     """Abstract class for samplers over FeatureSpaces."""
 
     def __init__(self, space):
@@ -149,29 +174,14 @@ class FeatureSampler:
                 makeRandomSampler)
         return LateFeatureSampler(space, RandomSampler, makeDomainSampler)
 
-    def getSample(self):
-        """Generate a sample, along with any sampler-specific info.
-
-        Must return a pair consisting of the sample and arbitrary
-        sampler-specific info, which will be passed to the `update`
-        method after the sample is evaluated.
-        """
-        raise NotImplementedError('tried to use abstract FeatureSampler')
-    
-    def update(self, sample, info, rho):
+    def update(self, sample_id, rho):
         """Update the state of the sampler after evaluating a sample."""
         pass
 
-    def nextSample(self, feedback=None):
-        """Generate the next sample, given feedback from the last sample.
-
-        This function exists only for backwards compatibility. It has been
-        superceded by the `getSample` and `update` APIs.
-        """
-        if self.last_sample is not None:
-            self.update(self.last_sample, self.last_info, feedback)
-        self.last_sample, self.last_info = self.getSample()
-        return self.last_sample
+    @abstractmethod
+    def getSample(self):
+        """Returns a `Sample` object"""
+        pass
 
     def set_graph(self, graph):
         self.scenario.set_graph(graph)
@@ -194,11 +204,41 @@ class FeatureSampler:
 
     def __iter__(self):
         try:
-            feedback = None
             while True:
-                feedback = yield self.nextSample(feedback)
+                sample = self.getSample()
+                rho = yield sample
+                sample.update(rho)
         except TerminationException:
             return
+
+class LateFeatureSample(Sample):
+    def __init__(self, space, staticSample, dynamicSampleList, updateCallback):
+        super().__init__(space)
+        self._staticSample = staticSample
+        self._dynamicSampleList = dynamicSampleList
+        self._updateCallback = updateCallback
+        self._i = 0
+
+    @property
+    def staticSample(self):
+        return self._staticSample
+
+    def _getDynamicSample(self, info):
+        if self.space.timeBound == 0:
+            raise RuntimeError("Called `getDynamicSample` with `timeBound` of `FeatureSpace` set to 0")
+
+        if self._i >= self.space.timeBound:
+            raise RuntimeError("Exceeded `timeBound` of `FeatureSpace`")
+        
+        assert self._i < len(self._dynamicSampleList)
+
+        dynamic_sample = self._dynamicSampleList[self._i]
+        self._i += 1
+
+        return dynamic_sample
+
+    def update(self, rho):
+        return self._updateCallback(rho)
 
 class LateFeatureSampler(FeatureSampler):
     """FeatureSampler that works by first sampling only lengths of feature
@@ -211,10 +251,11 @@ class LateFeatureSampler(FeatureSampler):
 
     def __init__(self, space, makeLengthSampler, makeDomainSampler):
         super().__init__(space)
+
         lengthDomain, fixedDomains = space.domains
         if lengthDomain is None:    # space has no feature lists
             self.lengthSampler = None
-            self.domainSampler = makeDomainSampler(fixedDomains)
+            self.domainSamplers = {None: makeDomainSampler(fixedDomains)}
         else:
             self.lengthDomain = lengthDomain
             self.lengthSampler = makeLengthSampler(lengthDomain)
@@ -222,30 +263,61 @@ class LateFeatureSampler(FeatureSampler):
                 point: makeDomainSampler(domain)
                 for point, domain in fixedDomains.items()
             }
-            self.lastLength = None
+
+        self.id_metadata_dict = {}
+        self._last_id = 0
+
+    def get_info_id(self, info, length, sample):
+        self._last_id += 1
+        self.id_metadata_dict[self._last_id] = (info, length, sample)
+        return self._last_id
 
     def getSample(self):
         if self.lengthSampler is None:
-            domainPoint, info = self.domainSampler.getSample()
+            length, info1 = None, None
         else:
             length, info1 = self.lengthSampler.getSample()
-            self.lastLength = length
-            domainPoint, info2 = self.domainSamplers[length].getSample()
-            info = (info1, info2)
-        return self.space.makePoint(*domainPoint), info
-    
-    def update(self, sample, info, rho):
-        if self.lengthSampler is None:
-            self.domainSampler.update(sample, info, rho)
-        else:
-            self.lengthSampler.update(sample, info[0], rho)
-            lengths = []
-            for name, feature in self.space.namedFeatures:
-                if feature.lengthDomain:
-                    lengths.append((len(getattr(sample, name)),))
-            lengthPoint = self.lengthDomain.makePoint(*lengths)
-            self.domainSamplers[lengthPoint].update(sample, info[1], rho)
 
+        domainPoint, info2 = self.domainSamplers[length].getSample()
+        info = (info1, info2)
+        
+        sample_id = self.get_info_id(info, length, domainPoint)
+        update_callback = lambda rho: self.update(sample_id, rho)
+
+        # Make static points and iterable over dynamic points
+        static_features = [v for v in domainPoint._asdict().items()
+                            if v[0] in self.space.staticFeatureNamed]
+        dynamic_features = [v for v in domainPoint._asdict().items()
+                            if v[0] not in self.space.staticFeatureNamed]
+        static_point = self.space.makeStaticPoint(*[v[1] for v in static_features])
+
+        dynamic_points = []
+        if any(isinstance(f, TimeSeriesFeature) for f in self.space.features):
+            for t in range(self.space.timeBound):
+                point_dict = {}
+
+                for f, val in dynamic_features:
+                    if not self.space.featureNamed[f].lengthDomain:
+                        point_dict[f] = val[t]
+                    else:
+                        feat_list = []
+                        for l in range(len(val)):
+                            feat_list.append(val[l][t])
+                        point_dict[f] = tuple(feat_list)
+
+                dynamic_points.append(self.space.makeDynamicPoint(*point_dict.values()))
+
+        return LateFeatureSample(self.space, static_point, dynamic_points, update_callback)
+
+    def update(self, sample_id, rho):
+        info, lengthPoint, domainPoint = self.id_metadata_dict[sample_id]
+
+        if self.lengthSampler is None:
+            self.domainSamplers[None].update(domainPoint, info[1], rho)
+        else:
+            self.lengthSampler.update(domainPoint, info[0], rho)
+
+            self.domainSamplers[lengthPoint].update(domainPoint, info[1], rho)
 ### Utilities
 
 def makeRandomSampler(domain):

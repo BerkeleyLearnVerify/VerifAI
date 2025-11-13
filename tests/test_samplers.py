@@ -3,8 +3,45 @@ import itertools
 import os.path
 
 from verifai.features import (Struct, Array, Box, DiscreteBox,
-                              Feature, FeatureSpace)
+                              Feature, TimeSeriesFeature, FeatureSpace)
 from verifai.samplers import RandomSampler, FeatureSampler
+
+def test_feature_sampling():
+    space = FeatureSpace({
+        'a': Feature(DiscreteBox([0, 12])),
+        'b': Feature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2))),
+        'c': TimeSeriesFeature(Box((2,5))),
+        'd': TimeSeriesFeature(Box((5,6)), lengthDomain=DiscreteBox((0,2)))
+    },
+    timeBound=10)
+    sampler = FeatureSampler.randomSamplerFor(space)
+
+    sample = sampler.getSample()
+    static_point = sample.staticSample
+
+    static_dict = static_point._asdict()
+    assert "a" in static_dict
+    assert "b" in static_dict
+    assert "c" not in static_dict
+    assert "d" not in static_dict
+
+    assert len(static_dict["a"]) == 1
+    assert 0 <= static_dict["a"][0] <= 12
+    assert 0 <= len(static_dict["b"]) <= 2
+    assert all(0 <= v[0] <= 1 for v in static_dict["b"])
+
+    for _ in range(space.timeBound):
+        dynamic_point = sample.getDynamicSample()
+        dynamic_dict = dynamic_point._asdict()
+        assert "a" not in dynamic_dict
+        assert "b" not in dynamic_dict
+        assert "c" in dynamic_dict
+        assert "d" in dynamic_dict
+
+        assert len(dynamic_dict["c"]) == 1
+        assert 2 <= dynamic_dict["c"][0] <= 5
+        assert 0 <= len(dynamic_dict["d"]) <= 2
+        assert all(5 <= v[0] <= 6 for v in dynamic_dict["d"])
 
 ## Random sampling
 
@@ -36,7 +73,7 @@ def test_domain_random():
         assert any(sample[0][0].position[0] < sample[1][1].position[0]
                    for sample in samples)
 
-    check([sampler.nextSample() for i in range(100)])
+    check([sampler.getSample()[0] for _ in range(100)])
     check(list(itertools.islice(sampler, 100)))
 
 def test_space_random():
@@ -48,7 +85,6 @@ def test_space_random():
 
     def check(samples):
         for sample in samples:
-            assert type(sample) is space.makePoint
             a = sample.a
             assert type(a) is tuple
             assert len(a) == 1
@@ -72,8 +108,8 @@ def test_space_random():
         assert any(len(sample.b) == 1 for sample in samples)
         assert any(len(sample.b) == 2 for sample in samples)
 
-    check([sampler.nextSample() for i in range(100)])
-    check(list(itertools.islice(sampler, 100)))
+    check([sampler.getSample().staticSample for i in range(100)])
+    check(list(s.staticSample for s in itertools.islice(sampler, 100)))
 
 def test_random_restore(tmpdir):
     space = FeatureSpace({
@@ -84,7 +120,7 @@ def test_random_restore(tmpdir):
 
     path = os.path.join(tmpdir, 'blah.dat')
     sampler.saveToFile(path)
-    sample1 = sampler.nextSample()
+    sample1 = sampler.getSample()
     sampler = FeatureSampler.restoreFromFile(path)
-    sample2 = sampler.nextSample()
-    assert sample1 == sample2
+    sample2 = sampler.getSample()
+    assert sample1.staticSample == sample2.staticSample

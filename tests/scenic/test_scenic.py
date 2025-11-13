@@ -15,8 +15,8 @@ def test_objects(new_Object):
         f'ego = {new_Object} at 4 @ 9',
         maxIterations=1
     )
-    sample = sampler.nextSample()
-    objects = sample.objects
+    sample = sampler.getSample()
+    objects = sample.staticSample.objects
     assert len(objects) == 1
     pos = objects.object0.position
     assert type(pos) is tuple
@@ -28,7 +28,7 @@ def test_params(new_Object):
         f'ego = {new_Object}',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample().staticSample
     x = sample.params.x
     assert type(x) is float
     assert 3 <= x <= 5
@@ -39,7 +39,7 @@ def test_quoted_param(new_Object):
         f'ego = {new_Object}',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample().staticSample
     v = sampler.paramDictForSample(sample)['x/y']
     assert type(v) is float
     assert 3 <= v <= 5
@@ -49,7 +49,7 @@ def test_lists(new_Object):
         f'ego = {new_Object} with foo [1, -1, 3.3]',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample().staticSample
     foo = sample.objects.object0.foo
     assert type(foo) is tuple
     assert foo == pytest.approx((1, -1, 3.3))
@@ -68,8 +68,8 @@ def test_object_order(new_Object):
         f'    {new_Object} at 2*i @ 0',
         maxIterations=1
     )
-    sample = sampler.nextSample()
-    objects = sample.objects
+    sample = sampler.getSample()
+    objects = sample.staticSample.objects
     assert len(objects) == 11
     for i in range(len(objects)):
         name = ScenicSampler.nameForObject(i)
@@ -78,7 +78,7 @@ def test_object_order(new_Object):
 
     flat = sampler.space.flatten(sample)
     unflat = sampler.space.unflatten(flat)
-    assert unflat == sample
+    assert unflat.staticSample == sample.staticSample
 
 ## Active sampling
 
@@ -93,9 +93,9 @@ def test_active_sampling(new_Object):
         maxIterations=1
     )
     def f(sample):
-        return -1 if sample.objects.object0.position[0] < 0 else 1
+        return -1 if sample.staticSample.objects.object0.position[0] < 0 else 1
     samples = sampleWithFeedback(sampler, 120, f)
-    xs = [sample.objects.object0.position[0] for sample in samples]
+    xs = [sample.staticSample.objects.object0.position[0] for sample in samples]
     assert all(-1 <= x <= 1 for x in xs)
     assert any(x > 0 for x in xs)
     assert 66 <= sum(x < 0 for x in xs[50:])
@@ -112,7 +112,7 @@ def test_active_save_restore(new_Object, tmpdir):
 
 def runSampler(sampler):
     for i in range(3):
-        sample = sampler.nextSample()
+        sample = sampler.getSample().staticSample
         print(f'Sample #{i}:')
         print(sample)
 
@@ -162,6 +162,26 @@ def test_dynamic(new_Object):
 
 def test_driving_dynamic(pathToLocalFile):
     path = pathToLocalFile('scenic_driving.scenic')
+    sampler = ScenicSampler.fromScenario(
+        path,
+        model='scenic.simulators.newtonian.driving_model',
+        params=dict(render=False),
+        mode2D=True,
+    )
+    falsifier_params = DotMap(
+        n_iters=3,
+        save_error_table=False,
+        save_safe_table=False,
+    )
+    server_options = DotMap(maxSteps=2, verbosity=3)
+    falsifier = generic_falsifier(sampler=sampler,
+                                  falsifier_params=falsifier_params,
+                                  server_class=ScenicServer,
+                                  server_options=server_options)
+    falsifier.run_falsifier()
+
+def test_driving_dynamic_behavior(pathToLocalFile):
+    path = pathToLocalFile('scenic_driving_behavior.scenic')
     sampler = ScenicSampler.fromScenario(
         path,
         model='scenic.simulators.newtonian.driving_model',
