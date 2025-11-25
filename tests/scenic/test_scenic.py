@@ -199,3 +199,35 @@ def test_driving_dynamic_behavior(pathToLocalFile):
                                   server_class=ScenicServer,
                                   server_options=server_options)
     falsifier.run_falsifier()
+
+double_access_scenario = """
+model scenic.simulators.newtonian.model
+param verifaiTimeBound = 100
+foo = VerifaiRange(0, 0.01, timeSeries=True)
+behavior TestBehavior():
+    while True:
+        foo.getSample()
+        foo.getSample()
+        wait
+ego = new Object with behavior TestBehavior()
+"""
+
+def test_double_time_series_access():
+    with pytest.raises(RuntimeError):
+        sampler = ScenicSampler.fromScenicCode(
+                double_access_scenario,
+                model='scenic.simulators.newtonian.model',
+                maxIterations=1,
+                params=dict(render=False),
+            )
+        falsifier_params = DotMap(
+            n_iters=3,
+            save_error_table=False,
+            save_safe_table=False,
+        )
+        server_options = DotMap(maxSteps=2, verbosity=3)
+        falsifier = generic_falsifier(sampler=sampler,
+                                    falsifier_params=falsifier_params,
+                                    server_class=ScenicServer,
+                                    server_options=server_options)
+        falsifier.run_falsifier()
