@@ -144,6 +144,8 @@ class Server:
                 sampler_params=params
             )
 
+        if (self.sample_space.dynamicFeatureNamed) != 0:
+            raise ValueError("Sample space for `Server` cannot contain `TimeSeriesFeature`")
 
     def listen(self):
         client_socket, addr = self.socket.accept()
@@ -195,7 +197,7 @@ class Server:
         start = time.time()
         sample = self.get_sample()
         after_sampling = time.time()
-        self.lastValue = self.evaluate_sample(sample)
+        self.lastValue = self.evaluate_sample(sample.staticSample)
         sample.update(self.lastValue)
         after_simulation = time.time()
         timings = ServerTimings(sample_time=(after_sampling - start),
