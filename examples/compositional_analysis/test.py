@@ -5,7 +5,7 @@ import os
 import csv
 import argparse
 import numpy as np
-import gymnasium as gym
+from train import make_env
 from functools import partial
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
@@ -13,11 +13,12 @@ from metadrive.envs import MetaDriveEnv
 from IPython.display import Image, clear_output
 from metadrive.utils.doc_utils import generate_gif
 from metadrive.component.map.base_map import BaseMap
+from metadrive.policy.expert_policy import ExpertPolicy
 from stable_baselines3.common.utils import set_random_seed
 from metadrive.component.map.pg_map import MapGenerateMethod
-from stable_baselines3.common.vec_env.subproc_vec_env import SubprocVecEnv
 from metadrive.utils.draw_top_down_map import draw_top_down_map
-from train import make_env
+from stable_baselines3.common.vec_env.subproc_vec_env import SubprocVecEnv
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test policy in MetaDrive")
@@ -34,7 +35,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        required=True,
         help="Saved model zip")
     parser.add_argument(
         "--n",
@@ -74,19 +74,29 @@ if __name__ == "__main__":
     scenario = int(args.scenario) if args.scenario.isdigit() else args.scenario
     env = make_env(scenario=scenario, monitor=False)
 
-    model = PPO.load(args.model)
 
     all_traces = []
     trace_id = 0
 
     if not args.gif:
         csv_path = os.path.join(args.save_dir, "traces.csv")
+        if os.path.exists(csv_path):
+            os.remove(csv_path)
         f = open(csv_path, "w", newline="")
         writer = csv.DictWriter(f, fieldnames=["trace_id", "step", "x", "y", "heading",
                                                "speed", "action", "reward", "label"])
+        writer.writeheader()
+
+    success_count = 0
 
     for ep in range(args.n):
         obs, _ = env.reset()
+
+        if args.model:
+            policy = PPO.load(args.model)
+        else:
+            policy = ExpertPolicy(env.agent)
+        assert policy is not None
 
         initial_speed = np.random.uniform(low=70/3.6, high=80/3.6)
         initial_velocity = env.vehicle.lane.direction * initial_speed
@@ -99,7 +109,10 @@ if __name__ == "__main__":
 
         print(f"\n=== Episode {ep+1}/{args.n} ===")
         while not done and step <= env.config.horizon:
-            action, _states = model.predict(obs, deterministic=True)
+            if isinstance(policy, ExpertPolicy):
+                action = policy.act()
+            else:
+                action, _ = policy.predict(obs, deterministic=True)
             obs, reward, done, truncated, info = env.step(action)
             total_reward += reward
             label = not done or info.get("arrive_dest")
@@ -135,6 +148,9 @@ if __name__ == "__main__":
         print(f"Label: {label}")
         print(f"Episode reward: {total_reward:.2f}")
 
+        if label:
+            success_count += 1
+
         if args.gif:
             gif_path = os.path.join(args.save_dir, f"trace_{trace_id:03d}.gif")
             env.top_down_renderer.generate_gif(gif_path)
@@ -146,4 +162,6 @@ if __name__ == "__main__":
         f.close()
 
     env.close()
+
+    print(f"\n\nEmpirical success probability of generated traces: {success_count/args.n}")
 
