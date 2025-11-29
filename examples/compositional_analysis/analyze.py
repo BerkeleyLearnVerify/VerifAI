@@ -6,14 +6,14 @@ if __name__ == "__main__":
     logs = {
         "S": "storage/traces/S/traces.csv",
         "X": "storage/traces/X/traces.csv",
-        "O": "storage/traces/O/traces.csv",
-        "C": "storage/traces/C/traces.csv",
+        # "O": "storage/traces/O/traces.csv",
+        # "C": "storage/traces/C/traces.csv",
         "SX": "storage/traces/SX/traces.csv",
-        "SO": "storage/traces/SO/traces.csv",
-        "SC": "storage/traces/SC/traces.csv",
+        # "SO": "storage/traces/SO/traces.csv",
+        # "SC": "storage/traces/SC/traces.csv",
         "SXS": "storage/traces/SXS/traces.csv",
-        "SOS": "storage/traces/SOS/traces.csv",
-        "SCS": "storage/traces/SCS/traces.csv",
+        # "SOS": "storage/traces/SOS/traces.csv",
+        # "SCS": "storage/traces/SCS/traces.csv",
     }
     scenario_base = ScenarioBase(logs)
 
@@ -28,16 +28,19 @@ if __name__ == "__main__":
     pd.set_option('display.width', 1000) # Ensure enough width to prevent wrapping
 
     for s in logs:
+        print(f"Scenario: {s}")
+        print(f"Compositional SMC")
         rho, uncertainty = engine.check(
             s,
             features=["x", "y", "heading", "speed"],
             center_feat_idx=[0, 1],
         )
         print(f"Estimated {s}: rho = {rho:.4f} ± {uncertainty:.4f}")
+        print(f"Compositional Falsification")
         cex = engine.falsify(
             s,
             features=["x", "y", "heading", "speed"],
-            norm_feat_idx=[0, 1],
+            center_feat_idx=[0, 1],
             align_feat_idx=[0, 1],
         )
         print(f"Counterexample = {cex}")

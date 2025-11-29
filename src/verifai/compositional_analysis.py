@@ -83,6 +83,7 @@ class CompositionalAnalysisEngine:
         scenario: List[str],
         features: Optional[List[str]] = None,
         center_feat_idx: Optional[List[int]] = None,
+        bw_method: str | int = 10,
     ) -> Tuple[float, float]:
         """
         Computes importance-sampled success probability and propagated uncertainty.
@@ -136,8 +137,8 @@ class CompositionalAnalysisEngine:
 
             s_last_features, t_first_features = s_last_features.T, t_first_features.T
 
-            kde_s_last = gaussian_kde(s_last_features, bw_method=10)
-            kde_t_first = gaussian_kde(t_first_features, bw_method=10)
+            kde_s_last = gaussian_kde(s_last_features, bw_method=bw_method)
+            kde_t_first = gaussian_kde(t_first_features, bw_method=bw_method)
 
             p_vals = kde_s_last(t_first_features)
             q_vals = kde_t_first(t_first_features)
@@ -162,8 +163,9 @@ class CompositionalAnalysisEngine:
         self,
         scenario: Union[str, Sequence[str]],
         features: Optional[List[str]] = None,
-        norm_feat_idx: Optional[List[int]] = None,
+        center_feat_idx: Optional[List[int]] = None,
         align_feat_idx: Optional[List[int]] = None,
+        bw_method: str | int = 10,
     ) -> Tuple[Optional[pd.DataFrame], float]:
         """
         Generates a counterexample trace using the given traces.
@@ -201,16 +203,13 @@ class CompositionalAnalysisEngine:
             t_last_features = t_last[features].to_numpy()
             if t_last_features.shape[0] < 1:
                 return None
-            elif t_last_features.shape[0] == 2:
-                t_trace_id = t_last_features[0]["trace_id"]
+            elif t_last_features.shape[0] <= t_last_features.shape[1]:
+                random_idx = np.random.randint(t_last_features.shape[0])
+                t_trace_id = t_last.iloc[random_idx]["trace_id"]
                 t_trace = t_traces.get_group(t_trace_id)
                 return t_trace
 
-            if norm_feat_idx:
-                for j in norm_feat_idx:
-                    t_last_features[:, j] = self._normalize_features(t_last_features[:, j].reshape(-1, 1)).flatten()
-
-            kde_t_last = gaussian_kde(t_last_features.T)
+            kde_t_last = gaussian_kde(t_last_features.T, bw_method=bw_method)
             t_last_prob = kde_t_last(t_last_features.T)
             t_idx = np.argmax(t_last_prob)
             t_trace_id = t_first.iloc[t_idx]["trace_id"]
@@ -244,33 +243,46 @@ class CompositionalAnalysisEngine:
                     continue
                 if cex is None:
                     t_first_features = t_first[features].to_numpy()
-                    t_last_features = t_last[features].to_numpy()
-                    if t_first_features.shape[0] < 2 or t_last_features.shape[0] < 2:
+                    if t_first_features.shape[0] < 2:
                         continue
-                if norm_feat_idx:
-                    for j in norm_feat_idx:
-                        s_last_features[:, j] = self._normalize_features(s_last_features[:, j].reshape(-1, 1)).flatten()
+                if center_feat_idx:
+                    for j in center_feat_idx:
+                        s_last_features[:, j] = s_last_features[:, j] - np.mean(s_last_features[:, j])
                         if cex is None:
-                            t_first_features[:, j] = self._normalize_features(t_first_features[:, j].reshape(-1, 1)).flatten()
-                            t_last_features[:, j] = self._normalize_features(t_last_features[:, j].reshape(-1, 1)).flatten()
+                            t_first_features[:, j] = t_first_features[:, j] - np.mean(t_first_features[:, j])
             else:
                 raise ValueError("Feature list must be provided for KDE.")
 
             if cex is None:
-                kde_s_last = gaussian_kde(s_last_features.T)
-                kde_t_first = gaussian_kde(t_first_features.T)
+                if t_first_features.shape[0] <= t_first_features.shape[1]:
+                    random_idx = np.random.randint(t_first_features.shape[0])
+                    t_trace_id = t_first.iloc[random_idx]["trace_id"]
+                    t_trace = t_traces.get_group(t_trace_id)
 
-                s_last_prob = kde_t_first(s_last_features.T)
-                t_first_prob = kde_s_last(t_first_features.T)
+                    # compute Euclidean distances
+                    diffs = s_last_features - t_first_features[random_idx].reshape(1, -1)
+                    dists = np.linalg.norm(diffs, axis=1)
 
-                s_idx = np.argmax(s_last_prob)
-                t_idx = np.argmax(t_first_prob)
+                    # choose the s trace with minimum distance
+                    s_idx = int(np.argmin(dists))
+                    s_trace_id = s_last.iloc[s_idx]["trace_id"]
+                    s_trace = s_traces.get_group(s_trace_id)
 
-                s_trace_id = s_last.iloc[s_idx]["trace_id"]
-                t_trace_id = t_first.iloc[t_idx]["trace_id"]
+                else:
+                    kde_s_last = gaussian_kde(s_last_features.T, bw_method=bw_method)
+                    kde_t_first = gaussian_kde(t_first_features.T, bw_method=bw_method)
 
-                s_trace = s_traces.get_group(s_trace_id)
-                t_trace = t_traces.get_group(t_trace_id)
+                    s_last_prob = kde_t_first(s_last_features.T)
+                    t_first_prob = kde_s_last(t_first_features.T)
+
+                    s_idx = np.argmax(s_last_prob)
+                    t_idx = np.argmax(t_first_prob)
+
+                    s_trace_id = s_last.iloc[s_idx]["trace_id"]
+                    t_trace_id = t_first.iloc[t_idx]["trace_id"]
+
+                    s_trace = s_traces.get_group(s_trace_id)
+                    t_trace = t_traces.get_group(t_trace_id)
 
                 if align_feat_idx:
                     for idx in align_feat_idx:
