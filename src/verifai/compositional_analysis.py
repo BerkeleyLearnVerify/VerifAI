@@ -16,7 +16,7 @@ class ScenarioStats:
 class ScenarioBase:
     """
     Handles loading and basic statistics of scenario trace data.
-    Computes per-scenario success rates and Hoeffding uncertainty.
+    Computes empirical success probabilities and uncertainty.
     """
 
     REQUIRED_COLUMNS = {"trace_id", "step", "label"}
@@ -54,17 +54,17 @@ class ScenarioBase:
             epsilon = np.sqrt(np.log(2 / self.delta) / (2 * len(labels))) if len(labels) > 0 else 0.0
             self.success_stats[name] = ScenarioStats(rho=rho, uncertainty=epsilon)
 
-    def get_success_rate(self, scenario: str) -> float:
+    def get_success_prob(self, scenario: str) -> float:
         return self.success_stats[scenario].rho
 
-    def get_success_rate_uncertainty(self, scenario: str) -> float:
+    def get_success_prob_uncertainty(self, scenario: str) -> float:
         return self.success_stats[scenario].uncertainty
 
 
 class CompositionalAnalysisEngine:
     """
-    Computes importance-sampled success probabilities across sequential scenarios
-    using Gaussian KDE and Hoeffding uncertainty propagation.
+    Computes importance-sampled success probabilities across sequential
+    scenarios using Gaussian KDE and uncertainty propagation.
     """
 
     def __init__(self, scenario_base: ScenarioBase):
@@ -82,7 +82,7 @@ class CompositionalAnalysisEngine:
         self,
         scenario: List[str],
         features: Optional[List[str]] = None,
-        norm_feat_idx: Optional[List[int]] = None,
+        center_feat_idx: Optional[List[int]] = None,
     ) -> Tuple[float, float]:
         """
         Computes importance-sampled success probability and propagated uncertainty.
@@ -98,16 +98,18 @@ class CompositionalAnalysisEngine:
         if len(scenario) == 0:
             raise ValueError("Scenario list must contain at least one scenario.")
 
-        rho = 1.0
-        rho_bounds = []
-
         n = len(scenario)
         if n == 1:
             result = self.scenario_base.success_stats[scenario]
             return result.rho, result.uncertainty
 
+        first_scenario_result = self.scenario_base.success_stats[scenario[0]]
+
+        rho = first_scenario_result.rho
+        eps_rho_ratios = [first_scenario_result.uncertainty/rho]
+
         delta = self.scenario_base.delta
-        per_step_delta = delta / n  # union bound
+        per_step_delta = delta / n # union bound
 
         for i in range(len(scenario) - 1):
             s_name, t_name = scenario[i], scenario[i+1]
@@ -125,36 +127,34 @@ class CompositionalAnalysisEngine:
                 t_first_features = t_first[features].to_numpy()
                 if s_last_features.shape[0] < 2 or t_first_features.shape[0] < 2:
                     return 0.0, 0.0
-                if norm_feat_idx:
-                    for j in norm_feat_idx:
-                        s_last_features[:, j] = self._normalize_features(s_last_features[:, j].reshape(-1, 1)).flatten()
-                        t_first_features[:, j] = self._normalize_features(t_first_features[:, j].reshape(-1, 1)).flatten()
+                if center_feat_idx:
+                    for j in center_feat_idx:
+                        s_last_features[:, j] = s_last_features[:, j] - np.mean(s_last_features[:, j]) # center
+                        t_first_features[:, j] = t_first_features[:, j] - np.mean(t_first_features[:, j]) # center
             else:
                 raise ValueError("Feature list must be provided for KDE.")
 
             s_last_features, t_first_features = s_last_features.T, t_first_features.T
-            kde_s_last = gaussian_kde(s_last_features)
-            kde_t_first = gaussian_kde(t_first_features)
+
+            kde_s_last = gaussian_kde(s_last_features, bw_method=10)
+            kde_t_first = gaussian_kde(t_first_features, bw_method=10)
+
             p_vals = kde_s_last(t_first_features)
             q_vals = kde_t_first(t_first_features)
+
             weights = np.nan_to_num(p_vals / q_vals, nan=0.0, posinf=0.0, neginf=0.0)
 
             labels_t_last = t_last["label"].astype(float).to_numpy()
-            min_len = min(len(weights), len(labels_t_last))
-            weights = weights[:min_len]
-            labels_t_last = labels_t_last[:min_len]
 
-            rho_step = np.sum(weights * labels_t_last) / np.sum(weights) if np.sum(weights) > 0 else 0.0
-            rho *= rho_step
+            rho_step = np.sum(weights * labels_t_last) / np.sum(weights) # P(T | S)
+            rho *= rho_step # P(T | S) * P(S) = P(S, T)
 
-            # Hoeffding absolute bound with effective samples
-            N_eff = np.sum(weights)**2 / np.sum(weights**2) if np.sum(weights**2) > 0 else 1.0
+            N_eff = np.sum(weights)**2 / np.sum(weights**2)
             epsilon_i = np.sqrt(np.log(2 / per_step_delta) / (2 * N_eff))
-            rho_bounds.append(epsilon_i)
+            eps_rho_ratios.append(epsilon_i / rho_step)
 
-        # Provable multiplicative error
-        prod_factor = np.prod([1 + eps / max(rho_step, 1e-12) for eps in rho_bounds])
-        uncertainty = rho * (prod_factor - 1)
+        # Multiplicative error
+        uncertainty = rho * np.sqrt(np.sum([eps_rho_ratios**2 for eps_rho_ratios in eps_rho_ratios]))
 
         return rho, uncertainty
 

@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     print("SMC")
     for s in logs:
-        print(f"{s}: rho = {scenario_base.get_success_rate(s):.4f} ± {scenario_base.get_success_rate_uncertainty(s):.4f}")
+        print(f"{s}: rho = {scenario_base.get_success_prob(s):.4f} ± {scenario_base.get_success_prob_uncertainty(s):.4f}")
 
     engine = CompositionalAnalysisEngine(scenario_base)
 
@@ -27,12 +27,11 @@ if __name__ == "__main__":
     pd.set_option('display.max_columns', None) # Display all columns
     pd.set_option('display.width', 1000) # Ensure enough width to prevent wrapping
 
-    print("Compositional SMC")
     for s in logs:
         rho, uncertainty = engine.check(
             s,
             features=["x", "y", "heading", "speed"],
-            norm_feat_idx=[0, 1],
+            center_feat_idx=[0, 1],
         )
         print(f"Estimated {s}: rho = {rho:.4f} ± {uncertainty:.4f}")
         cex = engine.falsify(
