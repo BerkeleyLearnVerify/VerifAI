@@ -187,6 +187,7 @@ def test_driving_dynamic_behavior(pathToLocalFile):
         model='scenic.simulators.newtonian.driving_model',
         params=dict(render=False),
         mode2D=True,
+        maxSteps=2
     )
     falsifier_params = DotMap(
         n_iters=3,
@@ -202,8 +203,7 @@ def test_driving_dynamic_behavior(pathToLocalFile):
 
 double_access_scenario = """
 model scenic.simulators.newtonian.model
-param verifaiTimeBound = 100
-foo = VerifaiRange(0, 0.01, timeSeries=True)
+foo = TimeSeries(VerifaiRange(0, 0.01))
 behavior TestBehavior():
     while True:
         foo.getSample()
@@ -218,6 +218,7 @@ def test_double_time_series_access():
                 double_access_scenario,
                 model='scenic.simulators.newtonian.model',
                 maxIterations=1,
+                maxSteps=2,
                 params=dict(render=False),
             )
         falsifier_params = DotMap(

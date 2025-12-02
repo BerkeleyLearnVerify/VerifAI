@@ -1,10 +1,9 @@
 param map = localPath('Town01.xodr')
 param carla_map = 'Town01'
-param verifaiTimeBound = 100
 
 model scenic.domains.driving.model
 
-foo = VerifaiRange(0,0.01, timeSeries=True)
+foo = TimeSeries(VerifaiRange(0,0.01))
 
 behavior TestBehavior():
     while True:

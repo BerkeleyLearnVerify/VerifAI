@@ -261,7 +261,7 @@ class ScenicSampler(FeatureSampler):
         super().__init__(space)
 
     @classmethod
-    def fromScenario(cls, path, maxIterations=None,
+    def fromScenario(cls, path, maxIterations=None, maxSteps=None,
                      ignoredProperties=None, **kwargs):
         """Create a sampler corresponding to a Scenic program.
 
@@ -280,14 +280,24 @@ class ScenicSampler(FeatureSampler):
               e.g. ``params`` to override global parameters or ``model`` to set the
               :term:`world model`.
         """
+        if "params" not in kwargs:
+            kwargs["params"] = {}
+
+        kwargs["params"]["timeBound"] = maxSteps if maxSteps else 0
+
         scenario = scenic.scenarioFromFile(path, **kwargs)
         return cls(scenario, maxIterations=maxIterations,
                    ignoredProperties=ignoredProperties)
 
     @classmethod
-    def fromScenicCode(cls, code, maxIterations=None,
+    def fromScenicCode(cls, code, maxIterations=None, maxSteps=None,
                        ignoredProperties=None, **kwargs):
         """As above, but given a Scenic program as a string."""
+        if "params" not in kwargs:
+            kwargs["params"] = {}
+
+        kwargs["params"]["timeBound"] = maxSteps if maxSteps else 0
+
         scenario = scenic.scenarioFromString(code, **kwargs)
         return cls(scenario, maxIterations=maxIterations,
                    ignoredProperties=ignoredProperties)
