@@ -15,7 +15,7 @@ if __name__ == "__main__":
         # "SOS": "storage/traces/SOS/traces.csv",
         # "SCS": "storage/traces/SCS/traces.csv",
     }
-    scenario_base = ScenarioBase(logs)
+    scenario_base = ScenarioBase(logs, delta=0.01)
 
     print("SMC")
     for s in logs:
