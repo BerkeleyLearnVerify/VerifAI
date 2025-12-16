@@ -245,31 +245,16 @@ def parse_scenario(input_scenario):
     return scenarios_set
 
 
-def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expert, model_path, ground_truth=False, confidence_level=None, error_bound=None, reuse_traces=False):
+def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expert, model_path, confidence_level=None, error_bound=None, reuse_traces=False):
     """
     Test scenario with hard time budget enforcement.
     Terminates all processes when time budget is reached.
     
     Args:
-        ground_truth: If True, compute ground truth using Hoeffding's inequality
         confidence_level: Confidence level for ground truth (e.g., 0.95)
         error_bound: Error bound for ground truth (e.g., 0.01)
         reuse_traces: If True, use existing traces from save_dir without generating new ones
     """
-    # If ground truth mode, compute required samples using Hoeffding's inequality
-    if ground_truth:
-        if confidence_level is None or error_bound is None:
-            raise ValueError("Ground truth mode requires --confidence_level and --error_bound")
-        
-        n_required = compute_hoeffding_samples(confidence_level, error_bound)
-        print(f"\n=== Ground Truth Mode ===")
-        print(f"Confidence Level: {confidence_level * 100}%")
-        print(f"Error Bound: {error_bound}")
-        print(f"Required samples (Hoeffding): {n_required}")
-        
-        # Override n and remove time budget for ground truth
-        n = n_required
-        time_budget = float('inf')  # No time limit for ground truth
     
     # monolithic trace generation
     if not isCompositional:
@@ -312,9 +297,6 @@ def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expe
                     print(f"[ERROR] No existing traces found for scenario {s} at {csv_path}")
         
         scenario_base = ScenarioBase(logs, delta=1-confidence_level)
-
-        # checking individual rho's
-        run_monolithic_smc(scenario_base)
         
         # compositional rho
         run_SMC_compositional(scenarios=[input_scenario], time_budget=time_budget, scenario_base=scenario_base)
@@ -329,8 +311,6 @@ def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expe
           f"{'--reuse_traces ' if reuse_traces else ''}"
           f"--time_budget {time_budget if time_budget != float('inf') else 'N/A'} "
           f"--save_dir \"{save_dir}\"")
-    if ground_truth:
-        print(f"Ground Truth: confidence_level={confidence_level}, error_bound={error_bound}")
     print("="*60)
 
 
@@ -341,32 +321,35 @@ if __name__ == "__main__":
     parser.add_argument("--scenario", type=str, default="SXC", help="Input scenario string (default: SXC)")
     parser.add_argument("--compositional", action="store_true", help="Use compositional approach (default: False)")
     parser.add_argument("--time_budget", type=int, default=None, help="Time budget in seconds (default: None)")
-    parser.add_argument("--n", type=int, default=None, help="Number of traces to generate. If not specified, runs until time budget is hit (default: None)")
     parser.add_argument("--expert", action="store_true", help="Use expert mode (default: False)")
     parser.add_argument("--save_dir", type=str, default="storage/new_traces", help="Directory to save traces (default: storage/run1)")
     parser.add_argument("--model_path", type=str, default="storage/models/model_map_2.zip", help="Path to model file (default: storage/models/model_map_2.zip)")
-    
-    # Ground truth options
-    parser.add_argument("--ground_truth", action="store_true", help="Compute ground truth using Hoeffding's inequality (default: False)")
     parser.add_argument("--confidence_level", type=float, default=0.99, help="Confidence level for ground truth (default: 0.99)")
     parser.add_argument("--error_bound", type=float, default=0.001, help="Error bound (epsilon) for ground truth (default: 0.001)")
-    
-    # Reuse traces option
     parser.add_argument("--reuse_traces", action="store_true", help="Use existing traces from save_dir without generating new ones (default: False)")
     
     args = parser.parse_args()
     
     mp.set_start_method("spawn")
+
+    assert args.confidence_level is not None
+    assert (args.error_bound is not None) or (args.time_budget is not None)
+
+    n = None
+    time_budget = float('inf')
+    if args.error_bound is not None:
+        n = compute_hoeffding_samples(args.confidence_level, args.error_bound)
+    elif args.time_budget is not None:
+        time_budget = args.time_budget
     
     testScenario(
         input_scenario=args.scenario,
         isCompositional=args.compositional,
-        time_budget=args.time_budget if args.time_budget is not None else float('inf'),
-        n=args.n,
+        time_budget=time_budget,
+        n=n,
         save_dir=args.save_dir,
         expert=args.expert,
         model_path=args.model_path,
-        ground_truth=args.ground_truth,
         confidence_level=args.confidence_level,
         error_bound=args.error_bound,
         reuse_traces=args.reuse_traces
