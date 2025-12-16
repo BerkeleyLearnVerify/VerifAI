@@ -1,0 +1,42 @@
+Running COMPOSITIONAL SMC on primitive cases (what compositional will use)
+=== Generating Traces (Parallel - HARD STOP) ===
+Launching scenario S
+Launching scenario X
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[PID=1879284] Starting scenario S
+[PID=1879284] Finished scenario S
+[PID=1879285] Starting scenario X
+[PID=1879285] Finished scenario X
+All processes finished naturally (elapsed: 193.15s)
+[INFO] Scenario S completed successfully with 185 episodes.
+[INFO] Scenario X completed successfully with 185 episodes.
+
+=== Running Compositional SMC ===
+Estimated SX: rho = 0.9500 ± 0.1474
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "SX" --compositional --expert --time_budget N/A --save_dir "storage/fixed_error_compositional_SX"
+============================================================
+
+real	3m19.564s
+user	5m56.348s
+sys	0m12.423s

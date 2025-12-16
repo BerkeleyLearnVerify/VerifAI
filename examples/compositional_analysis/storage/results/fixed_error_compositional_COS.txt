@@ -1,0 +1,34 @@
+Running COMPOSITIONAL SMC on primitive cases (what compositional will use)
+=== Generating Traces (Parallel - HARD STOP) ===
+Launching scenario S
+Launching scenario C
+Launching scenario O
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[PID=1879301] Starting scenario S
+[PID=1879301] Finished scenario S

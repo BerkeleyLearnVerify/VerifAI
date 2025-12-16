@@ -1,0 +1,30 @@
+Running MONOLITHIC SMC
+=== Generating Traces (Parallel - HARD STOP) ===
+Launching scenario SOCXS
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+
+[HARD STOP] Time budget (120s) reached at 120.08s
+Terminating all running processes...
+Terminating scenario SOCXS (PID=1879255)
+[INFO] Scenario SOCXS has 16 completed episodes.
+
+=== Monolithic SMC Results ===
+SOCXS: rho = 0.8125 ± 0.3395
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "SOCXS" --expert --time_budget 120 --save_dir "storage/fixed_time_monolithic_SOCXS"
+============================================================
+
+real	2m5.764s
+user	1m55.900s
+sys	0m3.838s

@@ -1,0 +1,55 @@
+Running COMPOSITIONAL SMC on primitive cases (what compositional will use)
+=== Generating Traces (Parallel - HARD STOP) ===
+Launching scenario S
+Launching scenario O
+Launching scenario C
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+
+[HARD STOP] Time budget (120s) reached at 120.09s
+Terminating all running processes...
+Terminating scenario S (PID=1879264)
+Terminating scenario O (PID=1879265)
+Terminating scenario C (PID=1879267)
+[INFO] Scenario S has 99 completed episodes.
+[INFO] Scenario O: Removing partial episode (had 60 episodes, keeping 59)
+[INFO] Scenario O has 59 completed episodes.
+[INFO] Scenario C has 50 completed episodes.
+
+=== Running Compositional SMC ===
+Estimated COS: rho = 0.6759 ± 0.2614
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "COS" --compositional --expert --time_budget 120 --save_dir "storage/fixed_time_compositional_COS"
+============================================================
+
+real	2m8.534s
+user	5m59.436s
+sys	0m10.350s

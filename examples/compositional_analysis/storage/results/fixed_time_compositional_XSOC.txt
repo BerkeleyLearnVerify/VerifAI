@@ -1,0 +1,69 @@
+Running COMPOSITIONAL SMC on primitive cases (what compositional will use)
+=== Generating Traces (Parallel - HARD STOP) ===
+Launching scenario O
+Launching scenario S
+Launching scenario C
+Launching scenario X
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
+
+[HARD STOP] Time budget (120s) reached at 120.09s
+Terminating all running processes...
+Terminating scenario O (PID=1879312)
+Terminating scenario S (PID=1879313)
+Terminating scenario C (PID=1879314)
+Terminating scenario X (PID=1879315)
+[INFO] Scenario O has 57 completed episodes.
+[INFO] Scenario S: Removing partial episode (had 93 episodes, keeping 92)
+[INFO] Scenario S has 92 completed episodes.
+[INFO] Scenario C: Removing partial episode (had 51 episodes, keeping 50)
+[INFO] Scenario C has 50 completed episodes.
+[INFO] Scenario X: Removing partial episode (had 71 episodes, keeping 69)
+[INFO] Scenario X has 69 completed episodes.
+
+=== Running Compositional SMC ===
+Estimated XSOC: rho = 0.5891 ± 0.3120
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "XSOC" --compositional --expert --time_budget 120 --save_dir "storage/fixed_time_compositional_XSOC"
+============================================================
+
+real	2m9.137s
+user	7m22.034s
+sys	0m18.302s
