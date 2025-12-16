@@ -44,3 +44,25 @@ Launching scenario O
 [PID=1879290] Finished scenario S
 [PID=1879291] Starting scenario X
 [PID=1879291] Finished scenario X
+[PID=1879292] Starting scenario C
+[PID=1879292] Finished scenario C
+[PID=1879293] Starting scenario O
+[PID=1879293] Finished scenario O
+All processes finished naturally (elapsed: 245.15s)
+[INFO] Scenario S completed successfully with 185 episodes.
+[INFO] Scenario X completed successfully with 185 episodes.
+[INFO] Scenario C completed successfully with 185 episodes.
+[INFO] Scenario O completed successfully with 185 episodes.
+
+=== Running Compositional SMC ===
+Estimated XSOC: rho = 0.6563 ± 0.1833
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "XSOC" --compositional --expert --time_budget N/A --save_dir "storage/fixed_error_compositional_XSOC"
+============================================================
+
+real	4m11.670s
+user	13m41.638s
+sys	0m22.259s

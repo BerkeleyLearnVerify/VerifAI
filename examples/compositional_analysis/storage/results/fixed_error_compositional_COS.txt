@@ -32,3 +32,24 @@ Launching scenario O
 [38;20m[INFO] Use Torch PPO expert.[0m
 [PID=1879301] Starting scenario S
 [PID=1879301] Finished scenario S
+[PID=1879303] Starting scenario O
+[PID=1879303] Finished scenario O
+[PID=1879302] Starting scenario C
+[PID=1879302] Finished scenario C
+All processes finished naturally (elapsed: 249.00s)
+[INFO] Scenario S completed successfully with 185 episodes.
+[INFO] Scenario C completed successfully with 185 episodes.
+[INFO] Scenario O completed successfully with 185 episodes.
+
+=== Running Compositional SMC ===
+Estimated COS: rho = 0.7133 ± 0.1591
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "COS" --compositional --expert --time_budget N/A --save_dir "storage/fixed_error_compositional_COS"
+============================================================
+
+real	4m15.541s
+user	10m47.982s
+sys	0m18.648s

@@ -44,3 +44,25 @@ Launching scenario O
 [PID=1879281] Finished scenario S
 [PID=1879279] Starting scenario X
 [PID=1879279] Finished scenario X
+[PID=1879280] Starting scenario C
+[PID=1879280] Finished scenario C
+[PID=1879282] Starting scenario O
+[PID=1879282] Finished scenario O
+All processes finished naturally (elapsed: 245.35s)
+[INFO] Scenario X completed successfully with 185 episodes.
+[INFO] Scenario C completed successfully with 185 episodes.
+[INFO] Scenario S completed successfully with 185 episodes.
+[INFO] Scenario O completed successfully with 185 episodes.
+
+=== Running Compositional SMC ===
+Estimated SOCXS: rho = 0.6622 ± 0.2027
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "SOCXS" --compositional --expert --time_budget N/A --save_dir "storage/fixed_error_compositional_SOCXS"
+============================================================
+
+real	4m11.566s
+user	13m26.132s
+sys	0m14.524s

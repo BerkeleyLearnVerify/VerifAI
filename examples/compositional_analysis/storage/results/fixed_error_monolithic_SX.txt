@@ -10,3 +10,20 @@ Launching scenario SX
 [38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
+[PID=1879323] Starting scenario SX
+[PID=1879323] Finished scenario SX
+All processes finished naturally (elapsed: 243.17s)
+[INFO] Scenario SX completed successfully with 185 episodes.
+
+=== Monolithic SMC Results ===
+SX: rho = 0.9676 ± 0.0998
+
+============================================================
+SUMMARY
+============================================================
+Command: python compare_analysis.py --scenario "SX" --expert --time_budget N/A --save_dir "storage/fixed_error_monolithic_SX"
+============================================================
+
+real	4m9.268s
+user	3m52.543s
+sys	0m6.364s
