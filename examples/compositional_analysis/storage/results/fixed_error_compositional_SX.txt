@@ -1,7 +1,7 @@
 Running COMPOSITIONAL SMC on primitive cases (what compositional will use)
 === Generating Traces (Parallel - HARD STOP) ===
-Launching scenario S
 Launching scenario X
+Launching scenario S
 [38;20m[INFO] Environment: MetaDriveEnv[0m
 [38;20m[INFO] MetaDrive version: 0.4.3[0m
 [38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
@@ -20,16 +20,16 @@ Launching scenario X
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
-[PID=1879284] Starting scenario S
-[PID=1879284] Finished scenario S
-[PID=1879285] Starting scenario X
-[PID=1879285] Finished scenario X
-All processes finished naturally (elapsed: 193.15s)
-[INFO] Scenario S completed successfully with 185 episodes.
-[INFO] Scenario X completed successfully with 185 episodes.
+[PID=1889090] Starting scenario S
+[PID=1889090] Finished scenario S
+[PID=1889089] Starting scenario X
+[PID=1889089] Finished scenario X
+All processes finished naturally (elapsed: 719.05s)
+[INFO] Scenario X completed successfully with 1000 episodes.
+[INFO] Scenario S completed successfully with 1000 episodes.
 
 === Running Compositional SMC ===
-Estimated SX: rho = 0.9500 ± 0.1474
+Estimated SX: rho = 0.9497 ± 0.0640
 
 ============================================================
 SUMMARY
@@ -37,6 +37,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "SX" --compositional --expert --time_budget N/A --save_dir "storage/fixed_error_compositional_SX"
 ============================================================
 
-real	3m19.564s
-user	5m56.348s
-sys	0m12.423s
+real	12m6.153s
+user	21m41.154s
+sys	0m18.462s

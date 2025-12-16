@@ -19,7 +19,6 @@ Launching scenario C
 [38;20m[INFO] Assets version: 0.4.3[0m
 [38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
-[38;20m[INFO] Use Torch PPO expert.[0m
 [38;20m[INFO] Environment: MetaDriveEnv[0m
 [38;20m[INFO] MetaDrive version: 0.4.3[0m
 [38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
@@ -30,19 +29,21 @@ Launching scenario C
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
+[38;20m[INFO] Use Torch PPO expert.[0m
 
-[HARD STOP] Time budget (120s) reached at 120.09s
+[HARD STOP] Time budget (120s) reached at 120.10s
 Terminating all running processes...
-Terminating scenario S (PID=1879264)
-Terminating scenario O (PID=1879265)
-Terminating scenario C (PID=1879267)
-[INFO] Scenario S has 99 completed episodes.
-[INFO] Scenario O: Removing partial episode (had 60 episodes, keeping 59)
-[INFO] Scenario O has 59 completed episodes.
-[INFO] Scenario C has 50 completed episodes.
+Terminating scenario S (PID=1889117)
+Terminating scenario O (PID=1889118)
+Terminating scenario C (PID=1889119)
+[INFO] Scenario S has 90 completed episodes.
+[INFO] Scenario O: Removing partial episode (had 51 episodes, keeping 50)
+[INFO] Scenario O has 50 completed episodes.
+[INFO] Scenario C: Removing partial episode (had 48 episodes, keeping 47)
+[INFO] Scenario C has 47 completed episodes.
 
 === Running Compositional SMC ===
-Estimated COS: rho = 0.6759 ± 0.2614
+Estimated COS: rho = 0.6896 ± 0.2796
 
 ============================================================
 SUMMARY
@@ -50,6 +51,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "COS" --compositional --expert --time_budget 120 --save_dir "storage/fixed_time_compositional_COS"
 ============================================================
 
-real	2m8.534s
-user	5m59.436s
-sys	0m10.350s
+real	2m8.291s
+user	5m46.844s
+sys	0m17.067s

@@ -1,23 +1,23 @@
 Running COMPOSITIONAL SMC on primitive cases (what compositional will use)
 === Generating Traces (Parallel - HARD STOP) ===
-Launching scenario S
 Launching scenario C
 Launching scenario O
+Launching scenario S
 [38;20m[INFO] Environment: MetaDriveEnv[0m
 [38;20m[INFO] MetaDrive version: 0.4.3[0m
 [38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
 [38;20m[INFO] Render Mode: none[0m
 [38;20m[INFO] Horizon (Max steps per agent): 2000[0m
 [38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Environment: MetaDriveEnv[0m
+[38;20m[INFO] MetaDrive version: 0.4.3[0m
+[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
+[38;20m[INFO] Render Mode: none[0m
+[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
+[38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
-[38;20m[INFO] Environment: MetaDriveEnv[0m
-[38;20m[INFO] MetaDrive version: 0.4.3[0m
-[38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
-[38;20m[INFO] Render Mode: none[0m
-[38;20m[INFO] Horizon (Max steps per agent): 2000[0m
-[38;20m[INFO] Assets version: 0.4.3[0m
-[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Environment: MetaDriveEnv[0m
 [38;20m[INFO] MetaDrive version: 0.4.3[0m
@@ -30,19 +30,19 @@ Launching scenario O
 [38;20m[INFO] Use Torch PPO expert.[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
-[PID=1879301] Starting scenario S
-[PID=1879301] Finished scenario S
-[PID=1879303] Starting scenario O
-[PID=1879303] Finished scenario O
-[PID=1879302] Starting scenario C
-[PID=1879302] Finished scenario C
-All processes finished naturally (elapsed: 249.00s)
-[INFO] Scenario S completed successfully with 185 episodes.
-[INFO] Scenario C completed successfully with 185 episodes.
-[INFO] Scenario O completed successfully with 185 episodes.
+[PID=1889097] Starting scenario S
+[PID=1889097] Finished scenario S
+[PID=1889096] Starting scenario O
+[PID=1889096] Finished scenario O
+[PID=1889095] Starting scenario C
+[PID=1889095] Finished scenario C
+All processes finished naturally (elapsed: 1013.29s)
+[INFO] Scenario C completed successfully with 1000 episodes.
+[INFO] Scenario O completed successfully with 1000 episodes.
+[INFO] Scenario S completed successfully with 1000 episodes.
 
 === Running Compositional SMC ===
-Estimated COS: rho = 0.7133 ± 0.1591
+Estimated COS: rho = 0.7152 ± 0.0685
 
 ============================================================
 SUMMARY
@@ -50,6 +50,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "COS" --compositional --expert --time_budget N/A --save_dir "storage/fixed_error_compositional_COS"
 ============================================================
 
-real	4m15.541s
-user	10m47.982s
-sys	0m18.648s
+real	17m0.943s
+user	42m57.621s
+sys	0m28.489s

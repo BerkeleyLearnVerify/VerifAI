@@ -11,13 +11,13 @@ Launching scenario XSOC
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
 
-[HARD STOP] Time budget (120s) reached at 120.09s
+[HARD STOP] Time budget (120s) reached at 120.08s
 Terminating all running processes...
-Terminating scenario XSOC (PID=1879288)
-[INFO] Scenario XSOC has 18 completed episodes.
+Terminating scenario XSOC (PID=1889066)
+[INFO] Scenario XSOC has 22 completed episodes.
 
 === Monolithic SMC Results ===
-XSOC: rho = 0.7778 ± 0.3201
+XSOC: rho = 0.7727 ± 0.2895
 
 ============================================================
 SUMMARY
@@ -25,6 +25,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "XSOC" --expert --time_budget 120 --save_dir "storage/fixed_time_monolithic_XSOC"
 ============================================================
 
-real	2m6.538s
-user	1m52.206s
-sys	0m5.747s
+real	2m5.619s
+user	2m0.372s
+sys	0m3.612s

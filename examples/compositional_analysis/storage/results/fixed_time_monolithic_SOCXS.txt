@@ -13,7 +13,7 @@ Launching scenario SOCXS
 
 [HARD STOP] Time budget (120s) reached at 120.08s
 Terminating all running processes...
-Terminating scenario SOCXS (PID=1879255)
+Terminating scenario SOCXS (PID=1889085)
 [INFO] Scenario SOCXS has 16 completed episodes.
 
 === Monolithic SMC Results ===
@@ -25,6 +25,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "SOCXS" --expert --time_budget 120 --save_dir "storage/fixed_time_monolithic_SOCXS"
 ============================================================
 
-real	2m5.764s
-user	1m55.900s
-sys	0m3.838s
+real	2m6.443s
+user	1m55.832s
+sys	0m4.647s

@@ -13,11 +13,11 @@ Launching scenario COS
 
 [HARD STOP] Time budget (120s) reached at 120.08s
 Terminating all running processes...
-Terminating scenario COS (PID=1879277)
-[INFO] Scenario COS has 25 completed episodes.
+Terminating scenario COS (PID=1889114)
+[INFO] Scenario COS has 20 completed episodes.
 
 === Monolithic SMC Results ===
-COS: rho = 0.7200 ± 0.2716
+COS: rho = 0.8500 ± 0.3037
 
 ============================================================
 SUMMARY
@@ -25,6 +25,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "COS" --expert --time_budget 120 --save_dir "storage/fixed_time_monolithic_COS"
 ============================================================
 
-real	2m6.191s
-user	1m55.053s
-sys	0m4.688s
+real	2m6.928s
+user	1m51.736s
+sys	0m6.374s

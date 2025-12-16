@@ -13,11 +13,11 @@ Launching scenario SX
 
 [HARD STOP] Time budget (120s) reached at 120.09s
 Terminating all running processes...
-Terminating scenario SX (PID=1879295)
-[INFO] Scenario SX has 46 completed episodes.
+Terminating scenario SX (PID=1889064)
+[INFO] Scenario SX has 52 completed episodes.
 
 === Monolithic SMC Results ===
-SX: rho = 1.0000 ± 0.2002
+SX: rho = 1.0000 ± 0.1883
 
 ============================================================
 SUMMARY
@@ -25,6 +25,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "SX" --expert --time_budget 120 --save_dir "storage/fixed_time_monolithic_SX"
 ============================================================
 
-real	2m6.655s
-user	1m52.599s
-sys	0m5.580s
+real	2m5.595s
+user	1m57.325s
+sys	0m3.691s

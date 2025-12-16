@@ -10,13 +10,13 @@ Launching scenario COS
 [38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
-[PID=1879309] Starting scenario COS
-[PID=1879309] Finished scenario COS
-All processes finished naturally (elapsed: 477.32s)
-[INFO] Scenario COS completed successfully with 185 episodes.
+[PID=1889105] Starting scenario COS
+[PID=1889105] Finished scenario COS
+All processes finished naturally (elapsed: 2133.73s)
+[INFO] Scenario COS completed successfully with 1000 episodes.
 
 === Monolithic SMC Results ===
-COS: rho = 0.8378 ± 0.0998
+COS: rho = 0.7560 ± 0.0429
 
 ============================================================
 SUMMARY
@@ -24,6 +24,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "COS" --expert --time_budget N/A --save_dir "storage/fixed_error_monolithic_COS"
 ============================================================
 
-real	8m3.349s
-user	7m43.820s
-sys	0m6.999s
+real	35m40.316s
+user	34m57.279s
+sys	0m17.355s

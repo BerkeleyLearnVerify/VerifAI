@@ -10,13 +10,13 @@ Launching scenario SOCXS
 [38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
-[PID=1879262] Starting scenario SOCXS
-[PID=1879262] Finished scenario SOCXS
-All processes finished naturally (elapsed: 605.60s)
-[INFO] Scenario SOCXS completed successfully with 185 episodes.
+[PID=1889087] Starting scenario SOCXS
+[PID=1889087] Finished scenario SOCXS
+All processes finished naturally (elapsed: 2883.29s)
+[INFO] Scenario SOCXS completed successfully with 1000 episodes.
 
 === Monolithic SMC Results ===
-SOCXS: rho = 0.6649 ± 0.0998
+SOCXS: rho = 0.6780 ± 0.0429
 
 ============================================================
 SUMMARY
@@ -24,6 +24,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "SOCXS" --expert --time_budget N/A --save_dir "storage/fixed_error_monolithic_SOCXS"
 ============================================================
 
-real	10m11.484s
-user	9m51.459s
-sys	0m7.801s
+real	48m9.998s
+user	47m19.091s
+sys	0m21.593s

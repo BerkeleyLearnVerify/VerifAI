@@ -1,9 +1,9 @@
 Running COMPOSITIONAL SMC on primitive cases (what compositional will use)
 === Generating Traces (Parallel - HARD STOP) ===
-Launching scenario X
 Launching scenario C
-Launching scenario O
+Launching scenario X
 Launching scenario S
+Launching scenario O
 [38;20m[INFO] Environment: MetaDriveEnv[0m
 [38;20m[INFO] MetaDrive version: 0.4.3[0m
 [38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
@@ -18,14 +18,14 @@ Launching scenario S
 [38;20m[INFO] Render Mode: none[0m
 [38;20m[INFO] Horizon (Max steps per agent): 2000[0m
 [38;20m[INFO] Assets version: 0.4.3[0m
+[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
+[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Environment: MetaDriveEnv[0m
 [38;20m[INFO] MetaDrive version: 0.4.3[0m
 [38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
 [38;20m[INFO] Render Mode: none[0m
 [38;20m[INFO] Horizon (Max steps per agent): 2000[0m
 [38;20m[INFO] Assets version: 0.4.3[0m
-[38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
-[38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Environment: MetaDriveEnv[0m
 [38;20m[INFO] MetaDrive version: 0.4.3[0m
 [38;20m[INFO] Sensors: [lidar: Lidar(), side_detector: SideDetector(), lane_line_detector: LaneLineDetector()][0m
@@ -43,19 +43,20 @@ Launching scenario S
 
 [HARD STOP] Time budget (120s) reached at 120.09s
 Terminating all running processes...
-Terminating scenario X (PID=1879257)
-Terminating scenario C (PID=1879258)
-Terminating scenario O (PID=1879259)
-Terminating scenario S (PID=1879260)
+Terminating scenario C (PID=1889073)
+Terminating scenario X (PID=1889074)
+Terminating scenario S (PID=1889075)
+Terminating scenario O (PID=1889076)
+[INFO] Scenario C has 60 completed episodes.
+[INFO] Scenario X: Removing partial episode (had 75 episodes, keeping 74)
 [INFO] Scenario X has 74 completed episodes.
-[INFO] Scenario C has 50 completed episodes.
-[INFO] Scenario O: Removing partial episode (had 54 episodes, keeping 53)
-[INFO] Scenario O has 53 completed episodes.
-[INFO] Scenario S: Removing partial episode (had 99 episodes, keeping 97)
-[INFO] Scenario S has 97 completed episodes.
+[INFO] Scenario S: Removing partial episode (had 107 episodes, keeping 105)
+[INFO] Scenario S has 105 completed episodes.
+[INFO] Scenario O: Removing partial episode (had 59 episodes, keeping 57)
+[INFO] Scenario O has 57 completed episodes.
 
 === Running Compositional SMC ===
-Estimated SOCXS: rho = 0.6790 ± 0.3496
+Estimated SOCXS: rho = 0.6843 ± 0.3473
 
 ============================================================
 SUMMARY
@@ -63,6 +64,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "SOCXS" --compositional --expert --time_budget 120 --save_dir "storage/fixed_time_compositional_SOCXS"
 ============================================================
 
-real	2m9.156s
-user	8m16.055s
-sys	0m18.684s
+real	2m8.564s
+user	8m5.151s
+sys	0m14.412s

@@ -10,13 +10,13 @@ Launching scenario XSOC
 [38;20m[INFO] Known Pipes: glxGraphicsPipe[0m
 [38;20m[INFO] Start Scenario Index: 1000, Num Scenarios : 1000[0m
 [38;20m[INFO] Use Torch PPO expert.[0m
-[PID=1879268] Starting scenario XSOC
-[PID=1879268] Finished scenario XSOC
-All processes finished naturally (elapsed: 508.30s)
-[INFO] Scenario XSOC completed successfully with 185 episodes.
+[PID=1889092] Starting scenario XSOC
+[PID=1889092] Finished scenario XSOC
+All processes finished naturally (elapsed: 2393.20s)
+[INFO] Scenario XSOC completed successfully with 1000 episodes.
 
 === Monolithic SMC Results ===
-XSOC: rho = 0.7514 ± 0.0998
+XSOC: rho = 0.7050 ± 0.0429
 
 ============================================================
 SUMMARY
@@ -24,6 +24,6 @@ SUMMARY
 Command: python compare_analysis.py --scenario "XSOC" --expert --time_budget N/A --save_dir "storage/fixed_error_monolithic_XSOC"
 ============================================================
 
-real	8m34.106s
-user	8m16.839s
-sys	0m6.503s
+real	39m59.756s
+user	39m13.651s
+sys	0m18.494s
