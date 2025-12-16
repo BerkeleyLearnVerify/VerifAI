@@ -324,8 +324,8 @@ if __name__ == "__main__":
     parser.add_argument("--expert", action="store_true", help="Use expert mode (default: False)")
     parser.add_argument("--save_dir", type=str, default="storage/new_traces", help="Directory to save traces (default: storage/run1)")
     parser.add_argument("--model_path", type=str, default="storage/models/model_map_2.zip", help="Path to model file (default: storage/models/model_map_2.zip)")
-    parser.add_argument("--confidence_level", type=float, default=0.99, help="Confidence level for ground truth (default: 0.99)")
-    parser.add_argument("--error_bound", type=float, default=0.001, help="Error bound (epsilon) for ground truth (default: 0.001)")
+    parser.add_argument("--confidence_level", type=float, default=None, help="Confidence level for ground truth (default: None)")
+    parser.add_argument("--error_bound", type=float, default=None, help="Error bound (epsilon) for ground truth (default: None)")
     parser.add_argument("--reuse_traces", action="store_true", help="Use existing traces from save_dir without generating new ones (default: False)")
     
     args = parser.parse_args()
