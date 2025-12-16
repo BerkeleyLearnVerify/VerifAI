@@ -21,4 +21,3 @@
 { time python run_exp.py --expert --save-dir storage/fixed_time_compositional --confidence_level 0.95 --time_budget 120 --scenario "COS" --compositional; } &> storage/results/fixed_time_compositional_COS.txt &
 { time python run_exp.py --expert --save-dir storage/fixed_time_compositional --confidence_level 0.95 --time_budget 120 --scenario "XSOC" --compositional; } &> storage/results/fixed_time_compositional_XSOC.txt &
 { time python run_exp.py --expert --save-dir storage/fixed_time_compositional --confidence_level 0.95 --time_budget 120 --scenario "SOCXS" --compositional; } &> storage/results/fixed_time_compositional_SOCXS.txt &
-p
