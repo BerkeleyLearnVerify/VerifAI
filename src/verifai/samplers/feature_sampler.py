@@ -300,10 +300,7 @@ class LateFeatureSampler(FeatureSampler):
                     if not self.space.featureNamed[f].lengthDomain:
                         point_dict[f] = val[t]
                     else:
-                        feat_list = []
-                        for l in range(len(val)):
-                            feat_list.append(val[l][t])
-                        point_dict[f] = tuple(feat_list)
+                        point_dict[f] = tuple(v[t] for v in val)
 
                 dynamic_points.append(self.space.makeDynamicPoint(*point_dict.values()))
 

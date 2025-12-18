@@ -1042,7 +1042,7 @@ class FeatureSpace:
         corresponding Domain of other features. If the FeatureSpace has no
         feature lists, then returns (None, dom) where dom is the fixed Domain
         of all features. If any Features are TimeSeriesFeatures then they are
-        expanded to the a max of timeBound.
+        expanded to a max of timeBound.
         """
         fixedDomains = {}
         lengthDomains = {}
