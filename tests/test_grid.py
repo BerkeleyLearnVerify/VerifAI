@@ -63,6 +63,6 @@ def test_grid_non_standardizable():
         'b': Feature(FilteredDomain(Box([0,1]), lambda x: x[0] > 0.5))
     })
     sampler = FeatureSampler.gridSamplerFor(space)
-    samples = [s.staticSample for s in sampler]
+    samples = [s for s in sampler]
     assert len(samples) == 13
     assert all(sample.b[0] > 0.5 for sample in samples)
