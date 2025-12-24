@@ -1037,7 +1037,7 @@ class Sample(ABC):
     def __getattr__(self, attr):
         space = super().__getattribute__("space")
         if attr in space.staticFeatureNamed:
-            return getattr(space.staticSample, attr)
+            return getattr(self.staticSample, attr)
         elif attr in space.dynamicFeatureNamed:
             class DynamicFeatureHelper:
                 def __init__(self, dynamicSampleHistory, attr):
@@ -1045,6 +1045,8 @@ class Sample(ABC):
                     self.attr = attr
 
                 def __getitem__(self, i):
+                    if i > len(self.dynamicSampleHistory):
+                        raise ValueError("Attempting to access dynamic sample value that has not been sampled.")
                     return getattr(self.dynamicSampleHistory[i], self.attr)
 
             return DynamicFeatureHelper(self.dynamicSampleHistory, attr)
@@ -1269,19 +1271,19 @@ class FeatureSpace:
             domain = feature.domain
             if feature.lengthDomain:
                 if index == 0:
-                    return f'len({pointName}.staticSample.{name})'
+                    return f'len({pointName}.{name})'
                 else:
                     index -= 1
                     elem = index // domain.flattenedDimension
                     if elem < feature.maxLength:
                         subIndex = index % domain.flattenedDimension
-                        subPoint = f'{pointName}.staticSample.{name}[{elem}]'
+                        subPoint = f'{pointName}.{name}[{elem}]'
                         return domain.meaningOfFlatCoordinate(subIndex,
                             pointName=subPoint)
                     index -= feature.maxLength * domain.flattenedDimension
             else:
                 if index < domain.flattenedDimension:
-                    subPoint = f'{pointName}.staticSample.{name}'
+                    subPoint = f'{pointName}.{name}'
                     return domain.meaningOfFlatCoordinate(index,
                                                           pointName=subPoint)
                 index -= domain.flattenedDimension
@@ -1301,7 +1303,7 @@ class FeatureSpace:
                         elem = index // domain.flattenedDimension
                         if elem < feature.maxLength:
                             subIndex = index % domain.flattenedDimension
-                            subPoint = f'{pointName}.dynamicSampleHistory[{time_i}].{name}[{elem}]'
+                            subPoint = f'{pointName}.{name}[{time_i}][{elem}]'
                             return domain.meaningOfFlatCoordinate(subIndex,
                                 pointName=subPoint)
                         index -= feature.maxLength * domain.flattenedDimension
@@ -1309,7 +1311,7 @@ class FeatureSpace:
                 index -= 1
                 for time_i in range(self.timeBound):
                     if index < domain.flattenedDimension:
-                        subPoint = f'{pointName}.dynamicSampleHistory[{time_i}].{name}'
+                        subPoint = f'{pointName}.{name}[{time_i}]'
                         return domain.meaningOfFlatCoordinate(index,
                                                             pointName=subPoint)
                     index -= domain.flattenedDimension

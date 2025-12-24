@@ -29,18 +29,18 @@ def test_fs_flatten_fixed_dimension():
         flat = space.flatten(point, fixedDimension=True)
         assert type(flat) is tuple
         assert len(flat) == 4
-        bLen = len(point.staticSample.b)
-        assert eval(space.meaningOfFlatCoordinate(0)) == point.staticSample.a[0]
+        bLen = len(point.b)
+        assert eval(space.meaningOfFlatCoordinate(0)) == point.a[0]
         assert flat[1] == bLen
         assert eval(space.meaningOfFlatCoordinate(1)) == bLen
         if bLen < 1:
             assert flat[2] is None
         else:
-            assert eval(space.meaningOfFlatCoordinate(2)) == point.staticSample.b[0][0]
+            assert eval(space.meaningOfFlatCoordinate(2)) == point.b[0][0]
         if bLen < 2:
             assert flat[3] is None
         else:
-            assert eval(space.meaningOfFlatCoordinate(3)) == point.staticSample.b[1][0]
+            assert eval(space.meaningOfFlatCoordinate(3)) == point.b[1][0]
         unflat = space.unflatten(flat, fixedDimension=True)
         assert point.staticSample == unflat.staticSample
     assert space.pandasIndexForFlatCoordinate(0) == ('a', 0)
@@ -62,19 +62,19 @@ def test_fs_flatten_fixed_dimension2():
         flat = space.flatten(point, fixedDimension=True)
         assert type(flat) is tuple
         assert len(flat) == 6
-        bLen = len(point.staticSample.b)
+        bLen = len(point.b)
         assert 1 <= bLen <= 3
         assert flat[0] == bLen
         assert eval(space.meaningOfFlatCoordinate(0)) == bLen
-        assert eval(space.meaningOfFlatCoordinate(1)) == point.staticSample.b[0]
+        assert eval(space.meaningOfFlatCoordinate(1)) == point.b[0]
         if bLen < 2:
             assert flat[2] is None
         else:
-            assert eval(space.meaningOfFlatCoordinate(2)) == point.staticSample.b[1]
+            assert eval(space.meaningOfFlatCoordinate(2)) == point.b[1]
         if bLen < 3:
             assert flat[3] is None
         else:
-            assert eval(space.meaningOfFlatCoordinate(3)) == point.staticSample.b[2]
+            assert eval(space.meaningOfFlatCoordinate(3)) == point.b[2]
         unflat = space.unflatten(flat, fixedDimension=True)
         assert point.staticSample == unflat.staticSample
     assert space.pandasIndexForFlatCoordinate(0) == ('b', 'length')
@@ -104,7 +104,7 @@ def test_fs_flatten_fixed_dimension_dynamic():
         flat = space.flatten(point, fixedDimension=True)
         assert type(flat) is tuple
         assert len(flat) == 13
-        assert eval(space.meaningOfFlatCoordinate(0)) == point.staticSample.a[0]
+        assert eval(space.meaningOfFlatCoordinate(0)) == point.a[0]
         assert flat[1] == duration
         for t in range(duration):
             offset = 2*t

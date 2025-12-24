@@ -17,7 +17,7 @@ def test_feature_sampling():
     sampler = FeatureSampler.randomSamplerFor(space)
 
     sample = sampler.getSample()
-    static_point = sample.staticSample
+    static_point = sample
 
     assert len(static_point.a) == 1
     assert 0 <= static_point.a[0] <= 12
@@ -31,6 +31,12 @@ def test_feature_sampling():
         assert 2 <= dynamic_point.c[0] <= 5
         assert 0 <= len(dynamic_point.d) <= 2
         assert all(5 <= v[0] <= 6 for v in dynamic_point.d)
+
+    for i in range(space.timeBound):
+        assert len(sample.c[i]) == 1
+        assert 2 <= sample.c[i][0] <= 5
+        assert 0 <= len(sample.d[i]) <= 2
+        assert all(5 <= v[0] <= 6 for v in sample.d[i])
 
 ## Random sampling
 
@@ -97,8 +103,8 @@ def test_space_random():
         assert any(len(sample.b) == 1 for sample in samples)
         assert any(len(sample.b) == 2 for sample in samples)
 
-    check([sampler.getSample().staticSample for i in range(100)])
-    check(list(s.staticSample for s in itertools.islice(sampler, 100)))
+    check([sampler.getSample() for i in range(100)])
+    check(list(s for s in itertools.islice(sampler, 100)))
 
 def test_random_restore(tmpdir):
     space = FeatureSpace({

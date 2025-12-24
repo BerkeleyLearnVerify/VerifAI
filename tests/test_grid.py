@@ -16,7 +16,7 @@ def test_grid():
         try:
             sample = sampler.getSample()
             sample.update(None)
-            sample = sample.staticSample
+            sample = sample
             dict_samples[(sample.weather[0], sample.car_positions[0],
                           sample.car_positions[1])] = 0
         except TerminationException:
@@ -50,7 +50,7 @@ def test_grid_oper():
     for i in range(21):
         sample = sampler.getSample()
         sample.update(None)
-        sample = sample.staticSample
+        sample = sample
         samples.append(sample)
         y_samples.append(f(sample))
 

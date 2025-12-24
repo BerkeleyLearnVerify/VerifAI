@@ -16,7 +16,7 @@ def test_objects(new_Object):
         maxIterations=1
     )
     sample = sampler.getSample()
-    objects = sample.staticSample.objects
+    objects = sample.objects
     assert len(objects) == 1
     pos = objects.object0.position
     assert type(pos) is tuple
@@ -28,7 +28,7 @@ def test_params(new_Object):
         f'ego = {new_Object}',
         maxIterations=1
     )
-    sample = sampler.getSample().staticSample
+    sample = sampler.getSample()
     x = sample.params.x
     assert type(x) is float
     assert 3 <= x <= 5
@@ -39,7 +39,7 @@ def test_quoted_param(new_Object):
         f'ego = {new_Object}',
         maxIterations=1
     )
-    sample = sampler.getSample().staticSample
+    sample = sampler.getSample()
     v = sampler.paramDictForSample(sample)['x/y']
     assert type(v) is float
     assert 3 <= v <= 5
@@ -49,7 +49,7 @@ def test_lists(new_Object):
         f'ego = {new_Object} with foo [1, -1, 3.3]',
         maxIterations=1
     )
-    sample = sampler.getSample().staticSample
+    sample = sampler.getSample()
     foo = sample.objects.object0.foo
     assert type(foo) is tuple
     assert foo == pytest.approx((1, -1, 3.3))
@@ -69,7 +69,7 @@ def test_object_order(new_Object):
         maxIterations=1
     )
     sample = sampler.getSample()
-    objects = sample.staticSample.objects
+    objects = sample.objects
     assert len(objects) == 11
     for i in range(len(objects)):
         name = ScenicSampler.nameForObject(i)
@@ -93,9 +93,9 @@ def test_active_sampling(new_Object):
         maxIterations=1
     )
     def f(sample):
-        return -1 if sample.staticSample.objects.object0.position[0] < 0 else 1
+        return -1 if sample.objects.object0.position[0] < 0 else 1
     samples = sampleWithFeedback(sampler, 120, f)
-    xs = [sample.staticSample.objects.object0.position[0] for sample in samples]
+    xs = [sample.objects.object0.position[0] for sample in samples]
     assert all(-1 <= x <= 1 for x in xs)
     assert any(x > 0 for x in xs)
     assert 66 <= sum(x < 0 for x in xs[50:])
@@ -112,7 +112,7 @@ def test_active_save_restore(new_Object, tmpdir):
 
 def runSampler(sampler):
     for i in range(3):
-        sample = sampler.getSample().staticSample
+        sample = sampler.getSample()
         print(f'Sample #{i}:')
         print(sample)
 
