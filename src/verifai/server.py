@@ -144,7 +144,7 @@ class Server:
                 sampler_params=params
             )
 
-        if (self.sample_space.dynamicFeatureNamed) != 0:
+        if self.sample_space.hasTimeSeries:
             raise ValueError("Sample space for `Server` cannot contain `TimeSeriesFeature`")
 
     def listen(self):

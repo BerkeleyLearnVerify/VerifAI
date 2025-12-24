@@ -47,18 +47,6 @@ class DomainSampler:
         """
         pass
 
-    # TODO: Deprecate
-    # def nextSample(self, feedback=None):
-    #     """Generate the next sample, given feedback from the last sample.
-
-    #     This exists only for backwards-compatibility. It has been replaced by
-    #     the getSample and update APIs.
-    #     """
-    #     if self.last_sample is not None:
-    #         self.update(self.last_sample, self.last_info, feedback)
-    #     self.last_sample, self.last_info = self.getSample()
-    #     return self.last_sample
-
     def __iter__(self):
         try:
             while True:

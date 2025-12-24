@@ -224,8 +224,8 @@ def spaceForScenario(scenario, ignoredProperties):
     return space, quotedParams
 
 class ScenicSample(Sample):
-    def __init__(self, space, staticSample, updateCallback):
-        super().__init__(space)
+    def __init__(self, space, staticSample, updateCallback, dynamicSampleLengths):
+        super().__init__(space, dynamicSampleLengths)
         self._staticSample = staticSample
         self._updateCallback = updateCallback
 
@@ -234,7 +234,7 @@ class ScenicSample(Sample):
         return self._staticSample
 
     def _getDynamicSample(self, info):
-        raise RuntimeError("ScenicSample does not support dynamic sampling.")
+        raise RuntimeError("ScenicSampler does not support dynamic sampling.")
 
     def update(self, rho):
         self._updateCallback(rho)
@@ -310,24 +310,13 @@ class ScenicSampler(FeatureSampler):
         self.lastFeedback = None
         self.lastScene, _ = ret
 
-        staticSample = self.pointForScene(self.lastScene)
-        updateCallback = lambda rho: self.update(0, rho)
-
-        return ScenicSample(self.space, staticSample, updateCallback)
+        return self.pointForScene(self.lastScene)
 
     def update(self, sample_id, rho):
         assert sample_id == 0
         if self.lastFeedback is not None:
             raise RuntimeError("Called `update` twice in a row (ScenicSampler does not support non-sequential sampling)")
         self.lastFeedback = rho
-
-    # TODO: Deprecate
-    # def nextSample(self, feedback=None):
-    #     ret = self.scenario.generate(
-    #         maxIterations=self.maxIterations, feedback=feedback, verbosity=0
-    #     )
-    #     self.lastScene, _ = ret
-    #     return self.pointForScene(self.lastScene)
 
     def pointForScene(self, scene):
         """Convert a sampled Scenic :obj:`~scenic.core.scenarios.Scene` to a point in our feature space.
@@ -362,7 +351,12 @@ class ScenicSampler(FeatureSampler):
             params[param] = pointForValue(subdom, scene.params[originalName])
         paramPoint = paramDomain.makePoint(**params)
 
-        return self.space.makeStaticPoint(objects=objPoint, params=paramPoint)
+        staticSample = self.space.makeStaticPoint(objects=objPoint, params=paramPoint)
+
+        updateCallback = lambda rho: self.update(0, rho)
+        dynamicSampleLengths = []
+
+        return ScenicSample(self.space, staticSample, updateCallback, dynamicSampleLengths)
 
     @staticmethod
     def nameForObject(i):
