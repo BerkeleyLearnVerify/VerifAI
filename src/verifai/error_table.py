@@ -1,4 +1,5 @@
-# This files defiens the error table as a panda object
+"""Tables for storing samples and simulation results and analyzing them."""
+
 import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
@@ -7,7 +8,7 @@ from dotmap import DotMap
 from collections import defaultdict
 from kmodes.kmodes import KModes
 
-class error_table():
+class ErrorTable():
     def __init__(self, space=None, table=None, column_type = None):
         assert space is not None or table is not None
         if space is not None:

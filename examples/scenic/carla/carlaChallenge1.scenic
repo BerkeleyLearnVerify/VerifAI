@@ -40,3 +40,6 @@ debris3 = new Cone following roadDirection from debris2 for Range(5, 10)
 
 require (distance to intersection) > 50
 terminate when (distance from debris3 to ego) > 10 and (distance to start) > 50
+
+record min(distance to debris1, distance to debris2, distance to debris3) - 5 as safe
+

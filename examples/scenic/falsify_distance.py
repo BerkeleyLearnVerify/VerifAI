@@ -7,8 +7,8 @@ from dotmap import DotMap
 
 from verifai.samplers import ScenicSampler
 from verifai.scenic_server import ScenicServer
-from verifai.falsifier import generic_falsifier
-from verifai.monitor import specification_monitor, mtl_specification
+from verifai.falsifier import Falsifier
+from verifai.monitor import Monitor
 
 # Load the Scenic scenario and create a sampler from it
 if len(sys.argv) > 1:
@@ -19,28 +19,26 @@ sampler = ScenicSampler.fromScenario(path, mode2D=True)
 
 # Define the specification (i.e. evaluation metric) as an MTL formula.
 # Our example spec will say that the ego object stays at least 5 meters away
-# from all other objects.
-class MyMonitor(specification_monitor):
-    def __init__(self):
-        self.specification = mtl_specification(['G safe'])
-        super().__init__(self.specification)
+# from all other objects. See the Scenic file for the defintion of the
+# signal "safe".
+monitor = Monitor.fromMTL("G safe")
 
-    def evaluate(self, simulation):
-        # Get trajectories of objects from the result of the simulation
-        traj = simulation.result.trajectory
+# Alternatively, we can define the specification manually as a function
+# taking the Scenic Simulation object as an argument.
+def specification(simulation):
+    # Get trajectories of objects from the result of the simulation
+    traj = simulation.result.trajectory
 
-        # Compute time-stamped sequence of values for 'safe' atomic proposition;
-        # we'll define safe = "distance from ego to all other objects > 5"
-        safe_values = []
-        for positions in traj:
-            ego = positions[0]
-            dist = min((ego.distanceTo(other) for other in positions[1:]),
-                       default=math.inf)
-            safe_values.append(dist - 5)
-        eval_dictionary = {'safe' : list(enumerate(safe_values)) }
+    # Compute time-stamped sequence of values for 'safe' atomic proposition;
+    # we'll define safe = "distance from ego to all other objects > 5"
+    safe_values = []
+    for positions in traj:
+        ego = positions[0]
+        dist = min((ego.distanceTo(other) for other in positions[1:]),
+                   default=math.inf)
+        safe_values.append(dist - 5)
 
-        # Evaluate MTL formula given values for its atomic propositions
-        return self.specification.evaluate(eval_dictionary)
+    return min(safe_values)
 
 # Set up the falsifier
 falsifier_params = DotMap(
@@ -53,11 +51,10 @@ falsifier_params = DotMap(
     # safe_table_path='safe_table.csv'
 )
 server_options = DotMap(maxSteps=100, verbosity=0)
-falsifier = generic_falsifier(sampler=sampler,
-                              monitor=MyMonitor(),
-                              falsifier_params=falsifier_params,
-                              server_class=ScenicServer,
-                              server_options=server_options)
+falsifier = Falsifier(sampler=sampler,
+                      monitor=monitor,  # could also put `specification` here
+                      falsifier_params=falsifier_params,
+                      server_options=server_options)
 
 # Perform falsification and print the results
 falsifier.run_falsifier()

@@ -1,10 +1,9 @@
-from abc import ABC
 from verifai.server import Server, ParallelServer
 from verifai.scenic_server import ScenicServer, ParallelScenicServer
 from verifai.samplers import TerminationException
 from dotmap import DotMap
-from verifai.monitor import mtl_specification, specification_monitor, multi_objective_monitor
-from verifai.error_table import error_table
+from verifai.monitor import Monitor, MultiObjectiveMonitor, to_monitor
+from verifai.error_table import ErrorTable
 import numpy as np
 import progressbar
 from statsmodels.stats.proportion import proportion_confint
@@ -16,14 +15,14 @@ def parallelized(server_class):
     elif server_class == ScenicServer:
         return ParallelScenicServer
 
-class falsifier(ABC):
+class Falsifier:
     def __init__(self, monitor, sampler_type=None, sampler=None, sample_space=None,
-                 falsifier_params=None, server_options={}, server_class=Server):
+                 falsifier_params=None, server_options={}, server_class=ScenicServer):
         self.sample_space = sample_space
         self.sampler_type = sampler_type
         self.sampler = sampler
         self.samples = {}
-        self.monitor = monitor
+        self.monitor = to_monitor(monitor)
 
         params = DotMap(
             save_error_table=True, save_safe_table=True,
@@ -36,7 +35,7 @@ class falsifier(ABC):
             params.update(falsifier_params)
         if params.sampler_params is None:
             params.sampler_params = DotMap(thres=params.fal_thres)
-        self.multi = isinstance(self.monitor, multi_objective_monitor)
+        self.multi = isinstance(self.monitor, MultiObjectiveMonitor)
         if self.multi:
             params.sampler_params.priority_graph = self.monitor.graph
         self.save_error_table = params.save_error_table
@@ -76,9 +75,9 @@ class falsifier(ABC):
     def init_error_table(self):
         # Initializing error table
         if self.save_error_table:
-            self.error_table = error_table(space = self.server.sample_space)
+            self.error_table = ErrorTable(space = self.server.sample_space)
         if self.save_safe_table:
-            self.safe_table = error_table(space = self.server.sample_space)
+            self.safe_table = ErrorTable(space = self.server.sample_space)
 
     def populate_error_table(self, sample, rho, error=True):
         if error:
@@ -188,33 +187,10 @@ class falsifier(ABC):
         if self.verbosity >= 1:
             print('Falsification complete.')
 
-class generic_falsifier(falsifier):
-    def __init__(self,  monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=Server):
-        if monitor is None:
-            class monitor(specification_monitor):
-                def __init__(self):
-                    def specification(traj):
-                        return np.inf
-                    super().__init__(specification)
-            monitor = monitor()
-
-        super().__init__(sample_space=sample_space, sampler_type=sampler_type,
-                         monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
-                         server_options=server_options, server_class=server_class)
-
-class mtl_falsifier(generic_falsifier):
-    def __init__(self, specification, sampler_type = None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=Server):
-        monitor = mtl_specification(specification=specification)
-        super().__init__(sample_space=sample_space, sampler_type=sampler_type,
-                         monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
-                         server_options=server_options, server_class=server_class)
-
-class parallel_falsifier(falsifier):
+class ParallelFalsifier(Falsifier):
 
     def __init__(self, monitor, sampler_type=None, sample_space=None,
-                 falsifier_params=None, server_options={}, server_class=Server, 
+                 falsifier_params=None, server_options={}, server_class=ScenicServer, 
                  sampler=None):
         self.num_workers = server_options.num_workers
         self.scenic_path = server_options.scenic_path
@@ -222,9 +198,9 @@ class parallel_falsifier(falsifier):
                          monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
                          server_options=server_options, server_class=parallelized(server_class))
 
-class generic_parallel_falsifier(parallel_falsifier):
+class GenericParallelFalsifier(ParallelFalsifier):
     def __init__(self, monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=Server):
+                 falsifier_params=None, server_options={}, server_class=ScenicServer):
         if monitor is None:
             class monitor(specification_monitor):
                 def __init__(self):
@@ -260,7 +236,7 @@ class generic_parallel_falsifier(parallel_falsifier):
         finally:
             self.server.terminate()
         samples, rhos = zip(*outputs)
-        if isinstance(self.monitor, multi_objective_monitor):
+        if isinstance(self.monitor, MultiObjectiveMonitor):
             counterexamples = [any([r <= self.fal_thres for r in rho]) for rho in rhos]
         else:
             counterexamples = [r <= self.fal_thres for r in rhos]

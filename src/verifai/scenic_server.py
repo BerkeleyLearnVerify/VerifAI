@@ -12,7 +12,6 @@ except ModuleNotFoundError:
 
 from verifai.server import Server, ServerTimings
 from verifai.samplers.scenic_sampler import ScenicSampler
-from verifai.monitor import multi_objective_monitor
 from scenic.core.simulators import SimulationCreationError
 from scenic.core.external_params import VerifaiSampler
 from scenic.core.distributions import RejectionException
