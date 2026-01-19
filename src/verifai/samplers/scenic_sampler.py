@@ -14,7 +14,7 @@ from scenic.simulators.gta.interface import CarModel as GTACarModel
 from scenic.simulators.webots.road.car_models import (
     CarModel as WebotsCarModel, carModels as webotsCarModels)
 
-from verifai.features import (Constant, Categorical, Real, Box, Array, Struct,
+from verifai.features import (Constant, Categorical, Real, Integer, Box, Array, Struct,
                               Feature, FeatureSpace)
 from verifai.samplers.feature_sampler import FeatureSampler
 from verifai.utils.frozendict import frozendict
@@ -219,7 +219,8 @@ def spaceForScenario(scenario, ignoredProperties):
 
     space = FeatureSpace({
         'objects': Feature(objects),
-        'params': Feature(params)
+        'params': Feature(params),
+        'sceneId': Feature(Integer())
     })
     return space, quotedParams
 
@@ -240,6 +241,8 @@ class ScenicSampler(FeatureSampler):
         if ignoredProperties is None:
             ignoredProperties = defaultIgnoredProperties
         space, self.quotedParams = spaceForScenario(scenario, ignoredProperties)
+        self.lastId = 0
+        self._id_scene_map = {}
         super().__init__(space)
 
     @classmethod
@@ -278,7 +281,9 @@ class ScenicSampler(FeatureSampler):
         ret = self.scenario.generate(
             maxIterations=self.maxIterations, feedback=feedback, verbosity=0
         )
+        self.lastId += 1
         self.lastScene, _ = ret
+        self._id_scene_map[self.lastId] = self.lastScene
         return self.pointForScene(self.lastScene)
 
     def pointForScene(self, scene):
@@ -314,7 +319,7 @@ class ScenicSampler(FeatureSampler):
             params[param] = pointForValue(subdom, scene.params[originalName])
         paramPoint = paramDomain.makePoint(**params)
 
-        return self.space.makePoint(objects=objPoint, params=paramPoint)
+        return self.space.makePoint(objects=objPoint, params=paramPoint, sceneId=self.lastId)
 
     @staticmethod
     def nameForObject(i):

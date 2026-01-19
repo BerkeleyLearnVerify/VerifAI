@@ -51,11 +51,13 @@ class ScenicServer(Server):
             self.simulator = self.sampler.scenario.getSimulator()
         else:
             self.simulator = defaults.simulator
+        self._id_result_map = {}
 
     def evaluate_sample(self, sample):
         scene = self.sampler.lastScene
         assert scene
         result = self._simulate(scene)
+        self._id_result_map[self.sampler.lastId] = result
         if result is None:
             return self.rejectionFeedback
         value = (0 if self.monitor is None
@@ -81,6 +83,13 @@ class ScenicServer(Server):
 
     def terminate(self):
         pass
+
+    def getScenicData(self, scene_id):
+        scenario = self.sampler.scenario
+        scene = self.sampler._id_scene_map[scene_id]
+        result = self._id_result_map[scene_id]
+
+        return (scenario, scene, result)
 
 class DummySampler(VerifaiSampler):
 
