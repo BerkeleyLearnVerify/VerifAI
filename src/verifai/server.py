@@ -179,6 +179,7 @@ class Server:
         self.client_socket.close()
 
     def get_sample(self):
+        print("Get sample in server")
         return self.sampler.getSample()
 
     def flatten_sample(self, sample):
