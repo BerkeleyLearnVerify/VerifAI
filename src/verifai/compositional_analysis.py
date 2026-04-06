@@ -155,7 +155,7 @@ class CompositionalAnalysisEngine:
             eps_rho_ratios.append(epsilon_i / rho_step)
 
         # Multiplicative error
-        uncertainty = rho * np.sqrt(np.sum([eps_rho_ratios**2 for eps_rho_ratios in eps_rho_ratios]))
+        uncertainty = rho * np.sqrt(np.sum([eps_rho_ratio**2 for eps_rho_ratio in eps_rho_ratios]))
 
         return rho, uncertainty
 
