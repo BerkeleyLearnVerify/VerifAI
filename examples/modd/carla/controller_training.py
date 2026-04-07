@@ -28,37 +28,13 @@ class resNet(torch.nn.Module):
         
 
 
-class convNet(torch.nn.Module):
-    """
-    CNN to train from scratch
-    """
-
-    def __init__(self):
-        super(convNet, self).__init__()
-        self.model = torch.nn.Sequential(
-            torch.nn.Conv2d(3, 32, kernel_size=3, stride=2),
-            torch.nn.LeakyReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Conv2d(32, 64, kernel_size=3, stride=2),
-            torch.nn.LeakyReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Conv2d(64, 128, kernel_size=3, stride=2),
-            torch.nn.LeakyReLU(),
-            torch.nn.Flatten(),
-        )
-
-    def forward(self, x):
-        h = self.model(x)
-        return h
-
-
 class CNN(torch.nn.Module):
     def __init__(self, resnet=False, pretrained=False):
         super(CNN, self).__init__()
         if resnet:
             self.model = resNet(pre_trained=pretrained)
         else:
-            self.model = convNet()
+            raise NotImplementedError
         self.fc1 = torch.nn.Linear(1000,1024)
         self.head = torch.nn.Linear(1024, 2)
         print(self.model)
@@ -146,52 +122,6 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image
 
 
-class CustomImageDataset(Dataset):
-    def __init__(self, annotations_file, img_dir):
-        self.img_labels = pd.read_csv(annotations_file)
-        self.img_dir = img_dir
-
-    def __len__(self):
-        return len(self.img_labels)
-
-    def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path) / 255  # squeeze into [0, 1]
-        label = self.img_labels.iloc[idx, 1]
-        return image, torch.FloatTensor([label])
-
-
-def load_data_csv(
-    data_dir,
-    split_ratio=0.1,
-    seed=0,
-):
-    """
-    Load data and split into train validation
-    """
-
-    with open(os.path.join(data_dir, "data.csv")) as f:
-        data = pd.read_csv(f)
-    data_size = len(data)
-    print(data_size)
-    # split into train and test
-    data = data.sample(frac=1, random_state=seed).reset_index(drop=True)
-
-    train_sample = int(data_size * (1 - split_ratio))
-    xtrain_image = data.loc[:train_sample]
-    xval_image = data.loc[train_sample:]
-    # save xtrain_image and xval_image to data_dir
-    xtrain_image.to_csv(os.path.join(data_dir, "xtrain_image.csv"), index=False)
-    xval_image.to_csv(os.path.join(data_dir, "xval_image.csv"), index=False)
-    train_dataset = CustomImageDataset(
-        annotations_file=os.path.join(data_dir, "xtrain_image.csv"),
-        img_dir=os.path.join(data_dir, "imgs"),
-    )
-    val_dataset = CustomImageDataset(
-        annotations_file=os.path.join(data_dir, "xval_image.csv"),
-        img_dir=os.path.join(data_dir, "imgs"),
-    )
-    return train_dataset, val_dataset
 
 class CustomDataset(Dataset):
 
@@ -229,7 +159,6 @@ def sort_paths(folder_path):
         
 def load_data_np(
     data_dir,
-    n_controller,
     split_ratio=0.1,
     seed=0,
 ):
@@ -248,7 +177,6 @@ def load_data_np(
         if len(os.listdir(sim)) > 0:
             loaded_imgs = [cv2.imread(img) for img in sort_paths(sim)]
             imgs = np.array(loaded_imgs)[:, 80:160, 40:600]
-            print(imgs.shape)
             dist = np.expand_dims(np.load(sim + "dist.npz")["values"], axis=0) / 30
             cte = np.expand_dims(np.load(sim + "cte.npz")["values"], axis=0)
             labels = np.transpose(np.concatenate((cte,dist)))
@@ -261,7 +189,7 @@ def load_data_np(
                 ds = torch.utils.data.ConcatDataset([ds,dsi])
                 i0 +=1
         else:
-            print(f"Folder {sim} should be removed. CARLA NOT LOADED")
+            print(f"Folder {sim} should be removed. No images in the folder")
     print(f"Total of {len(ds)} images")
 
     train_dataset, val_dataset = torch.utils.data.random_split(ds, [1-split_ratio, split_ratio])
@@ -274,8 +202,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Train CNN")
 parser.add_argument("--data_dir", type=str, default="./training_data/")
 parser.add_argument("--model_dir", type=str, default="./models")
-parser.add_argument("--model_name", type=str, default="model")
-parser.add_argument("--n_controller", type=int, default=0)
+parser.add_argument("--model_name", type=str, default="controller_cte_dist")
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -287,14 +214,12 @@ if __name__ == "__main__":
     device="cuda"
 
     os.makedirs(args.model_dir, exist_ok=True)
-    n = args.n_controller
-    train_dataset, val_dataset = load_data_np(args.data_dir, n)
-    print(train_dataset[0])
+    train_dataset, val_dataset = load_data_np(args.data_dir)
     train_cnn(
         train_dataset=train_dataset,
         val_dataset=val_dataset,
         save_path=args.model_dir,
         resnet=True,
-        model_name=f"controller_cte_dist", 
+        model_name=args.model_name, 
     )
     

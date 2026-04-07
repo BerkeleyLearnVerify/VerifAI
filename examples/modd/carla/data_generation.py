@@ -56,7 +56,6 @@ for i in range(last_folder, num_of_simulations):
         
     sim_dir = f"{data_dir}{i}"
     if not os.path.exists(sim_dir):
-        # shutil.rmtree(modd_dir)
         os.mkdir(sim_dir)
 
     flag_good = False

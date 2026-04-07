@@ -142,14 +142,14 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
                     else:
                         current_speed = 0
 
-                    cte = trajectory_centerline.signedDistanceTo(self.position)
+                    self.cte = trajectory_centerline.signedDistanceTo(self.position)
                     speed_error = target_speed - current_speed
 
                     # compute throttle : Longitudinal Control
                     throttle = _lon_controller.run_step(speed_error)
 
                     # compute steering : Latitudinal Control
-                    current_steer_angle = _lat_controller.run_step(cte)
+                    current_steer_angle = _lat_controller.run_step(self.cte)
 
                     take RegulatedControlAction(throttle, current_steer_angle, past_steer_angle)
                     past_steer_angle = current_steer_angle
@@ -171,25 +171,18 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
         if is_oppositeTraffic:
             self.cte = -self.cte
 
-        #if leaderCar:
-        #    print(self.cte)
         speed_error = target_speed - current_speed
 
-        #if leaderCar:
-        #     speed_error += random.randrange(-2,2)
+        if leaderCar:
+            speed_error += random.randrange(-2,2)
 
         # compute throttle : Longitudinal Control
         throttle = _lon_controller.run_step(speed_error)
 
-        # compute steering : Lateral Control
-        # if distance from self to intersection < TRIGGER_DISTANCE_TO_SLOWDOWN:
-        #     print("Entering intersection?")
-        #     print(len(current_lane.maneuvers))
-        #    self.cte = 0
         current_steer_angle = _lat_controller.run_step(self.cte) 
 
         if leaderCar:
-            # current_steer_angle += 1/2 * random.randrange(-1,2) * random.random()
+            current_steer_angle += 1/2 * random.randrange(-1,2) * random.random()
             if distance from self to leaderCar > 10:
                 throttle = 0.6
             if distance from self to leaderCar < 4:
@@ -204,28 +197,9 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
 
 
 
-#EGO BEHAVIOR: Follow lane and brake when reaches threshold distance to obstacle
-behavior EgoBehavior(speed, leader, leaderCar=None): 
-    try:
-        do FollowLaneBehaviorModified(target_speed=speed)
-
-    interrupt when self._intersection:
-        if leader:
-            maneuvers = self._intersection.maneuversAt(self.position)
-            select_maneuver = Uniform(maneuvers)
-            if maneuver.connectingLane:
-                self.trajectory = [maneuver.startLane, maneuver.connectingLane, maneuver.endLane]
-            else:
-                self.trajectory = [maneuver.startLane, maneuver.endLane]
-            #print(maneuver.type)
-            do FollowTrajectoryBehavior(trajectory=self.trajectory, target_speed=EGO_SPEED)
-        else:
-            do FollowTrajectoryBehavior(trajectory=leaderCar.trajectory, target_speed=EGO_SPEED)
-
 #PLACEMENT
 lane = Uniform(*network.lanes)
 trajectory = [lane]
-#for _ in range(1):
 maneuver = Uniform(*lane.maneuvers)
 trajectory += [maneuver.connectingLane, maneuver.endLane]
 

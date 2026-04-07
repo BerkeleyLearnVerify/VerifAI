@@ -45,38 +45,13 @@ class resNet(torch.nn.Module):
         return self.model(x)
         
 
-
-class convNet(torch.nn.Module):
-    """
-    CNN to train from scratch
-    """
-
-    def __init__(self):
-        super(convNet, self).__init__()
-        self.model = torch.nn.Sequential(
-            torch.nn.Conv2d(3, 32, kernel_size=3, stride=2),
-            torch.nn.LeakyReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Conv2d(32, 64, kernel_size=3, stride=2),
-            torch.nn.LeakyReLU(),
-            torch.nn.MaxPool2d(kernel_size=2),
-            torch.nn.Conv2d(64, 128, kernel_size=3, stride=2),
-            torch.nn.LeakyReLU(),
-            torch.nn.Flatten(),
-        )
-
-    def forward(self, x):
-        h = self.model(x)
-        return h
-
-
 class CNN(torch.nn.Module):
     def __init__(self, resnet=False, pretrained=False):
         super(CNN, self).__init__()
         if resnet:
             self.model = resNet(pre_trained=pretrained)
         else:
-            self.model = convNet()
+            raise NotImplementedError
         self.fc1 = torch.nn.Linear(1000,1024)
         self.head = torch.nn.Linear(1024, 2)
         
@@ -121,9 +96,6 @@ EGO_ACCELERATION_THRESHOLD = 10
 
 
 monitor_model = None
-#if globalParameters.monitor != "":
-#    with open(globalParameters.monitor, 'rb') as f:
-#        monitor_model = pickle.load(f) 
         
         
         
@@ -208,7 +180,6 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
                     self.select_maneuver = select_maneuver
                 else:
                     select_maneuver = leaderCar.turn_maneuver
-                    print(select_maneuver.type)
 
             elif len(current_lane.maneuvers) > 0:
                 select_maneuver = Uniform(*current_lane.maneuvers)
@@ -216,7 +187,6 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
                 take SetBrakeAction(1.0)
                 break
 
-            # print(select_maneuver.type)
 
             # assumption: there always will be a maneuver
             if select_maneuver.connectingLane != None:
@@ -246,7 +216,6 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
                 in_turning_lane = True
                 target_speed = TARGET_SPEED_FOR_TURNING
 
-                # do TurnBehavior(trajectory = current_centerline, target_speed=target_speed)
                 trajectory = current_centerline
                 target_speed = target_speed
                 if isinstance(trajectory, PolylineRegion):
@@ -266,14 +235,14 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
                     else:
                         current_speed = 0
 
-                    cte = trajectory_centerline.signedDistanceTo(self.position)
+                    self.cte = trajectory_centerline.signedDistanceTo(self.position)
                     speed_error = target_speed - current_speed
 
                     # compute throttle : Longitudinal Control
                     throttle = _lon_controller.run_step(speed_error)
 
                     # compute steering : Latitudinal Control
-                    current_steer_angle = _lat_controller.run_step(cte)
+                    current_steer_angle = _lat_controller.run_step(self.cte)
 
 
                     take RegulatedControlAction(throttle, current_steer_angle, past_steer_angle)
@@ -342,7 +311,6 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
             steps_running += 1
 
         if leaderCar and monitor_model and steps_running > 80:
-            # Input format: (weather, np.array([r,g,b, distIntersection, distObstacle, visibleObstacle, visibleLeader]))
             distIntersection = distance from self to intersection
             distObstacle = distance from self to obstacle
             visibleObstacle = int(ego can see obstacle)
@@ -391,7 +359,6 @@ behavior ControllerBehavior(target_speed = 10, controller_path = None, leaderCar
 
     
     # instantiate longitudinal and lateral controllers
-    # _lon_controller, _lat_controller = simulation().getLaneFollowingControllers(self)
     dt = simulation().timestep
     _lon_controller = PIDLongitudinalController(K_P=0.5, K_D=0.1, K_I=0.7, dt=dt)
     _lat_controller_turn = PIDLateralController(K_P=0.8, K_D=0.2, K_I=0.0, dt=dt)
@@ -463,7 +430,6 @@ behavior ControllerBehavior(target_speed = 10, controller_path = None, leaderCar
 
         # Monitor trigger
         if monitor_model:
-            # Input format: (weather, np.array([r,g,b, distIntersection, distObstacle, visibleObstacle, visibleLeader]))
             distIntersection = distance from self to intersection
             distObstacle = distance from self to obstacle
             distLeader = distance from self to leader

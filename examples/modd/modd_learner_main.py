@@ -25,6 +25,9 @@ from verifai.scenic_server import ScenicServer
 VERBOSITY = 1
 MODEL = "LR"
 
+#####################################################################
+#################### Datagen parameters #############################
+#####################################################################
 
 def preprocessing(traces):
     res = []
@@ -68,6 +71,11 @@ datagen_params = DotMap(
     verbosity=VERBOSITY,
 )
 
+
+#####################################################################
+#################### Trainer parameters #############################
+#####################################################################
+
 if MODEL == "DT":
     base_model = DecisionTreeClassifier(max_depth=10)
 
@@ -92,7 +100,6 @@ if MODEL == "NN_TORCH":
             )
             
         def forward(self, x):
-            # convert tensor (128, 1, 28, 28) --> (128, 1*28*28)
             x = self.layers(x)
             return x
 
@@ -106,6 +113,9 @@ trainer_params = DotMap(
 )
 
 
+#####################################################################
+#################### Eval parameters ################################
+#####################################################################
     
 def specification(trace):
         verdict = 0
@@ -114,9 +124,9 @@ def specification(trace):
 
 eval_params = DotMap(
     method="conformance_testing",
-    specification=specification,
-    eval_num_simulations=200, # To indicate how many samples are required as a minimum
-    eval_num_steps=300, 
+    specification=specification, # Safety specification
+    eval_num_simulations=200, # Number of simulations to evaluate the monitor
+    eval_num_steps=300, # Timesteps per simulation
     evaluation_results_path="", # Save the evaluation_results if not empty
     datagen_save_dir="./out/eval_samples_timeseries",
     scenes_save_dir="./out/scene_timeseries",
@@ -126,6 +136,11 @@ eval_params = DotMap(
 
 eval_params.save_model_path = trainer_params.save_model_path
 
+
+
+#####################################################################
+#################### Sampling parameters ############################
+#####################################################################
 
 class SpecMonitor(specification_monitor):
     def __init__(self):
@@ -138,12 +153,9 @@ class SpecMonitor(specification_monitor):
         distLeader = records["distLeader"]
 
         # Compute time-stamped sequence of values for 'safe' atomic proposition;
-        # we'll define safe = "distance from ego to all other objects > 5"
+        # we'll define safe = "distance from ego to leader < 20"
         safe_values = []
         for (_,dist) in distLeader:
-            # ego = positions[0]
-            # dist = min((ego.distanceTo(other) for other in positions[1:]),
-            #            default=math.inf)
             safe_values.append(20 - dist)
         eval_dictionary = {'safe' : list(enumerate(safe_values)) }
 
@@ -166,6 +178,10 @@ sampling_params = DotMap(
 )
 
 
+#####################################################################
+#################### Global parameters ##############################
+#####################################################################
+
 global_params = DotMap(
     initial_num_simulations=500,
     initial_num_steps=300, 
@@ -174,6 +190,11 @@ global_params = DotMap(
     refinement_iters=0, 
 )
 
+
+
+#####################################################################
+############################## MODD #################################
+#####################################################################
 
 modd = MODDLearner(datagen_params=datagen_params,
             trainer_params=trainer_params,

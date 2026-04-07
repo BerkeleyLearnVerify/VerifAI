@@ -1,8 +1,6 @@
 # MODD
 
-The MODD class receives a set of labeled traces and outputs a ODD Monitor.
-
-The MODD implements the boxes on the right side of the following diagram:
+The MODD class receives a set of labeled traces and outputs a ODD Monitor. It implements the boxes on the right side of the following diagram:
 
 ![alt text](MODD_diagram.png)
 
@@ -11,23 +9,17 @@ The MODD implements the boxes on the right side of the following diagram:
 
 Given a specification $\varphi$, VerifAI uses the sampler, analyzer and simulator to generate a set of traces $\{\sigma_i, \ell_i\}_i$.
 
-The MODD receives the set of evaluated simulation traces  $\{\sigma_i\}_i$, where each point $\sigma_i$ is defined by a features vector and a special feature namely the correctness of the specification, and generates a training dataset $\{\tau_i, \ell_i\}_i$, where $\tau_i$ is a vector and $\ell_i$ is a single value (Data Generation box in the diagram).
+The MODD class receives the set of evaluated simulation traces  $\{\sigma_i\}_i$, where each point $\sigma_i$ is defined by a features vector and a special feature namely the correctness of the specification, and generates a training dataset $\{\tau_i, \ell_i\}_i$, where $\tau_i$ is a vector and $\ell_i$ is a single value (Data Generation box in the diagram).
 
-The MODD uses then the training dataset $\{\tau_i, \ell_i'\}_i$ to train a monitor $M$ (Learner box).
+The MODD class uses then the training dataset $\{\tau_i, \ell_i'\}_i$ to train a monitor $M$ (Learner box).
 
-The MODD evaluates the monitor $M$ over some new simulations (Evaluation box). If the optimality objective is not met, the MODD will trigger the generation of new simulations to expand the training dataset and restart the training process.  
-
-### Run instructions
-- Create environment with python=3.9.
-- Clone the repository and install VerifAI as usual:
-        `python -m pip install -e .`
-- Change directory to examples/modd/
-- Run the example: `python ./modd_learner_follow.py`.
-
-
+The MODD class evaluates the monitor $M$ over some new simulations (Evaluation box). If the optimality objective is not met, the MODD will trigger the generation of new simulations to expand the training dataset and restart the training process.  
 
 
 ### Implementation details
+
+
+
 
 The MODD receives the following inputs:
 - datagen_params: Parameters required to generate the training dataset:
@@ -62,3 +54,23 @@ The MODD receives the following inputs:
     
 
 
+## Running instructions
+To get an MODD monitor, we assume access to an already trained controller. For our example, we trained the controller `examples/modd/carla/controller_cte_dist_130.pth`. Instructions for training other controllers are included at the end of this section.
+
+### Setup instructions for our example
+- Create a virtual environment with python=3.9.
+- Clone the repository and install VerifAI as usual:
+        `python -m pip install -e .`
+- Change directory to `examples/modd/`
+- Run the example: `python ./modd_learner_follow.py`.
+
+### Instructions for training controllers
+- Run `python data_generation.py [scenic_path] --data_dir [data_dir] --num_sim [num_sim] --num_steps [num_steps]` with the following parameters:
+    - `scenic_path`: path to the scenic file used to generate data. For our example, we used `followLeader_datagen.scenic`
+    - `data_dir`: Path to the folder where the training data will be saved.
+    - `num_sim`: Number of simulations.
+    - `num_steps`: Number of timesteps per simulation.
+- Run `python controller_training.py --data_dir [data_dir] --model_dir [model_dir] --model_name [model_name]` with the following parameters:
+    - `data_dir`: Path to the folder where the training data was saved.
+    - `model_dir`: Path to the folder where the trained model will be saved.
+    - `model_name`: Name of the saved model file.

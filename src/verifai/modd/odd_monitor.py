@@ -33,7 +33,6 @@ class GenericMonitor(Monitor):
 
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy*100:.2f}%")
-        # self.model.fit(training_set["X"], training_set["y"])
         return self.model
     
     def predict(self, x):
