@@ -155,12 +155,14 @@ class rulebook(ABC):
         
         # Use evaluate_segment to evaluate each segment
         if self.single_graph:
-            print('Actual rho:')
+            if self.verbosity >= 1:
+                print('Actual rho:')
             for i in range(len(segments)):
                 rho = self.evaluate_segment(simulation, 0, segments[i])
-                for r in rho:
-                    print(r, end=' ')
-                print()
+                if self.verbosity >= 1:
+                    for r in rho:
+                        print(r, end=' ')
+                    print()
             rho = self.evaluate_segment(simulation, 0, np.arange(0, len(simulation.result.trajectory)))
             return np.array([rho])
         else:
