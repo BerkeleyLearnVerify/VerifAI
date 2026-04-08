@@ -96,10 +96,8 @@ class FeatureSampler:
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable.
         """
-        print('(feature_sampler.py) Using mab sampler')
         if mab_params is None:
             mab_params = default_sampler_params('mab')
-        print('(feature_sampler.py) mab_params =', mab_params)
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: MultiArmedBanditSampler(domain=domain,
                                                    mab_params=mab_params))
@@ -111,10 +109,8 @@ class FeatureSampler:
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable.
         """
-        print('(feature_sampler.py) Using demab sampler')
         if demab_params is None:
             demab_params = default_sampler_params('demab')
-        print('(feature_sampler.py) demab_params =', demab_params)
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: DynamicExtendedMultiArmedBanditSampler(domain=domain,
                                                                   demab_params=demab_params))
@@ -126,10 +122,8 @@ class FeatureSampler:
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable.
         """
-        print('(feature_sampler.py) Using dmab sampler')
         if dmab_params is None:
             dmab_params = default_sampler_params('dmab')
-        print('(feature_sampler.py) dmab_params =', dmab_params)
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: DynamicMultiArmedBanditSampler(domain=domain,
                                                           dmab_params=dmab_params))
@@ -141,10 +135,8 @@ class FeatureSampler:
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable.
         """
-        print('(feature_sampler.py) Using dce sampler')
         if dce_params is None:
             dce_params = default_sampler_params('dce')
-        print('(feature_sampler.py) dce_params =', dce_params)
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: DynamicCrossEntropySampler(domain=domain,
                                                       dce_params=dce_params))
