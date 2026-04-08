@@ -177,17 +177,9 @@ class rulebook(ABC):
         pass
 
 class rule(specification_monitor):
-    def __init__(self, node_id, spec, spec_type='monitor'):
+    def __init__(self, node_id, spec):
         self.node_id = node_id
-        if spec_type == 'monitor': # spec is a function
-            super().__init__(spec)
-        else: # spec is MTL
-            mtl_specs = [mtl.parse(sp) for sp in spec]
-            mtl_spec = mtl_specs[0]
-            if len(mtl_specs) > 1:
-                for sp in mtl_specs[1:]:
-                    mtl_spec = (mtl_spec & sp)
-            super().__init__(mtl_spec)
+        super().__init__(spec)
     
     def evaluate(self, traj, indices=None):
         return self.specification(traj, indices)

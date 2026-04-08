@@ -103,21 +103,6 @@ class FeatureSampler:
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: MultiArmedBanditSampler(domain=domain,
                                                    mab_params=mab_params))
-
-    @staticmethod
-    def extendedMultiArmedBanditSamplerFor(space, emab_params=None):
-        """Creates an extended multi-armed bandit sampler for a given space.
-
-        Uses random sampling for lengths of feature lists and any Domains
-        that are not standardizable.
-        """
-        print('(feature_sampler.py) Using emab sampler')
-        if emab_params is None:
-            emab_params = default_sampler_params('emab')
-        print('(feature_sampler.py) emab_params =', emab_params)
-        return LateFeatureSampler(space, RandomSampler,
-            lambda domain: ExtendedMultiArmedBanditSampler(domain=domain,
-                                                   emab_params=emab_params))
     
     @staticmethod
     def dynamicExtendedMultiArmedBanditSamplerFor(space, demab_params=None):
@@ -163,21 +148,6 @@ class FeatureSampler:
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: DynamicCrossEntropySampler(domain=domain,
                                                       dce_params=dce_params))
-
-    @staticmethod
-    def dynamicUnifiedExtendedMultiArmedBanditSamplerFor(space, udemab_params=None):
-        """Creates a dynamic unified extended multi-armed bandit sampler for a given space.
-
-        Uses random sampling for lengths of feature lists and any Domains
-        that are not standardizable.
-        """
-        print('(feature_sampler.py) Using udemab sampler')
-        if udemab_params is None:
-            udemab_params = default_sampler_params('udemab')
-        print('(feature_sampler.py) udemab_params =', udemab_params)
-        return LateFeatureSampler(space, RandomSampler,
-            lambda domain: DynamicUnifiedExtendedMultiArmedBanditSampler(domain=domain,
-                                                                         udemab_params=udemab_params))
     
     @staticmethod
     def gridSamplerFor(space, grid_params=None):
@@ -340,11 +310,11 @@ def makeRandomSampler(domain):
 def default_sampler_params(sampler_type):
     if sampler_type == 'halton':
         return DotMap(sample_index=0, bases_skipped=0)
-    elif sampler_type in ('ce', 'eg', 'mab', 'emab'):
+    elif sampler_type in ('ce', 'eg', 'mab'):
         cont = DotMap(buckets=5, dist=None)
         disc = DotMap(dist=None)
         return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
-    elif sampler_type in ('demab', 'dmab', 'dce', 'udemab'):
+    elif sampler_type in ('demab', 'dmab', 'dce'):
         cont = DotMap(buckets=5, dist=None)
         disc = DotMap(dist=None)
         return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)

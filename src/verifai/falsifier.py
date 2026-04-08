@@ -163,7 +163,7 @@ class falsifier(ABC):
                     break
                 if self.verbosity >= 2:
                     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
-                if self.dynamic:
+                if self.dynamic and self.verbosity >= 1:
                     print('RHO')
                     for rh in rho:
                         for r in rh:
