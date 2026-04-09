@@ -8,7 +8,7 @@ from verifai.samplers.cross_entropy import DiscreteCrossEntropySampler
 from verifai.samplers.multi_objective import MultiObjectiveSampler
 from verifai.rulebook import rulebook
 
-class DynamicCrossEntropySampler(DomainSampler):
+class DynamicRulebookCrossEntropySampler(DomainSampler):
     verbosity = 1
     
     def __init__(self, domain, dce_params):
@@ -122,22 +122,14 @@ class ContinuousDynamicCESampler(BoxSampler, MultiObjectiveSampler):
         if len(rho) != self.num_properties:
             return
         
-        # AND
         is_ce = True
         for node in self.priority_graph.nodes:
             if rho[node] >= self.thres[node]:
                 is_ce = False
                 break
-        # OR
-        #is_ce = False
-        #for node in self.priority_graph.nodes:
-        #    if rho[node] < self.thres[node]:
-        #        is_ce = True
-        #        break
         
         if not is_ce:
             return
-        print('(dynamic_ce.py) IS CE! Updating!')
         for row, b in zip(self.dist, info):
             row *= self.alpha
             row[b] += 1 - self.alpha

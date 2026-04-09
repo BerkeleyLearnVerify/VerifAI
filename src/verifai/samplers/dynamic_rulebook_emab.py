@@ -8,22 +8,23 @@ from verifai.samplers.cross_entropy import DiscreteCrossEntropySampler
 from verifai.samplers.multi_objective import MultiObjectiveSampler
 from verifai.rulebook import rulebook
 
-class DynamicMultiArmedBanditSampler(DomainSampler):
+class DynamicRulebookExtendedMultiArmedBanditSampler(DomainSampler):
     verbosity = 1
     
-    def __init__(self, domain, dmab_params):
+    def __init__(self, domain, demab_params):
         super().__init__(domain)
-        self.alpha = dmab_params.alpha
-        self.thres = dmab_params.thres
-        self.cont_buckets = dmab_params.cont.buckets
-        self.cont_dist = dmab_params.cont.dist
-        self.disc_dist = dmab_params.disc.dist
-        self.cont_ce = lambda domain: ContinuousDynamicMABSampler(domain=domain,
+        self.alpha = demab_params.alpha
+        self.thres = demab_params.thres
+        self.cont_buckets = demab_params.cont.buckets
+        self.cont_dist = demab_params.cont.dist
+        self.disc_dist = demab_params.disc.dist
+        self.cont_ce = lambda domain: ContinuousDynamicEMABSampler(domain=domain,
                                                      buckets=self.cont_buckets,
                                                      dist=self.cont_dist,
                                                      alpha=self.alpha,
-                                                     thres=self.thres)
-        self.disc_ce = lambda domain: DiscreteDynamicMABSampler(domain=domain,
+                                                     thres=self.thres,
+                                                     exploration_ratio=rulebook.exploration_ratio)
+        self.disc_ce = lambda domain: DiscreteDynamicEMABSampler(domain=domain,
                                                    dist=self.disc_dist,
                                                    alpha=self.alpha,
                                                    thres=self.thres)
@@ -37,10 +38,10 @@ class DynamicMultiArmedBanditSampler(DomainSampler):
                                                                 partition,
                                                                 RandomSampler)
             for subsampler in self.split_samplers[id].samplers:
-                if isinstance(subsampler, ContinuousDynamicMABSampler):
+                if isinstance(subsampler, ContinuousDynamicEMABSampler):
                     subsampler.set_graph(priority_graph)
                     subsampler.compute_error_weight()
-                elif isinstance(subsampler, DiscreteDynamicMABSampler):
+                elif isinstance(subsampler, DiscreteDynamicEMABSampler):
                     assert True
                 else:
                     assert isinstance(subsampler, RandomSampler)
@@ -69,20 +70,20 @@ class DynamicMultiArmedBanditSampler(DomainSampler):
             return
         if self.using_sampler == -1:
             if self.verbosity >= 2:
-                print('(dynamic_mab.py) Getting feedback from segment', self.sampler_idx % self.num_segs)
+                print('(dynamic_emab.py) Getting feedback from segment', self.sampler_idx % self.num_segs)
             for i in range(len(rhos)):
                 self.split_samplers[i].update(sample, info, rhos[i])
         else:
             if self.verbosity >= 2:
-                print('(dynamic_mab.py) Getting feedback from segment', self.using_sampler)
+                print('(dynamic_emab.py) Getting feedback from segment', self.using_sampler)
             self.split_samplers[self.using_sampler].update(sample, info, rhos[self.using_sampler])
         self.sampler_idx += 1
 
-class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
-    verbosity = 2
+class ContinuousDynamicEMABSampler(BoxSampler, MultiObjectiveSampler):
+    verbosity = 1
 
     def __init__(self, domain, alpha, thres,
-                 buckets=10, dist=None, restart_every=100):
+                 buckets=10, dist=None, restart_every=100, exploration_ratio=2.0):
         super().__init__(domain)
         if isinstance(buckets, int):
             buckets = np.ones(self.dimension) * buckets
@@ -108,7 +109,7 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
         self.monitor = None
         self.rho_values = []
         self.restart_every = restart_every
-        self.exploration_ratio = 2.0
+        self.exploration_ratio = exploration_ratio
 
     def getVector(self):
         return self.generateSample()
@@ -175,7 +176,6 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
             for i, b in enumerate(info):
                 self.invalid[i][b] += 1.
             return
-        
         counter_ex_dict = {}
         idx = 0
         for node in sorted(self.priority_graph.nodes):
@@ -183,11 +183,13 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
             idx += 1
         counter_ex = tuple(rho[i] < self.thres[i] for i in range(len(rho)))
         error_value = self._compute_error_value(counter_ex_dict)
-        is_ce = self._update_counterexample(counter_ex, True)
+        if rulebook.using_continuous:
+            error_value = self._compute_error_value_continuous(rho)
+            print('(dynamic_emab.py) error_value =', error_value)
+        self._update_counterexample(counter_ex)
         for i, b in enumerate(info):
-            self.counts[i][b] += 1
-            if is_ce:
-                self.counterexamples[counter_ex][i][b] += 1
+            self.counts[i][b] += self.sum_error_weight
+            self.counterexamples[counter_ex][i][b] += error_value
         self.errors = self._get_total_counterexamples()
         self.t += 1
         if self.verbosity >= 2:
@@ -195,18 +197,25 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
         if self.verbosity >= 2:
             for ce in self.counterexamples:
                 if self._compute_error_value(ce) > 0:
-                    print('largest counterexamples =', ce, ', times =', int(np.sum(self.counterexamples[ce], axis = 1)[0]))
+                    print('counterexamples =', ce, ', times =', int(np.sum(self.counterexamples[ce], axis = 1)[0]/self._compute_error_value(ce)))
         if self.verbosity >= 2:
             proportions = self.errors / self.counts
             print('self.errors[0] =', self.errors[0])
             print('self.counts[0] =', self.counts[0])
             Q = proportions + np.sqrt(self.exploration_ratio / self.counts * np.log(self.t))
-            print('Q[0] =', Q[0], '\nfirst_term[0] =', proportions[0], '\nsecond_term[0] =', np.sqrt(2 / self.counts * np.log(self.t))[0], '\nratio[0] =', proportions[0]/(proportions+np.sqrt(2 / self.counts * np.log(self.t)))[0])
+            print('Q[0] =', Q[0], '\nfirst_term[0] =', proportions[0], '\nsecond_term[0] =', np.sqrt(self.exploration_ratio / self.counts * np.log(self.t))[0], '\nratio[0] =', proportions[0]/(proportions+np.sqrt(self.exploration_ratio / self.counts * np.log(self.t)))[0])
 
     def _compute_error_value(self, counter_ex):
         error_value = 0
-        for i in range(len(counter_ex)):
-            error_value += 2**(self.error_weight[i]) * counter_ex[i]
+        for key in counter_ex:
+            if counter_ex[key]:
+                error_value += 2**(self.error_weight[key])
+        return error_value
+    
+    def _compute_error_value_continuous(self, rho):
+        error_value = 0
+        for i in range(len(rho)):
+            error_value += 2**(self.error_weight[i]) * -1 * rho[i]
         return error_value
     
     def compute_error_weight(self):
@@ -238,5 +247,5 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
             if self.verbosity >= 2:
                 print(f"Node {key}: {value}")
 
-class DiscreteDynamicMABSampler(DiscreteCrossEntropySampler):
+class DiscreteDynamicEMABSampler(DiscreteCrossEntropySampler):
     pass

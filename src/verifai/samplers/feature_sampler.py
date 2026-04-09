@@ -20,11 +20,9 @@ from verifai.samplers.eg_sampler import EpsilonGreedySampler
 from verifai.samplers.bayesian_optimization import BayesOptSampler
 from verifai.samplers.simulated_annealing import SimulatedAnnealingSampler
 from verifai.samplers.grid_sampler import GridSampler
-from verifai.samplers.extended_multi_armed_bandit import ExtendedMultiArmedBanditSampler
-from verifai.samplers.dynamic_emab import DynamicExtendedMultiArmedBanditSampler
-from verifai.samplers.dynamic_mab import DynamicMultiArmedBanditSampler
-from verifai.samplers.dynamic_ce import DynamicCrossEntropySampler
-from verifai.samplers.dynamic_unified_emab import DynamicUnifiedExtendedMultiArmedBanditSampler
+from verifai.samplers.dynamic_rulebook_emab import DynamicRulebookExtendedMultiArmedBanditSampler
+from verifai.samplers.dynamic_rulebook_mab import DynamicRulebookMultiArmedBanditSampler
+from verifai.samplers.dynamic_rulebook_ce import DynamicRulebookCrossEntropySampler
 
 ### Samplers defined over FeatureSpaces
 
@@ -103,8 +101,8 @@ class FeatureSampler:
                                                    mab_params=mab_params))
     
     @staticmethod
-    def dynamicExtendedMultiArmedBanditSamplerFor(space, demab_params=None):
-        """Creates a dynamic extended multi-armed bandit sampler for a given space.
+    def dynamicRulebookExtendedMultiArmedBanditSamplerFor(space, demab_params=None):
+        """Creates a dynamic rulebook extended multi-armed bandit sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable.
@@ -112,12 +110,12 @@ class FeatureSampler:
         if demab_params is None:
             demab_params = default_sampler_params('demab')
         return LateFeatureSampler(space, RandomSampler,
-            lambda domain: DynamicExtendedMultiArmedBanditSampler(domain=domain,
-                                                                  demab_params=demab_params))
+            lambda domain: DynamicRulebookExtendedMultiArmedBanditSampler(domain=domain,
+                                                                          demab_params=demab_params))
     
     @staticmethod
-    def dynamicMultiArmedBanditSamplerFor(space, dmab_params=None):
-        """Creates a dynamic multi-armed bandit sampler for a given space.
+    def dynamicRulebookMultiArmedBanditSamplerFor(space, dmab_params=None):
+        """Creates a dynamic rulebook multi-armed bandit sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable.
@@ -125,12 +123,12 @@ class FeatureSampler:
         if dmab_params is None:
             dmab_params = default_sampler_params('dmab')
         return LateFeatureSampler(space, RandomSampler,
-            lambda domain: DynamicMultiArmedBanditSampler(domain=domain,
-                                                          dmab_params=dmab_params))
+            lambda domain: DynamicRulebookMultiArmedBanditSampler(domain=domain,
+                                                                  dmab_params=dmab_params))
     
     @staticmethod
-    def dynamicCrossEntropySamplerFor(space, dce_params=None):
-        """Creates a dynamic cross-entropy sampler for a given space.
+    def dynamicRulebookCrossEntropySamplerFor(space, dce_params=None):
+        """Creates a dynamic rulebook cross-entropy sampler for a given space.
 
         Uses random sampling for lengths of feature lists and any Domains
         that are not standardizable.
@@ -138,8 +136,8 @@ class FeatureSampler:
         if dce_params is None:
             dce_params = default_sampler_params('dce')
         return LateFeatureSampler(space, RandomSampler,
-            lambda domain: DynamicCrossEntropySampler(domain=domain,
-                                                      dce_params=dce_params))
+            lambda domain: DynamicRulebookCrossEntropySampler(domain=domain,
+                                                              dce_params=dce_params))
     
     @staticmethod
     def gridSamplerFor(space, grid_params=None):
