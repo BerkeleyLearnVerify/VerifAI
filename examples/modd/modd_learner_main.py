@@ -67,7 +67,7 @@ def labeler(train_data_samples):
 datagen_params = DotMap(
     preprocessing=preprocessing,
     labeler=labeler,
-    datagen_save_dir="./out/samples_timeseries",
+    datagen_save_dir=os.path.join(os.path.dirname(__file__), "out/samples_timeseries"),
     verbosity=VERBOSITY,
 )
 
@@ -108,7 +108,7 @@ if MODEL == "NN_TORCH":
 trainer_params = DotMap(
     model=base_model,
     training_results_path="",
-    save_model_path="./out/lr_timeseries.pkl",
+    save_model_path=os.path.join(os.path.dirname(__file__), "out/lr_timeseries.pkl"),
     verbosity=VERBOSITY,
 )
 
@@ -125,12 +125,12 @@ def specification(trace):
 eval_params = DotMap(
     method="conformance_testing",
     specification=specification, # Safety specification
-    eval_num_simulations=200, # Number of simulations to evaluate the monitor
+    eval_num_simulations=10, # Number of simulations to evaluate the monitor
     eval_num_steps=300, # Timesteps per simulation
     evaluation_results_path="", # Save the evaluation_results if not empty
-    datagen_save_dir="./out/eval_samples_timeseries",
-    scenes_save_dir="./out/scene_timeseries",
-    datagen_nomon_save_dir="./out/eval_samples_timeseries_nomonitor",
+    datagen_save_dir=os.path.join(os.path.dirname(__file__), "out/eval_samples_timeseries"),
+    scenes_save_dir=os.path.join(os.path.dirname(__file__), "out/scene_timeseries"),
+    datagen_nomon_save_dir=os.path.join(os.path.dirname(__file__), "out/eval_samples_timeseries_nomonitor"),
     verbosity=VERBOSITY,
 )
 
@@ -169,7 +169,7 @@ server_options = DotMap(maxSteps=300, verbosity=VERBOSITY)
 
 sampling_params = DotMap(
     path=path,
-    controller_path="./carla/models/controller_cte_dist_130.pth"
+    controller_path= os.path.join(os.path.dirname(__file__), 'carla/models/controller_cte_dist_130.pth'),
     spec_monitor=SpecMonitor(), 
     server_type="scenic",
     server_class=ScenicServer,
@@ -183,7 +183,7 @@ sampling_params = DotMap(
 #####################################################################
 
 global_params = DotMap(
-    initial_num_simulations=500,
+    initial_num_simulations=10,
     initial_num_steps=300, 
     refinement_num_simulations=1, 
     refinement_num_steps=250, 

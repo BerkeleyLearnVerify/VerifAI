@@ -48,28 +48,12 @@ class GenericEvaluator(Evaluator):
         try:
             while True:
                 try:
-                    if self.sampling_params.mode == "eval" or self.sampling_params.mode == "eval_nomonitor":
-                        start = time.time()
-                        sample = self.sampling_params.server.get_sample()
-                        after_sampling = time.time()
-                        scene = self.sampling_params.server.sampler.lastScene
-                        assert scene
-                        print(scene)
-                        print("Server", self.sampling_params.server)
-                        print("Sampler", self.sampling_params.server.sampler)
-                        print("Scenario", self.sampling_params.server.sampler.scenario)
-                        # data = self.sampling_params.server.sampler.scenario.sceneToBytes(scene, allowPickle=True)
-                        # if save_scenes_path:
-                        #     with open(f"{save_scenes_path}_{i}.scene", 'wb') as f: 
-                        #         f.write(data)
-                    # if self.sampling_params.mode == "eval_nomonitor":
-                    #     if save_scenes_path:
-                    #         with open(f"{save_scenes_path}_{i}.scene", 'rb') as f:
-                    #             data = f.read()
-                    #     scene = self.sampling_params.server.sampler.scenario.sceneFromBytes(data)
-                    #     assert scene
+                    start = time.time()
+                    sample = self.sampling_params.server.get_sample()
+                    after_sampling = time.time()
+                    scene = self.sampling_params.server.sampler.lastScene
+                    assert scene
                     result = self.sampling_params.server._simulate(scene)
-                    print(result)
                     if result is None:
                         return self.sampling_params.server.rejectionFeedback
                     print(f"Time steps run for this simulation: {len(result.trajectory)}")
@@ -94,11 +78,11 @@ class GenericEvaluator(Evaluator):
                     if i == 1:
                         t0 = time.time()
                     if i == num_simulations:
-                        filehandler = open(f"{save_datagen_path}_{i}.pkl", 'wb') 
+                        filehandler = open(f"{save_datagen_path}eval_{i}.pkl", 'wb') 
                         pickle.dump(self.samples, filehandler)
                         break
                     if i == 1 or i % 10 == 0:
-                        filehandler = open(f"{save_datagen_path}_{i}.pkl", 'wb') 
+                        filehandler = open(f"{save_datagen_path}eval_{i}.pkl", 'wb') 
                         pickle.dump(self.samples, filehandler)
 
                 except:
@@ -120,6 +104,9 @@ class GenericEvaluator(Evaluator):
     
     def generate(self, num_simulations, num_steps, save_path):
         save_scenes_path=self.eval_params.scenes_save_dir
+        if save_scenes_path[-1] != "/":
+            save_scenes_path += "/"
+        os.makedirs(save_path, exist_ok=True)
         self.sample_simulations(num_simulations, num_steps, os.path.abspath(save_path), os.path.abspath(save_scenes_path))
         self.evaluation_data = float(np.mean(np.array(self.evals)))
         print(f"-- Eval score: {self.evaluation_data}")
@@ -128,10 +115,16 @@ class GenericEvaluator(Evaluator):
     def evaluate(self, monitor):
         self.init_sampler("eval")
         save_path=self.eval_params.datagen_save_dir
+        if save_path[-1] != "/":
+            save_path += "/"
+        os.makedirs(save_path, exist_ok=True)
         eval_data = self.generate(self.eval_params.eval_num_simulations, self.eval_params.eval_num_steps, save_path)
         self.evaluation_results = {"eval_score": eval_data}
         self.init_sampler("eval_nomonitor")
         save_path=self.eval_params.datagen_nomon_save_dir
+        if save_path[-1] != "/":
+            save_path += "/"
+        os.makedirs(save_path, exist_ok=True)
         eval_data_nomon = self.generate(self.eval_params.eval_num_simulations, self.eval_params.eval_num_steps, save_path)
         self.evaluation_results["eval_score_nomon"] =  eval_data_nomon
         return self.evaluation_results

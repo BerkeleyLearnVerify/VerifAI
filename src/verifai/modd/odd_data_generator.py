@@ -5,6 +5,7 @@ from abc import ABC
 from verifai.modd.odd_sampler import ODDSampler
 import pickle
 import numpy as np
+import os
 
 class DataGenerator(ABC):
     def __init__(self,datagen_params, sampling_params,global_params):
@@ -84,12 +85,12 @@ class GenericDataGenerator(DataGenerator):
                 if i == 1:
                     t0 = time.time()
                 if i == num_simulations:
-                    filehandler = open(f"{save_path}_{i}.pkl", 'wb') 
+                    filehandler = open(f"{save_path}training_{i}.pkl", 'wb') 
                     pickle.dump(self.samples, filehandler)
                     break
                 if i == 1 or i % 10 == 0:
-                    print(f"Saving in {save_path}_{i}.pkl")
-                    filehandler = open(f"{save_path}_{i}.pkl", 'wb') 
+                    print(f"Saving in {save_path}training_{i}.pkl")
+                    filehandler = open(f"{save_path}training_{i}.pkl", 'wb') 
                     pickle.dump(self.samples, filehandler)
 
         finally:
@@ -102,17 +103,18 @@ class GenericDataGenerator(DataGenerator):
         return 0
     
     def load_simulations(self, load_path):
-        print(load_path)
         import os
-        print(os.listdir("./out/"))
         with open(load_path, 'rb') as f:
             return pickle.load(f)
 
     def generate(self, num_simulations, num_steps):
         self.init_sampler()
         save_path=self.datagen_params.datagen_save_dir
+        if save_path[-1] != "/":
+            save_path += "/"
+        os.makedirs(save_path, exist_ok=True)
         self.sample_simulations(num_simulations, num_steps, save_path)
-        self.samples = self.load_simulations(f"{save_path}_{num_simulations}.pkl") 
+        self.samples = self.load_simulations(f"{save_path}training_{num_simulations}.pkl") 
         if self.datagen_params.preprocessing:
             self.training_data = self.datagen_params.preprocessing(self.samples)
         if self.datagen_params.labeler:

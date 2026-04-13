@@ -72,7 +72,6 @@ model scenic.simulators.carla.model
 
 #CONSTANTS
 EGO_MODEL = "vehicle.tesla.model3"
-# Old speed before TimeSeries:
 LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
 EGO_SPEED = 3
 THROTTLE_ACTION = 0.5
