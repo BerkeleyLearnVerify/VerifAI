@@ -451,7 +451,7 @@ obstacle = new Car at 0 @ 25 relative to leader,
 
 ego = new Car following roadDirection from leader.position for EGO_TO_LEADER,
             with blueprint EGO_MODEL,
-            with behavior EgoBehavior(target_speed=EGO_SPEED, controller_path=globalParameters.monitor, leaderCar=leader, obstacleCar=obstacle),
+            with behavior EgoBehavior(target_speed=EGO_SPEED, controller_path=globalParameters.controller, leaderCar=leader, obstacleCar=obstacle),
             with cte 0,
             with distIntersec EGO_TO_LEADER,
             with isSafe 1,
