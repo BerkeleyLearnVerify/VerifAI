@@ -51,7 +51,6 @@ class ScenicServer(Server):
             self.simulator = self.sampler.scenario.getSimulator()
         else:
             self.simulator = defaults.simulator
-        print("Scenic server initialized")
 
     def evaluate_sample(self, sample):
         scene = self.sampler.lastScene
@@ -122,7 +121,6 @@ if ray:
             self.maxIterations = defaults.maxIterations
 
         def get_sample(self, sample):
-            print("Get sample in SampleSimulator")
             self.sampler.scenario.externalSampler.last_sample = sample
             self.full_sample = self.sampler.nextSample(sample)
 
