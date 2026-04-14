@@ -62,7 +62,7 @@ To get an MODD monitor, we assume access to an already trained controller. For o
 - Clone the repository and install VerifAI as usual:
         `python -m pip install -e .`
 - Change directory to `examples/modd/`
-- Run the example: `python ./modd_learner_follow.py`.
+- Run the example: `python ./modd_learner_main.py`.
 
 ### Instructions for training controllers
 - Run `python data_generation.py [scenic_path] --data_dir [data_dir] --num_sim [num_sim] --num_steps [num_steps]` with the following parameters:
