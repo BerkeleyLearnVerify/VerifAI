@@ -184,13 +184,13 @@ class FeatureSampler(ABC):
             while True:
                 sample = self.getSample()
                 rho = yield sample
-                sample.update(rho)
+                sample.complete(rho)
         except TerminationException:
             return
 
 
 class LateFeatureSampler(FeatureSampler):
-    """ FeatureSampler that greedily samples a CompleteSample.
+    """ FeatureSampler that greedily samples the dynamic portion of a Sample.
     
     LateFeatureSampler works as follows:
         1. Sample lengths of feature lists.
@@ -236,27 +236,25 @@ class LateFeatureSampler(FeatureSampler):
         info = (info1, info2)
         
         sample_id = self._get_info_id(info, length, domainPoint)
-        update_callback = lambda rho: self.update(sample_id, rho)
+        complete_callback = lambda rho: self.update(sample_id, rho)
 
         # Make static points and iterable over dynamic points
-        static_features = [v for v in domainPoint._asdict().items()
-                            if v[0] in self.space.staticFeatureNamed]
-        dynamic_features = [v for v in domainPoint._asdict().items()
-                            if v[0] not in self.space.staticFeatureNamed]
+        static_features = [(k, domainPoint._asdict()[k]) for k in self.space.staticFeatureNamed.keys()]
+        dynamic_features = [(k, domainPoint._asdict()[k]) for k in self.space.dynamicFeatureNamed.keys()]
         static_point = self.space.makeStaticPoint(*[v[1] for v in static_features])
 
         dynamic_points = []
         if self.space.hasTimeSeries:
             for t in range(self.space.timeBound):
-                point_dict = {}
+                raw_point_list = []
 
                 for f, val in dynamic_features:
                     if not self.space.featureNamed[f].lengthDomain:
-                        point_dict[f] = val[t]
+                        raw_point_list.append(val[t])
                     else:
-                        point_dict[f] = tuple(v[t] for v in val)
+                        raw_point_list.append(tuple(v[t] for v in val))
 
-                dynamic_points.append(self.space.makeDynamicPoint(*point_dict.values()))
+                dynamic_points.append(self.space.makeDynamicPoint(*raw_point_list))
 
 
         dynamicSampleLengths = ({feature_name: getattr(length, feature_name)[0]
@@ -264,7 +262,7 @@ class LateFeatureSampler(FeatureSampler):
                                  if feature.lengthDomain}
                                 if self.lengthSampler else {})
 
-        return CompleteSample(self.space, static_point, dynamic_points, update_callback, dynamicSampleLengths)
+        return CompleteSample(self.space, static_point, dynamic_points, complete_callback, dynamicSampleLengths)
 
     def update(self, sample_id, rho):
         info, lengthPoint, domainPoint = self._id_metadata_dict[sample_id]

@@ -15,7 +15,7 @@ def test_grid():
     while True:
         try:
             sample = sampler.getSample()
-            sample.update(None)
+            sample.complete(None)
             sample = sample
             dict_samples[(sample.weather[0], sample.car_positions[0],
                           sample.car_positions[1])] = 0
@@ -49,7 +49,7 @@ def test_grid_oper():
 
     for i in range(21):
         sample = sampler.getSample()
-        sample.update(None)
+        sample.complete(None)
         sample = sample
         samples.append(sample)
         y_samples.append(f(sample))

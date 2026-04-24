@@ -224,10 +224,10 @@ def spaceForScenario(scenario, ignoredProperties):
     return space, quotedParams
 
 class ScenicSample(Sample):
-    def __init__(self, space, staticSample, updateCallback, dynamicSampleLengths):
+    def __init__(self, space, staticSample, completeCallback, dynamicSampleLengths):
         super().__init__(space, dynamicSampleLengths)
         self._staticSample = staticSample
-        self._updateCallback = updateCallback
+        self._completeCallback = completeCallback
 
     @property
     def staticSample(self):
@@ -236,8 +236,8 @@ class ScenicSample(Sample):
     def _getDynamicSample(self, info):
         raise RuntimeError("ScenicSampler does not support dynamic sampling.")
 
-    def update(self, rho):
-        self._updateCallback(rho)
+    def complete(self, rho):
+        self._completeCallback(rho)
 
 class ScenicSampler(FeatureSampler):
     """Samples from the induced distribution of a Scenic scenario.
@@ -280,10 +280,8 @@ class ScenicSampler(FeatureSampler):
               e.g. ``params`` to override global parameters or ``model`` to set the
               :term:`world model`.
         """
-        if "params" not in kwargs:
-            kwargs["params"] = {}
-
-        kwargs["params"]["timeBound"] = maxSteps if maxSteps else 0
+        params = kwargs.setdefault("params", {})
+        params["timeBound"] = maxSteps if maxSteps else 0
 
         scenario = scenic.scenarioFromFile(path, **kwargs)
         return cls(scenario, maxIterations=maxIterations,
@@ -293,10 +291,8 @@ class ScenicSampler(FeatureSampler):
     def fromScenicCode(cls, code, maxIterations=None, maxSteps=None,
                        ignoredProperties=None, **kwargs):
         """As above, but given a Scenic program as a string."""
-        if "params" not in kwargs:
-            kwargs["params"] = {}
-
-        kwargs["params"]["timeBound"] = maxSteps if maxSteps else 0
+        params = kwargs.setdefault("params", {})
+        params["timeBound"] = maxSteps if maxSteps else 0
 
         scenario = scenic.scenarioFromString(code, **kwargs)
         return cls(scenario, maxIterations=maxIterations,
@@ -353,10 +349,10 @@ class ScenicSampler(FeatureSampler):
 
         staticSample = self.space.makeStaticPoint(objects=objPoint, params=paramPoint)
 
-        updateCallback = lambda rho: self.update(0, rho)
+        completeCallback = lambda rho: self.update(0, rho)
         dynamicSampleLengths = []
 
-        return ScenicSample(self.space, staticSample, updateCallback, dynamicSampleLengths)
+        return ScenicSample(self.space, staticSample, completeCallback, dynamicSampleLengths)
 
     @staticmethod
     def nameForObject(i):

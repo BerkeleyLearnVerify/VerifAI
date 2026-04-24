@@ -1031,7 +1031,7 @@ class Sample(ABC):
         return sample
 
     @abstractmethod
-    def update(self, rho):
+    def complete(self, rho):
         pass
 
     def __getattr__(self, attr):
@@ -1061,15 +1061,15 @@ class CompleteSample(Sample):
         space (FeatureSpace): The feature space this Sample was sampled from.
         staticSample: The static point for this sample
         dynamicSampleList: A list of the dynamic points for this sample.
-        updateCallback: A callback that is called with the value passed to update.
+        completeCallback: A callback that is called with the value passed to complete.
         dynamicSampleLengths (dict): A dictionary containing the lengths of each dynamic feature
             with a length domain.
     """
-    def __init__(self, space, staticSample, dynamicSampleList, updateCallback, dynamicSampleLengths):
+    def __init__(self, space, staticSample, dynamicSampleList, completeCallback, dynamicSampleLengths):
         super().__init__(space, dynamicSampleLengths)
         self._staticSample = staticSample
         self._dynamicSampleList = dynamicSampleList
-        self._updateCallback = updateCallback
+        self._completeCallback = completeCallback
         self._i = 0
 
     @property
@@ -1090,8 +1090,8 @@ class CompleteSample(Sample):
 
         return dynamic_sample
 
-    def update(self, rho):
-        return self._updateCallback(rho)
+    def complete(self, rho):
+        return self._completeCallback(rho)
 
 class FeatureSpace:
     """A space consisting of named features.
@@ -1474,9 +1474,9 @@ class FeatureSpace:
             dynamicSampleList = []
             dynamicSampleLengths = {}
 
-        updateCallback = lambda rho: None
+        completeCallback = lambda rho: None
 
-        sample = CompleteSample(space=self, staticSample=staticSample, dynamicSampleList=dynamicSampleList, updateCallback=updateCallback,dynamicSampleLengths=dynamicSampleLengths)
+        sample = CompleteSample(space=self, staticSample=staticSample, dynamicSampleList=dynamicSampleList, completeCallback=completeCallback, dynamicSampleLengths=dynamicSampleLengths)
 
         for _ in range(duration):
             sample.getDynamicSample()

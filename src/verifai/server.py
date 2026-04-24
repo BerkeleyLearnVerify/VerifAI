@@ -198,7 +198,7 @@ class Server:
         sample = self.get_sample()
         after_sampling = time.time()
         self.lastValue = self.evaluate_sample(sample.staticSample)
-        sample.update(self.lastValue)
+        sample.complete(self.lastValue)
         after_simulation = time.time()
         timings = ServerTimings(sample_time=(after_sampling - start),
                                 simulate_time=(after_simulation - after_sampling))
