@@ -996,7 +996,7 @@ class Feature:
         return rep + ')'
 
 class TimeSeriesFeature(Feature):
-    """A feature with a value at each timesetep of a simulation."""
+    """A feature with a value at each timestep of a simulation."""
     @staticmethod
     def _timeExpandDomain(domain, timeBound):
         return Array(domain, (timeBound,))

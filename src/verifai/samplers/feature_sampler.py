@@ -157,7 +157,7 @@ class FeatureSampler(ABC):
 
     @abstractmethod
     def getSample(self):
-        """Returns a `Sample` object"""
+        """Generate a `Sample`."""
         pass
 
     def set_graph(self, graph):
@@ -192,11 +192,11 @@ class FeatureSampler(ABC):
 class LateFeatureSampler(FeatureSampler):
     """ FeatureSampler that greedily samples a CompleteSample.
     
-    FeatureSampler works as follows:
+    LateFeatureSampler works as follows:
         1. Sample lengths of feature lists.
-        2. Expand TimeSeriesFeatures into flattened features with of length
+        2. Expand TimeSeriesFeatures into flattened features of length
            space.timeBound.
-        2. Sample from the resulting fixed-dimensional Domains.
+        3. Sample from the resulting fixed-dimensional Domains.
 
     e.g. LateFeatureSampler(space, RandomSampler, HaltonSampler) creates a
     FeatureSampler which picks lengths uniformly at random and applies
@@ -246,7 +246,7 @@ class LateFeatureSampler(FeatureSampler):
         static_point = self.space.makeStaticPoint(*[v[1] for v in static_features])
 
         dynamic_points = []
-        if any(isinstance(f, TimeSeriesFeature) for f in self.space.features):
+        if self.space.hasTimeSeries:
             for t in range(self.space.timeBound):
                 point_dict = {}
 
