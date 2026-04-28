@@ -28,7 +28,7 @@ def compute_hoeffding_samples(confidence_level, error_bound):
     return int(math.ceil(n))
 
 
-def _worker_generate_traces(save_dir, scenario, n, expert, model_path):
+def _worker_generate_traces(save_dir, scenario, n):
     print(f"[PID={os.getpid()}] Starting scenario {scenario}")
     # If n is None or inf, use a very large number that generate_traces can handle
     if n is None or n == float('inf'):
@@ -39,13 +39,11 @@ def _worker_generate_traces(save_dir, scenario, n, expert, model_path):
         n=traces_to_generate,
         save_dir=save_dir,
         scenario=scenario,
-        model_path=model_path,
-        expert=expert
     )
     print(f"[PID={os.getpid()}] Finished scenario {scenario}")
 
 
-def generate_traces_parallel(n, save_dir, scenarios, time_budget, expert, model_path):
+def generate_traces_parallel(n, save_dir, scenarios, time_budget):
     """
     Generate traces in parallel using multiprocessing with HARD STOP.
     Terminates all processes when time budget is reached, discarding only the current partial trace.
@@ -67,7 +65,7 @@ def generate_traces_parallel(n, save_dir, scenarios, time_budget, expert, model_
         print(f"Launching scenario {s}")
         p = mp.Process(
             target=_worker_generate_traces,
-            args=(save_dir, s, n, expert, model_path)
+            args=(save_dir, s, n)
         )
         p.start()
         processes.append((s, p))
@@ -245,7 +243,7 @@ def parse_scenario(input_scenario):
     return scenarios_set
 
 
-def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expert, model_path, confidence_level=None, error_bound=None, reuse_traces=False):
+def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, confidence_level=None, error_bound=None, reuse_traces=False):
     """
     Test scenario with hard time budget enforcement.
     Terminates all processes when time budget is reached.
@@ -262,7 +260,7 @@ def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expe
         scenarios = [input_scenario]
         
         if not reuse_traces:
-            logs = generate_traces_parallel(n=n, save_dir=save_dir, scenarios=scenarios, time_budget=time_budget, expert=expert, model_path=model_path)
+            logs = generate_traces_parallel(n=n, save_dir=save_dir, scenarios=scenarios, time_budget=time_budget)
         else:
             # Build logs from existing traces
             logs = {}
@@ -284,7 +282,7 @@ def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expe
         scenarios = list(scenarios_set)
         
         if not reuse_traces:
-            logs = generate_traces_parallel(n=n, save_dir=save_dir, scenarios=scenarios, time_budget=time_budget, expert=expert, model_path=model_path)
+            logs = generate_traces_parallel(n=n, save_dir=save_dir, scenarios=scenarios, time_budget=time_budget)
         else:
             # Build logs from existing traces
             logs = {}
@@ -307,7 +305,6 @@ def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, expe
     print("="*60)
     print(f"Command: python compare_analysis.py --scenario \"{input_scenario}\" "
           f"{'--compositional ' if isCompositional else ''}"
-          f"{'--expert ' if expert else ''}"
           f"{'--reuse_traces ' if reuse_traces else ''}"
           f"--time_budget {time_budget if time_budget != float('inf') else 'N/A'} "
           f"--save_dir \"{save_dir}\"")
@@ -321,9 +318,7 @@ if __name__ == "__main__":
     parser.add_argument("--scenario", type=str, default="SXC", help="Input scenario string (default: SXC)")
     parser.add_argument("--compositional", action="store_true", help="Use compositional approach (default: False)")
     parser.add_argument("--time_budget", type=int, default=None, help="Time budget in seconds (default: None)")
-    parser.add_argument("--expert", action="store_true", help="Use expert mode (default: False)")
     parser.add_argument("--save_dir", type=str, default="storage/traces", help="Directory to save traces (default: storage/traces)")
-    parser.add_argument("--model_path", type=str, default="storage/models/model_map_2.zip", help="Path to model file (default: storage/models/model_map_2.zip)")
     parser.add_argument("--confidence_level", type=float, default=None, help="Confidence level for ground truth (default: None)")
     parser.add_argument("--error_bound", type=float, default=None, help="Error bound (epsilon) for ground truth (default: None)")
     parser.add_argument("--reuse_traces", action="store_true", help="Use existing traces from save_dir without generating new ones (default: False)")
@@ -348,8 +343,6 @@ if __name__ == "__main__":
         time_budget=time_budget,
         n=n,
         save_dir=args.save_dir,
-        expert=args.expert,
-        model_path=args.model_path,
         confidence_level=args.confidence_level,
         error_bound=args.error_bound,
         reuse_traces=args.reuse_traces

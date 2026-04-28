@@ -1,50 +1,52 @@
 import os
 import csv
 import numpy as np
-from stable_baselines3 import PPO
-from stable_baselines3.common.utils import set_random_seed
-from train import make_env
+from metadrive.envs import MetaDriveEnv
+from metadrive.policy.expert_policy import ExpertPolicy
+
+
+def make_env(scenario, monitor=False):
+    config = MetaDriveEnv.default_config()
+    config.map = scenario
+    config.discrete_action=False
+    config.horizon=2000
+    config.num_scenarios=1000
+    config.start_seed=1000
+    config.traffic_density=0.05
+    config.need_inverse_traffic=True
+    config.accident_prob=0.0
+    config.random_lane_width=False
+    config.random_agent_model=False
+    config.random_lane_num=False
+    if monitor:
+        return Monitor(MetaDriveEnv(config))
+    else:
+        return MetaDriveEnv(config)
 
 
 def generate_traces(
     seed: int = 0,
     save_dir: str = "storage/run0",
-    model_path: str = None,
-    expert: bool = False,
     n: int = 50,
     scenario: str = "XX",
     gif: bool = False
 ):
     """
-    Runs MetaDrive simulation using a trained PPO model or expert policy and logs trajectory traces.
+    Runs MetaDrive simulation using an expert policy and logs trajectory traces.
 
     Args:
         seed (int): Random seed for reproducibility.
         save_dir (str): Directory where traces or gifs will be saved.
-        model_path (str): Path to the trained PPO model (.zip file). Not used if expert=True.
-        expert (bool): If True, use expert policy instead of trained model.
         n (int): Number of test episodes to run.
         scenario (str or int): Scenario string or ID.
         gif (bool): If True, generate top-down gifs instead of CSV traces.
     """
 
-    if not expert:
-        assert model_path is not None, "You must provide a valid model_path (.zip file)"
-
-    set_random_seed(seed)
 
     scenario_id = int(scenario) if str(scenario).isdigit() else scenario
     env = make_env(scenario=scenario_id, monitor=False)
     
-    if expert:
-        # print("USING EXPERT POLICY")
-        from metadrive.policy.expert_policy import ExpertPolicy
-        # Expert policy will be created per episode after reset
-        model = None
-        use_expert = True
-    else:
-        model = PPO.load(model_path)
-        use_expert = False
+    model = None
 
     all_traces = []
     trace_id = 0
@@ -69,9 +71,7 @@ def generate_traces(
     for ep in range(n):
         obs, _ = env.reset()
         
-        # Create expert policy for this episode (needs current vehicle)
-        if use_expert:
-            expert_policy = ExpertPolicy(env.agent)
+        expert_policy = ExpertPolicy(env.agent)
 
         initial_speed = np.random.uniform(low=70/3.6, high=80/3.6)
         initial_velocity = env.agent.lane.direction * initial_speed
@@ -83,10 +83,7 @@ def generate_traces(
         label = False
 
         while not done and step <= env.config.horizon:
-            if use_expert:
-                action = expert_policy.act()
-            else:
-                action, _states = model.predict(obs, deterministic=True)
+            action = expert_policy.act()
                 
             obs, reward, done, truncated, info = env.step(action)
             total_reward += reward

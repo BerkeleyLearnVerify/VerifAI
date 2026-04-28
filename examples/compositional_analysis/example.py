@@ -4,16 +4,7 @@ from verifai.compositional_analysis import CompositionalAnalysisEngine, Scenario
 
 if __name__ == "__main__":
     logs = {
-        "S": "storage/traces/S/traces.csv",
-        "X": "storage/traces/X/traces.csv",
-        # "O": "storage/traces/O/traces.csv",
-        # "C": "storage/traces/C/traces.csv",
-        "SX": "storage/traces/SX/traces.csv",
-        # "SO": "storage/traces/SO/traces.csv",
-        # "SC": "storage/traces/SC/traces.csv",
-        "SXS": "storage/traces/SXS/traces.csv",
-        # "SOS": "storage/traces/SOS/traces.csv",
-        # "SCS": "storage/traces/SCS/traces.csv",
+        "S": "storage/fixed_time_monolithic_SX/S/traces.csv",
     }
     scenario_base = ScenarioBase(logs, delta=0.01)
 
