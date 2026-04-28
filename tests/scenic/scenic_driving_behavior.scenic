@@ -1,7 +1,5 @@
 param map = localPath('Town01.xodr')
-param carla_map = 'Town01'
-
-model scenic.domains.driving.model
+model scenic.simulators.newtonian.driving_model
 
 foo = TimeSeries(VerifaiRange(0,0.01))
 

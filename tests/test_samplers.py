@@ -12,8 +12,7 @@ def test_feature_sampling():
         'b': Feature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2))),
         'c': TimeSeriesFeature(Box((2,5))),
         'd': TimeSeriesFeature(Box((5,6)), lengthDomain=DiscreteBox((0,2)))
-    },
-    timeBound=10)
+        }, timeBound=10)
     sampler = FeatureSampler.randomSamplerFor(space)
 
     sample = sampler.getSample()
@@ -104,7 +103,7 @@ def test_space_random():
         assert any(len(sample.b) == 2 for sample in samples)
 
     check([sampler.getSample() for i in range(100)])
-    check(list(s for s in itertools.islice(sampler, 100)))
+    check(list(itertools.islice(sampler, 100)))
 
 def test_random_restore(tmpdir):
     space = FeatureSpace({
@@ -115,7 +114,7 @@ def test_random_restore(tmpdir):
 
     path = os.path.join(tmpdir, 'blah.dat')
     sampler.saveToFile(path)
-    sample1 = sampler.getSample()
+    sample1 = sampler.getSample().complete(0)
     sampler = FeatureSampler.restoreFromFile(path)
-    sample2 = sampler.getSample()
-    assert sample1.staticSample == sample2.staticSample
+    sample2 = sampler.getSample().complete(0)
+    assert sample1 == sample2

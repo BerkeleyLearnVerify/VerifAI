@@ -68,7 +68,7 @@ def test_object_order(new_Object):
         f'    {new_Object} at 2*i @ 0',
         maxIterations=1
     )
-    sample = sampler.getSample()
+    sample = sampler.getSample().complete(None)
     objects = sample.objects
     assert len(objects) == 11
     for i in range(len(objects)):
@@ -78,7 +78,7 @@ def test_object_order(new_Object):
 
     flat = sampler.space.flatten(sample)
     unflat = sampler.space.unflatten(flat)
-    assert unflat.staticSample == sample.staticSample
+    assert unflat == sample
 
 ## Active sampling
 
@@ -184,7 +184,6 @@ def test_driving_dynamic_behavior(pathToLocalFile):
     path = pathToLocalFile('scenic_driving_behavior.scenic')
     sampler = ScenicSampler.fromScenario(
         path,
-        model='scenic.simulators.newtonian.driving_model',
         params=dict(render=False),
         mode2D=True,
         maxSteps=2
@@ -213,7 +212,7 @@ ego = new Object with behavior TestBehavior()
 """
 
 def test_double_time_series_access():
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=r"Attempted `getSample` for a TimeSeries external parameter twice in one timestep."):
         sampler = ScenicSampler.fromScenicCode(
                 double_access_scenario,
                 model='scenic.simulators.newtonian.model',

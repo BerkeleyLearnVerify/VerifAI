@@ -11,7 +11,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
-from verifai.features import FilteredDomain, TimeSeriesFeature, Sample, CompleteSample
+from verifai.features import FilteredDomain, TimeSeriesFeature, Sample, _PrecomputedSample
 from verifai.samplers.domain_sampler import SplitSampler, TerminationException
 from verifai.samplers.rejection import RejectionSampler
 from verifai.samplers.halton import HaltonSampler
@@ -262,7 +262,7 @@ class LateFeatureSampler(FeatureSampler):
                                  if feature.lengthDomain}
                                 if self.lengthSampler else {})
 
-        return CompleteSample(self.space, static_point, dynamic_points, complete_callback, dynamicSampleLengths)
+        return _PrecomputedSample(self.space, static_point, dynamic_points, complete_callback, dynamicSampleLengths)
 
     def update(self, sample_id, rho):
         info, lengthPoint, domainPoint = self._id_metadata_dict[sample_id]

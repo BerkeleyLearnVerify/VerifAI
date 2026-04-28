@@ -238,6 +238,7 @@ class ScenicSample(Sample):
 
     def complete(self, rho):
         self._completeCallback(rho)
+        return super().complete(rho)
 
 class ScenicSampler(FeatureSampler):
     """Samples from the induced distribution of a Scenic scenario.
