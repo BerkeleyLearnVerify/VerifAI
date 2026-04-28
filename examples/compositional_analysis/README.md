@@ -33,20 +33,20 @@ Run fixed error experiments:
 
 ```bash
 # Monolithic SMC (single scenario)
-python run_exp.py --expert --save_dir storage/fixed_error_monolithic_SX --confidence_level 0.95 --error_bound 0.04295 --scenario "SX"
+python run_exp.py --save_dir storage/fixed_error_monolithic_SX --confidence_level 0.95 --error_bound 0.04295 --scenario "SX"
 
 # Compositional SMC (compositional analysis)
-python run_exp.py --expert --save_dir storage/fixed_error_compositional_SX --confidence_level 0.95 --error_bound 0.04295 --scenario "SX" --compositional
+python run_exp.py --save_dir storage/fixed_error_compositional_SX --confidence_level 0.95 --error_bound 0.04295 --scenario "SX" --compositional
 ```
 
 Run fixed time budget experiments:
 
 ```bash
 # Monolithic SMC (single scenario)
-python run_exp.py --expert --save_dir storage/fixed_time_monolithic_SX --confidence_level 0.95 --time_budget 120 --scenario "SX"
+python run_exp.py --save_dir storage/fixed_time_monolithic_SX --confidence_level 0.95 --time_budget 120 --scenario "SX"
 
 # Compositional SMC (compositional analysis)
-python run_exp.py --expert --save_dir storage/fixed_time_compositional_SX --confidence_level 0.95 --time_budget 120 --scenario "SX" --compositional
+python run_exp.py --save_dir storage/fixed_time_compositional_SX --confidence_level 0.95 --time_budget 120 --scenario "SX" --compositional
 ```
 
 To analyze already generated traces, use `example.py`:
