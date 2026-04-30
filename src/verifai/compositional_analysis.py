@@ -21,10 +21,10 @@ class ScenarioBase:
 
     REQUIRED_COLUMNS = {"trace_id", "step", "label"}
 
-    def __init__(self, logbase: Dict[str, str], delta: float = 0.05):
+    def __init__(self, logbase: Union[Dict[str, str], Dict[str, pd.DataFrame]], delta: float = 0.05):
         """
         Args:
-            logbase: Dict mapping scenario names to CSV file paths
+            logbase: Dict mapping scenario names to CSV file paths or DataFrames
             delta: Confidence level for Hoeffding bound (default 0.05 → 95% CI)
         """
         self.logbase = logbase
@@ -32,16 +32,23 @@ class ScenarioBase:
         self.data: Dict[str, pd.DataFrame] = {}
 
         # Load CSVs
-        for name, path in logbase.items():
-            path_obj = Path(path)
-            if not path_obj.exists():
-                raise FileNotFoundError(f"CSV file for scenario '{name}' not found: {path}")
-            df = pd.read_csv(path)
-            missing = self.REQUIRED_COLUMNS - set(df.columns)
-            if missing:
-                raise ValueError(f"CSV for scenario '{name}' missing columns: {missing}")
-            df["trace_id"] = df["trace_id"].astype(str)
-            self.data[name] = df
+        for name, path_of_df in logbase.items():
+            if isinstance(path_of_df, str):
+                path = path_of_df
+                path_obj = Path(path)
+                if not path_obj.exists():
+                    raise FileNotFoundError(f"CSV file for scenario '{name}' not found: {path}")
+                df = pd.read_csv(path)
+                missing = self.REQUIRED_COLUMNS - set(df.columns)
+                if missing:
+                    raise ValueError(f"CSV for scenario '{name}' missing columns: {missing}")
+                df["trace_id"] = df["trace_id"].astype(str)
+                self.data[name] = df
+            elif isinstance(path_of_df, pd.DataFrame):
+                df = path_of_df
+                self.data[name] = df
+            else:
+                raise ValueError(f"Invalid data type for scenario '{name}': {type(path_of_df)}")
 
         self.success_stats: Dict[str, ScenarioStats] = {}
         self._compute_success_stats()
@@ -104,7 +111,7 @@ class CompositionalAnalysisEngine:
 
         n = len(scenario)
         if n == 1:
-            result = self.scenario_base.success_stats[scenario]
+            result = self.scenario_base.success_stats[scenario[0]]
             return result.rho, result.uncertainty
 
         first_scenario_result = self.scenario_base.success_stats[scenario[0]]
