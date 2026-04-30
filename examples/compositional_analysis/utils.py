@@ -1,5 +1,6 @@
 import os
 import csv
+
 import numpy as np
 from metadrive.envs import MetaDriveEnv
 from metadrive.policy.expert_policy import ExpertPolicy
@@ -123,5 +124,4 @@ def generate_traces(
         f.close()
 
     env.close()
-    return
 

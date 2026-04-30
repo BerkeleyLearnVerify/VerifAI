@@ -1,8 +1,10 @@
-import os
-import time
-import shutil
+import argparse
 import math
 import multiprocessing as mp
+import os
+import shutil
+import time
+
 from verifai.compositional_analysis import ScenarioBase, CompositionalAnalysisEngine
 from utils import generate_traces
 
@@ -25,7 +27,7 @@ def compute_hoeffding_samples(confidence_level, error_bound):
     """
     delta = 1 - confidence_level
     n = math.log(2 / delta) / (2 * error_bound ** 2)
-    return int(math.ceil(n))
+    return math.ceil(n)
 
 
 def _worker_generate_traces(save_dir, scenario, n):
@@ -41,6 +43,23 @@ def _worker_generate_traces(save_dir, scenario, n):
         scenario=scenario,
     )
     print(f"[PID={os.getpid()}] Finished scenario {scenario}")
+
+
+def get_n_traces_from_csv(csv_path):
+    if os.path.exists(csv_path):
+        with open(csv_path, 'r') as f:
+            lines = f.readlines()
+            if len(lines) <= 1:
+                return 0
+            else:
+                trace_ids = set()
+                for line in lines[1:]:
+                    parts = line.split(',')
+                    if parts:
+                        trace_ids.add(parts[0])
+                return len(trace_ids)
+    else:
+        return 0
 
 
 def generate_traces_parallel(n, save_dir, scenarios, time_budget):
@@ -59,7 +78,7 @@ def generate_traces_parallel(n, save_dir, scenarios, time_budget):
     
     # Launch all processes
     processes = []
-    start_time = time.time()
+    start_time = time.monotonic()
     
     for s in scenarios:
         print(f"Launching scenario {s}")
@@ -73,7 +92,7 @@ def generate_traces_parallel(n, save_dir, scenarios, time_budget):
     # Monitor time budget and terminate if exceeded
     trace_counts_before_termination = {}
     while True:
-        elapsed = time.time() - start_time
+        elapsed = time.monotonic() - start_time
         
         # Check if time budget exceeded (skip check if time_budget is inf)
         if time_budget != float('inf') and elapsed >= time_budget:
@@ -82,21 +101,7 @@ def generate_traces_parallel(n, save_dir, scenarios, time_budget):
             # Record trace counts RIGHT BEFORE termination
             for s in scenarios:
                 csv_path = os.path.join(save_dir, s, "traces.csv")
-                if os.path.exists(csv_path):
-                    with open(csv_path, 'r') as f:
-                        lines = f.readlines()
-                        if len(lines) <= 1:  # Only header or empty
-                            trace_counts_before_termination[s] = 0
-                        else:
-                            # Count unique trace_ids (episodes)
-                            trace_ids = set()
-                            for line in lines[1:]:  # Skip header
-                                parts = line.split(',')
-                                if parts:
-                                    trace_ids.add(parts[0])  # First column is trace_id
-                            trace_counts_before_termination[s] = len(trace_ids)
-                else:
-                    trace_counts_before_termination[s] = 0
+                trace_counts_before_termination[s] = get_n_traces_from_csv(csv_path)
             
             print("Terminating all running processes...")
             
@@ -123,30 +128,14 @@ def generate_traces_parallel(n, save_dir, scenarios, time_budget):
     logs = {}
     for s, proc in processes:
         csv_path = os.path.join(save_dir, s, "traces.csv")
-        
+        trace_count = get_n_traces_from_csv(csv_path)
+
         if os.path.exists(csv_path):
-            # If process was terminated, restore to pre-termination state
-            # (remove the last partial trace that was being written)
             if proc.exitcode != 0 and s in trace_counts_before_termination:
-                with open(csv_path, 'r') as f:
-                    lines = f.readlines()
-                
-                if len(lines) <= 1:  # Only header or empty
-                    current_count = 0
-                else:
-                    # Count unique trace_ids in final file
-                    trace_ids = set()
-                    for line in lines[1:]:  # Skip header
-                        parts = line.split(',')
-                        if parts:
-                            trace_ids.add(parts[0])
-                    current_count = len(trace_ids)
-                
                 expected_count = trace_counts_before_termination[s]
-                
-                if current_count > expected_count:
+                if trace_count > expected_count:
                     # There's a partial trace - keep only the completed traces
-                    print(f"[INFO] Scenario {s}: Removing partial episode (had {current_count} episodes, keeping {expected_count})")
+                    print(f"[INFO] Scenario {s}: Removing partial episode (had {trace_count} episodes, keeping {expected_count})")
                     
                     # Keep only rows with trace_id < expected_count
                     with open(csv_path, 'w') as f:
@@ -164,23 +153,11 @@ def generate_traces_parallel(n, save_dir, scenarios, time_budget):
                     print(f"[INFO] Scenario {s} has {expected_count} completed episodes.")
                 else:
                     print(f"[INFO] Scenario {s} had no completed episodes.")
+
             else:
-                # Process completed successfully
-                # Count episodes in completed file
-                with open(csv_path, 'r') as f:
-                    lines = f.readlines()
-                if len(lines) > 1:
-                    trace_ids = set()
-                    for line in lines[1:]:
-                        parts = line.split(',')
-                        if parts:
-                            trace_ids.add(parts[0])
-                    episode_count = len(trace_ids)
-                else:
-                    episode_count = 0
-                
                 logs[s] = csv_path
-                print(f"[INFO] Scenario {s} completed successfully with {episode_count} episodes.")
+                print(f"[INFO] Scenario {s} completed successfully with {trace_count} episodes.")
+
         else:
             print(f"[INFO] Scenario {s} produced no traces.")
     
@@ -211,13 +188,13 @@ def run_monolithic_smc(scenario_base):
 
 def run_SMC_compositional(scenarios, time_budget, scenario_base):
     print("\n=== Running Compositional SMC ===")
-    start_time = time.time()
+    start_time = time.monotonic()
     results = {}
 
     engine = CompositionalAnalysisEngine(scenario_base)
 
     for s in scenarios:
-        elapsed = time.time() - start_time
+        elapsed = time.monotonic() - start_time
         remaining_time = time_budget - elapsed
         if time_budget != float('inf') and remaining_time <= 0:
             print(f"Time budget exhausted before scenario {s}")
@@ -234,13 +211,6 @@ def run_SMC_compositional(scenarios, time_budget, scenario_base):
         results[s] = {"rho": rho, "uncertainty": uncertainty}
 
     return results
-
-
-def parse_scenario(input_scenario):
-    scenarios_set = set()
-    for s in input_scenario:
-        scenarios_set.add(s)
-    return scenarios_set
 
 
 def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, confidence_level=None, error_bound=None, reuse_traces=False):
@@ -278,7 +248,7 @@ def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, conf
     # compositional trace generation
     else:
         print("Running COMPOSITIONAL SMC on primitive cases (what compositional will use)")
-        scenarios_set = parse_scenario(input_scenario)
+        scenarios_set = set(input_scenario)
         scenarios = list(scenarios_set)
         
         if not reuse_traces:
@@ -298,37 +268,26 @@ def testScenario(input_scenario, isCompositional, time_budget, n, save_dir, conf
         
         # compositional rho
         run_SMC_compositional(scenarios=[input_scenario], time_budget=time_budget, scenario_base=scenario_base)
-    
-    # Print summary for easy copy-paste to README
-    print("\n" + "="*60)
-    print("SUMMARY")
-    print("="*60)
-    print(f"Command: python compare_analysis.py --scenario \"{input_scenario}\" "
-          f"{'--compositional ' if isCompositional else ''}"
-          f"{'--reuse_traces ' if reuse_traces else ''}"
-          f"--time_budget {time_budget if time_budget != float('inf') else 'N/A'} "
-          f"--save_dir \"{save_dir}\"")
-    print("="*60)
 
 
 if __name__ == "__main__":
-    import argparse
-    
+
     parser = argparse.ArgumentParser(description="Run SMC tests with compositional or monolithic approaches")
     parser.add_argument("--scenario", type=str, default="SXC", help="Input scenario string (default: SXC)")
     parser.add_argument("--compositional", action="store_true", help="Use compositional approach (default: False)")
     parser.add_argument("--time_budget", type=int, default=None, help="Time budget in seconds (default: None)")
     parser.add_argument("--save_dir", type=str, default="storage/traces", help="Directory to save traces (default: storage/traces)")
-    parser.add_argument("--confidence_level", type=float, default=None, help="Confidence level for ground truth (default: None)")
+    parser.add_argument("--confidence_level", type=float, required=True, help="Confidence level for ground truth (required)")
     parser.add_argument("--error_bound", type=float, default=None, help="Error bound (epsilon) for ground truth (default: None)")
     parser.add_argument("--reuse_traces", action="store_true", help="Use existing traces from save_dir without generating new ones (default: False)")
-    
+
     args = parser.parse_args()
-    
+
     mp.set_start_method("spawn")
 
-    assert args.confidence_level is not None
-    assert (args.error_bound is not None) or (args.time_budget is not None)
+    # Validate arguments
+    if args.error_bound is None and args.time_budget is None:
+        raise ValueError("You must provide either --error_bound or --time_budget.")
 
     n = None
     time_budget = float('inf')
@@ -336,7 +295,7 @@ if __name__ == "__main__":
         n = compute_hoeffding_samples(args.confidence_level, args.error_bound)
     elif args.time_budget is not None:
         time_budget = args.time_budget
-    
+
     testScenario(
         input_scenario=args.scenario,
         isCompositional=args.compositional,

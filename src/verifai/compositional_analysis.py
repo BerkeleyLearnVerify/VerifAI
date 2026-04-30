@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 from pathlib import Path
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Sequence, Union
 
 import numpy as np
@@ -83,7 +83,7 @@ class CompositionalAnalysisEngine:
         scenario: List[str],
         features: Optional[List[str]] = None,
         center_feat_idx: Optional[List[int]] = None,
-        bw_method: str | int = 10,
+        bw_method: Union[str, int] = 10,
     ) -> Tuple[float, float]:
         """
         Computes importance-sampled success probability and propagated uncertainty.
@@ -98,6 +98,9 @@ class CompositionalAnalysisEngine:
         """
         if len(scenario) == 0:
             raise ValueError("Scenario list must contain at least one scenario.")
+
+        if not features:
+            raise ValueError("Feature list must be provided for KDE.")
 
         n = len(scenario)
         if n == 1:
@@ -123,17 +126,14 @@ class CompositionalAnalysisEngine:
             t_last = df_t.sort_values("step").groupby("trace_id").tail(1)
 
             # KDE features
-            if features:
-                s_last_features = s_last[features].to_numpy()
-                t_first_features = t_first[features].to_numpy()
-                if s_last_features.shape[0] < 2 or t_first_features.shape[0] < 2:
-                    return 0.0, 0.0
-                if center_feat_idx:
-                    for j in center_feat_idx:
-                        s_last_features[:, j] = s_last_features[:, j] - np.mean(s_last_features[:, j]) # center
-                        t_first_features[:, j] = t_first_features[:, j] - np.mean(t_first_features[:, j]) # center
-            else:
-                raise ValueError("Feature list must be provided for KDE.")
+            s_last_features = s_last[features].to_numpy()
+            t_first_features = t_first[features].to_numpy()
+            if s_last_features.shape[0] < 2 or t_first_features.shape[0] < 2:
+                return 0.0, 0.0
+            if center_feat_idx:
+                for j in center_feat_idx:
+                    s_last_features[:, j] = s_last_features[:, j] - np.mean(s_last_features[:, j]) # center
+                    t_first_features[:, j] = t_first_features[:, j] - np.mean(t_first_features[:, j]) # center
 
             s_last_features, t_first_features = s_last_features.T, t_first_features.T
 
@@ -165,7 +165,7 @@ class CompositionalAnalysisEngine:
         features: Optional[List[str]] = None,
         center_feat_idx: Optional[List[int]] = None,
         align_feat_idx: Optional[List[int]] = None,
-        bw_method: str | int = 10,
+        bw_method: Union[str, int] = 10,
     ) -> Tuple[Optional[pd.DataFrame], float]:
         """
         Generates a counterexample trace using the given traces.
@@ -181,6 +181,9 @@ class CompositionalAnalysisEngine:
         """
         if len(scenario) == 0:
             raise ValueError("Scenario list must contain at least one scenario.")
+
+        if not features:
+            raise ValueError("Feature list must be provided for KDE.")
 
         cex = None
         n = len(scenario)
@@ -237,21 +240,18 @@ class CompositionalAnalysisEngine:
                     continue
 
             # KDE features
-            if features:
-                s_last_features = s_last[features].to_numpy()
-                if s_last_features.shape[0] < 2:
+            s_last_features = s_last[features].to_numpy()
+            if s_last_features.shape[0] < 2:
+                continue
+            if cex is None:
+                t_first_features = t_first[features].to_numpy()
+                if t_first_features.shape[0] < 2:
                     continue
-                if cex is None:
-                    t_first_features = t_first[features].to_numpy()
-                    if t_first_features.shape[0] < 2:
-                        continue
-                if center_feat_idx:
-                    for j in center_feat_idx:
-                        s_last_features[:, j] = s_last_features[:, j] - np.mean(s_last_features[:, j])
-                        if cex is None:
-                            t_first_features[:, j] = t_first_features[:, j] - np.mean(t_first_features[:, j])
-            else:
-                raise ValueError("Feature list must be provided for KDE.")
+            if center_feat_idx:
+                for j in center_feat_idx:
+                    s_last_features[:, j] = s_last_features[:, j] - np.mean(s_last_features[:, j])
+                    if cex is None:
+                        t_first_features[:, j] = t_first_features[:, j] - np.mean(t_first_features[:, j])
 
             if cex is None:
                 if t_first_features.shape[0] <= t_first_features.shape[1]:
