@@ -55,4 +55,242 @@ To analyze already generated traces, use `example.py`:
 python example.py
 ```
 
-This will print compositional  SMC and falsification results for the scenarios specified in the script.
+This will print compositional SMC and falsification results for the scenarios specified in the script.
+Note that falsification might return `None` as example traces do not contain a sufficient number of samples.
+
+
+## API: ScenarioBase and CompositionalAnalysisEngine
+
+This section describes the core data structures used for compositional statistical model checking and falsification.
+
+
+## ScenarioBase
+
+`ScenarioBase` is responsible for loading raw trace data and computing **per-scenario empirical statistics**.
+
+### Constructor
+
+```python
+ScenarioBase(
+    logbase: Dict[str, str] | Dict[str, pd.DataFrame],
+    delta: float = 0.05
+)
+```
+
+### Arguments
+
+* **`logbase`**
+
+  * Dictionary mapping scenario names → trace data
+  * Each value can be either:
+
+    * a file path (`str`) to a CSV file, or
+    * a `pandas.DataFrame`
+
+  Each trace dataset must contain:
+
+  | Column   | Type       | Description                             |
+  | -------- | ---------- | --------------------------------------- |
+  | trace_id | str        | Identifier for a trajectory             |
+  | step     | int        | Time step within trajectory             |
+  | label    | bool/float | Success (1) or failure (0) at each step |
+
+* **`delta`**
+
+  * Confidence parameter for Hoeffding-style bounds
+  * Default: `0.05` (95% confidence interval)
+
+
+### Key Attributes
+
+* `data: Dict[str, pd.DataFrame]`
+
+  * Loaded trace data per scenario
+
+* `success_stats: Dict[str, ScenarioStats]`
+
+  * Precomputed statistics per scenario:
+
+    ```python
+    ScenarioStats(rho: float, uncertainty: float)
+    ```
+  * `rho`: empirical success probability
+  * `uncertainty`: Hoeffding bound estimate
+
+
+### Core Methods
+
+#### `get_success_prob(scenario: str) -> float`
+
+Returns empirical success probability:
+
+```python
+rho
+```
+
+
+#### `get_success_prob_uncertainty(scenario: str) -> float`
+
+Returns uncertainty bound:
+
+```python
+epsilon
+```
+
+
+## CompositionalAnalysisEngine
+
+The `CompositionalAnalysisEngine` performs **compositional inference over scenario sequences** using importance sampling and KDE-based density ratio estimation.
+
+
+### Constructor
+
+```python
+CompositionalAnalysisEngine(scenario_base: ScenarioBase)
+```
+
+### Arguments
+
+* **`scenario_base`**
+
+  * A `ScenarioBase` instance containing all primitive scenario traces and statistics
+
+
+## check()
+
+Estimates specification satisfaction probability using compositionally satistical verification over a sequence of scenarios.
+
+```python
+check(
+    scenario: List[str],
+    features: List[str],
+    center_feat_idx: Optional[List[int]] = None,
+    bw_method: Union[str, int] = 10,
+) -> Tuple[float, float]
+```
+
+
+### Arguments
+
+* **`scenario`**
+
+  * Ordered list of scenario names
+  * Example: `["A", "B", "C"]`
+  * Interpreted as a sequential composition:
+    A -> B -> C
+
+* **`features`**
+
+  * List of column names used for KDE-based importance sampling
+  * Must exist in all scenario DataFrames
+
+* **`center_feat_idx`** *(optional)*
+
+  * Indices of feature dimensions to mean-center before KDE
+
+* **`bw_method`**
+
+  * Bandwidth parameter for `scipy.stats.gaussian_kde`
+  * Can be:
+
+    * `"scott"`, `"silverman"`, or numeric scalar
+
+
+### Returns
+
+```python
+(rho, uncertainty)
+```
+
+* **`rho`**
+
+  * Estimated compositional success probability
+
+* **`uncertainty`**
+
+  * Propagated uncertainty bound across scenario chain
+
+
+### Notes
+
+* Uses **importance sampling between consecutive scenarios**
+* Applies **Gaussian KDE density ratio estimation**
+* Uses **union bound over steps for uncertainty propagation**
+* Returns `(0.0, 0.0)` if insufficient samples exist
+
+
+## falsify()
+
+Generates a counterexample trace (CE) compositionally for a scenario sequence by stitching together traces from primitive scenarios.
+
+```python
+falsify(
+    scenario: List[str],
+    features: List[str],
+    center_feat_idx: Optional[List[int]] = None,
+    align_feat_idx: Optional[List[int]] = None,
+    bw_method: Union[str, int] = 10,
+) -> Tuple[Optional[pd.DataFrame], float]
+```
+
+
+### Arguments
+
+* **`scenario`**
+
+  * Ordered list of scenario names
+  * Example: `["A", "B", "C"]`
+  * Interpreted as a sequential composition:
+    A -> B -> C
+
+* **`features`**
+
+  * Feature columns used for similarity search between traces
+
+* **`center_feat_idx`** *(optional)*
+
+  * Feature indices to mean-center before comparison
+
+* **`align_feat_idx`** *(optional)*
+
+  * Feature indices used to align traces via translation offset
+  * Ensures smooth transition between concatenated traces
+
+* **`bw_method`**
+
+  * Bandwidth parameter for KDE (same as in `check`)
+
+
+### Returns
+
+* **`trace: pd.DataFrame | None`**
+
+  * A counterexample trajectory (concatenated trace)
+  * `None` if no failure trace can be constructed
+
+
+
+### Behavior Summary
+
+* For **single scenario**:
+
+  * selects a failing trace (if available)
+  * otherwise returns `None`
+
+* For **compositional scenarios**:
+
+  * works backwards from last scenario
+  * selects failure traces via:
+
+    * KDE likelihood (when enough samples exist)
+    * Euclidean fallback (low-sample regime)
+  * concatenates selected traces into a full counterexample
+
+
+## Design Intuition
+
+* `ScenarioBase` = empirical grounding (Monte Carlo traces)
+* `CompositionalAnalysisEngine` = lifts primitives → sequential compositions
+* KDE = approximates unknown transition densities between scenario stages
+* Importance sampling = corrects distribution mismatch across scenarios
+

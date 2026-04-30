@@ -15,8 +15,50 @@ class ScenarioStats:
 
 class ScenarioBase:
     """
-    Handles loading and basic statistics of scenario trace data.
-    Computes empirical success probabilities and uncertainty.
+    ScenarioBase loads primitive scenario trace data and computes
+    empirical success statistics used for compositional analysis.
+
+    A *scenario* corresponds to a single stochastic process (e.g., a driving
+    situation in MetaDrive). Each scenario consists of multiple traces
+    identified by `trace_id`, where each trace is a sequence of states
+    indexed by `step`.
+
+    The final label of each trace determines success or failure.
+
+    This class:
+    - loads raw trace data (CSV or DataFrame)
+    - validates schema consistency
+    - computes empirical success probabilities (rho)
+    - computes Hoeffding-style uncertainty bounds
+
+    These statistics are later used by CompositionalAnalysisEngine
+    to perform sequential composition reasoning over multiple scenarios.
+
+    Attributes
+    ----------
+    data : Dict[str, pd.DataFrame]
+        Loaded scenario trace data.
+    success_stats : Dict[str, ScenarioStats]
+        Empirical success probability and uncertainty per scenario.
+    delta : float
+        Confidence parameter used in uncertainty estimation (Hoeffding bound).
+
+    Required Data Format
+    --------------------
+    Each scenario must contain a DataFrame with:
+
+    - trace_id : str
+        Identifier of a trajectory
+    - step : int
+        Time index within a trajectory
+    - label : float or bool
+        Binary success label (typically 0/1)
+
+    Example
+    -------
+    >>> sb = ScenarioBase({"A": "A.csv", "B": df})
+    >>> sb.get_success_prob("A")
+    0.73
     """
 
     REQUIRED_COLUMNS = {"trace_id", "step", "label"}
@@ -70,8 +112,73 @@ class ScenarioBase:
 
 class CompositionalAnalysisEngine:
     """
-    Computes importance-sampled success probabilities across sequential
-    scenarios using Gaussian KDE and uncertainty propagation.
+    Compositional statistical analysis engine for sequential scenarios.
+
+    This class implements compositional statistical model checking (SMC)
+    and falsification over *scenario sequences* using:
+    - importance sampling
+    - Gaussian kernel density estimation (KDE)
+    - uncertainty propagation via union bounds
+
+    ----------------------------------------------------------------------
+    Key Idea
+    ----------------------------------------------------------------------
+
+    Instead of estimating probabilities for a full monolithic system,
+    we decompose a complex specification into a sequence of primitive
+    scenarios:
+
+        S0 → S1 → S2 → ... → Sn
+
+    where each Si is a scenario with its own trace distribution.
+
+    The engine estimates:
+
+        P(S0 ∧ S1 ∧ ... ∧ Sn)
+
+    by stitching together pairwise transitions using KDE-based density
+    ratio estimation.
+
+    ----------------------------------------------------------------------
+    Scenario Sequences
+    ----------------------------------------------------------------------
+
+    A scenario argument is ALWAYS a list of scenario names:
+
+        ["S", "X", "SXS"]
+
+    where:
+    - "S"   = initial primitive scenario (e.g., safe driving)
+    - "X"   = intermediate hazard / event
+    - "SXS" = composite scenario after transition
+
+    The ordering encodes temporal composition:
+        S → X → SXS
+
+    Even when only one scenario is used, it must still be passed as:
+        ["S"]
+
+    ----------------------------------------------------------------------
+    Attributes
+    ----------
+    scenario_base : ScenarioBase
+        Source of empirical trace distributions and statistics.
+
+    ----------------------------------------------------------------------
+    Methods
+    -------
+    check(...)
+        Estimates compositional success probability and uncertainty.
+
+    falsify(...)
+        Constructs a counterexample trace that violates the specification.
+
+    ----------------------------------------------------------------------
+    Notes
+    -----
+    - KDE is used to estimate density ratios between consecutive scenarios.
+    - Importance sampling corrects distribution mismatch across stages.
+    - Uncertainty is propagated multiplicatively across steps.
     """
 
     def __init__(self, scenario_base: ScenarioBase):
