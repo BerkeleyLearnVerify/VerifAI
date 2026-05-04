@@ -7,7 +7,6 @@ from scenic.domains.driving.controllers import (
     PIDLateralController,
     PIDLongitudinalController,
 )
-from followCarBehaviorMODD import FollowCarBehaviorMODD
 
 param timeout = 30
 param map = localPath('../../../tests/scenic/Town01.xodr')
@@ -15,6 +14,8 @@ param carla_map = 'Town01'
 param render = 1
 
 model scenic.simulators.carla.model
+
+from followCarBehaviorMODD import FollowCarBehaviorMODD
 
 #CONSTANTS
 EGO_MODEL = "vehicle.tesla.model3"
@@ -56,8 +57,6 @@ require distance from leader to intersection > 10
 
 record ego.position.x as ego_position_x
 record ego.position.y as ego_position_y
-record obstacle.position.x as obstacle_position_x
-record obstacle.position.y as obstacle_position_y
 
 
 

@@ -59,12 +59,12 @@ class GenericDataGenerator(DataGenerator):
                     self.samples[i] = (result.records, rho)
                     i += 1
                     if i == num_simulations:
-                        with open(f"{save_path}training_{i}.pkl", 'wb') as filehandler:
+                        with open(os.path.join(save_path + os.sep, f"training_{i}.pkl"), 'wb') as filehandler:
                             pickle.dump(self.samples, filehandler)
                         break
                     if i == 1 or i % 10 == 0:
                         print(f"Saving in {save_path}training_{i}.pkl")
-                        with open(f"{save_path}training_{i}.pkl", 'wb') as filehandler:
+                        with open(os.path.join(save_path + os.sep, f"training_{i}.pkl"), 'wb') as filehandler:
                             pickle.dump(self.samples, filehandler)
                 except Exception:
                     if self.datagen_params.verbosity >= 1:
@@ -92,7 +92,7 @@ class GenericDataGenerator(DataGenerator):
         save_path=self.datagen_params.datagen_save_dir
         os.makedirs(save_path, exist_ok=True)
         self.sample_simulations(num_simulations, num_steps, save_path)
-        filename = os.path.join(save_path, f"training_{num_simulations}.pkl")
+        filename = os.path.join(save_path + os.sep, f"training_{num_simulations}.pkl")
         self.samples = self.load_simulations(filename) 
         if self.datagen_params.preprocessing:
             self.training_data = self.datagen_params.preprocessing(self.samples)

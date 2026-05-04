@@ -5,13 +5,18 @@ from scenic.domains.driving.controllers import (
     PIDLateralController,
     PIDLongitudinalController,
 )
+from scenic.domains.driving.actions import *
+import scenic.domains.driving.model as _model
+from scenic.domains.driving.roads import ManeuverType
+from scenic.domains.driving.behaviors import concatenateCenterlines
 
-
-LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
+LEADER_SPEED = Range(6,8) # TimeSeries(VerifaiRange(6,8))
 EGO_BRAKING_THRESHOLD = 6
 
 def run_MODD(car, monitor_model, obstacle, leader, monitor_type="sklearn"):
-    distIntersection = distance from car to intersection
+    current_lane = car.lane
+    nearby_intersection = current_lane.maneuvers[0].intersection
+    distIntersection = distance from car to nearby_intersection
     distObstacle = distance from car to obstacle
     visibleObstacle = int(car can see obstacle)
     visibleLeader = int(car can see leader)
@@ -84,11 +89,11 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
             entering_intersection = True
             intersection_passed = False
             
-            if distance from self to intersection < TRIGGER_DISTANCE_TO_SLOWDOWN:
+            if distance from self to nearby_intersection < TRIGGER_DISTANCE_TO_SLOWDOWN:
                 if leaderCar is None:
                     maneuvers = current_lane.maneuvers
                     turn_maneuvers = filter(lambda i : i.type != ManeuverType.STRAIGHT, maneuvers)
-                    if len(turn_maneuvers) > 0 and not monitor_model is None:
+                    if len(turn_maneuvers) > 0:
                         select_maneuver = Uniform(*turn_maneuvers)
                         self.turn_maneuver = select_maneuver
                     else:
@@ -122,7 +127,7 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
                 nearby_intersection = current_lane.centerline[-1]
 
             if select_maneuver.type != ManeuverType.STRAIGHT:
-                if leaderCar is None and not monitor_model is None:
+                if leaderCar is None:
                     self.turn_centerline = current_centerline
                 else:
                     current_centerline = leaderCar.turn_centerline
@@ -145,7 +150,7 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
 
                 past_steer_angle = 0
 
-                while distance from self to intersection < TRIGGER_DISTANCE_TO_SLOWDOWN:
+                while distance from self to nearby_intersection < TRIGGER_DISTANCE_TO_SLOWDOWN:
                     if self.speed is not None:
                         current_speed = self.speed
                     else:
@@ -167,14 +172,14 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
                         if leaderCar is None:
                             self.steps_speed += 1
                             if self.steps_speed > 20:
-                                original_target_speed = LEADER_SPEED.getSample()
+                                original_target_speed = Range(6,8) # LEADER_SPEED.getSample()
                                 self.steps_speed = 0
                         else:
                             steps_running += 1
 
                         if not leaderCar is None and not monitor_model is None and steps_running > 80:
                             # Input format: (weather, np.array([r,g,b, distIntersection, distObstacle, visibleObstacle, visibleLeader]))
-                            distIntersection = distance from self to intersection
+                            distIntersection = distance from self to nearby_intersection
                             distObstacle = distance from self to obstacle
                             visibleObstacle = int(ego can see obstacle)
                             visibleLeader = int(ego can see leader)
@@ -230,7 +235,7 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
             if leaderCar is None:
                 self.steps_speed += 1
                 if self.steps_speed > 20:
-                    original_target_speed = LEADER_SPEED.getSample()
+                    original_target_speed = Range(6,8) # LEADER_SPEED.getSample()
                     self.steps_speed = 0
                 
             else:

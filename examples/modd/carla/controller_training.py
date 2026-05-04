@@ -7,45 +7,13 @@ import torch
 import torchvision
 import cv2
 from torch.utils.data import Dataset
-
+from modd_torch import CNN
 
 
 print("CUDA enabled:", torch.cuda.is_available())
 
 
-class resNet(torch.nn.Module):
-    """
-    Use restnet from torchvision
-    """
 
-    def __init__(self, layers="18", pre_trained=False):
-        super(resNet, self).__init__()
-        if layers == "18":
-            self.model = torchvision.models.resnet18(pretrained=pre_trained)
-        else:
-            raise NotImplementedError
-
-    def forward(self, x):
-        return self.model(x)
-        
-
-
-class CNN(torch.nn.Module):
-    def __init__(self, resnet=False, pretrained=False):
-        super(CNN, self).__init__()
-        if resnet:
-            self.model = resNet(pre_trained=pretrained)
-        else:
-            raise NotImplementedError
-        self.fc1 = torch.nn.Linear(1000,1024)
-        self.head = torch.nn.Linear(1024, 2)
-        print(self.model)
-
-    def forward(self, x):
-        x = self.model(x)
-        x = self.fc1(x)
-        h = self.head(x)
-        return h
 
 
 def train_cnn(

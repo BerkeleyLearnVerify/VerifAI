@@ -1,5 +1,6 @@
-import math
 import os.path
+import sys
+sys.path.append("./carla")
 
 from dotmap import DotMap
 import numpy as np
@@ -148,18 +149,18 @@ server_options = DotMap(maxSteps=300,
                         mode2D=True, 
                         train_params={"monitor": "", 
                                       "seed":"", 
-                                      "render" : 1, 
+                                      "render" : 0, 
                                       "verbosity": 3, 
                                       "timeBound": 300, 
                                       "controller": os.path.join(os.path.dirname(__file__), 'carla/models/controller_cte_dist_130.pth')},
                         eval_params={"seed": 42, 
-                                     "render" : 1, 
+                                     "render" : 0, 
                                      "verbosity": 3, 
                                      "timeBound": 300, 
                                      "controller": os.path.join(os.path.dirname(__file__), 'carla/models/controller_cte_dist_130.pth')},
                         eval_nomonitor_params={"monitor": "", 
                                                "seed": 42, 
-                                               "render" : 1, 
+                                               "render" : 0, 
                                                "verbosity": 3, 
                                                "timeBound": 300, 
                                                "controller": os.path.join(os.path.dirname(__file__), 'carla/models/controller_cte_dist_130.pth')},

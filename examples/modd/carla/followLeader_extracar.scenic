@@ -14,28 +14,28 @@ from scenic.domains.driving.controllers import (
     PIDLateralController,
     PIDLongitudinalController,
 )
-from controller_training import (
-    resNet, 
-    CNN,
-)
-from followCarBehaviorMODD import (
-    run_MODD,
-    FollowCarBehaviorMODD,
-)
+
+from modd_torch import CNN
 
 from modd_torch import MLP
-      
+
 param timeout = 180
 param map = localPath('../../../tests/scenic/Town01.xodr')
 param carla_map = 'Town01'
 param timeBound = 300
 
 
+
 model scenic.simulators.carla.model
+
+from followCarBehaviorMODD import (
+    run_MODD,
+    FollowCarBehaviorMODD,
+)
 
 #CONSTANTS
 EGO_MODEL = "vehicle.tesla.model3"
-LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
+LEADER_SPEED = Range(6,8) # TimeSeries(VerifaiRange(6,8))
 EGO_SPEED = 3
 THROTTLE_ACTION = 0.5
 EGO_TO_LEADER = Range(-15, -10)
@@ -52,10 +52,7 @@ if globalParameters.monitor != "":
         monitor_model.cuda()
         monitor_model.load_state_dict(torch.load(globalParameters.monitor))
         monitor_model.eval()
-        print("Monitor loaded")
 
- 
-    
 
 
 behavior EgoBehavior(target_speed = 10, controller_path = None, leaderCar=None, obstacleCar=None, monitor_model=None):
@@ -124,7 +121,7 @@ behavior ControllerBehavior(target_speed = 10, controller_path = None, leaderCar
         ])
 
     while True:
-        front_img = self.observations["front_rgb"][-1]
+        front_img = self.observations["front_rgb"]
         if isinstance(front_img, np.ndarray):
             front_img = front_img[80:160, 40:600,:] / 255
             _dot = controller(torch.Tensor(front_img).permute(2,0,1).unsqueeze(0).cuda())
