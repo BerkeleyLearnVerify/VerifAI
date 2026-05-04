@@ -1,21 +1,7 @@
-
-import math
-import os.path
-import sys
 import os
 import shutil
 import argparse
-import pickle
-import numpy as np
 import time
-import scenic
-from dotmap import DotMap
-from PIL import Image
-import cv2
-
-import pandas as pd
-
-
 
 # Arg Parser
 parser = argparse.ArgumentParser(description='modd',usage='later', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -58,19 +44,11 @@ for i in range(last_folder, num_of_simulations):
     if not os.path.exists(sim_dir):
         os.mkdir(sim_dir)
 
-    flag_good = False
     print(f"Executing sim {i}")
     try:
         os.system(f"scenic -S {scenic_path} --count 1 --time {num_of_steps} --2d --param recordFolder {sim_dir} --param timeout 30")
-        flag_good = True
-    except: 
+    except Exception: 
         print(f"Simulation {j} failed.")
-        wait(5)
+        time.sleep(5)
         os.system(f"scenic -S {scenic_path} --count 1 --time {num_of_steps} --2d --param recordFolder {sim_dir} --param timeout 30")
-        
-
-
-        
-
-
-
+         

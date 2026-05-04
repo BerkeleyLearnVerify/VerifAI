@@ -1,12 +1,14 @@
-import pandas as pd
-import numpy as np
 import os
+import argparse
+import re
+
+import numpy as np
 import torch
 import torchvision
-import random
-import sys
-import re
 import cv2
+from torch.utils.data import Dataset
+
+
 
 print("CUDA enabled:", torch.cuda.is_available())
 
@@ -118,8 +120,6 @@ def train_cnn(
     return model
 
 
-from torch.utils.data import Dataset
-from torchvision.io import read_image
 
 
 
@@ -197,7 +197,6 @@ def load_data_np(
     return train_dataset, val_dataset
 
 
-import argparse
 
 parser = argparse.ArgumentParser(description="Train CNN")
 parser.add_argument("--data_dir", type=str, default="./training_data/")
@@ -207,9 +206,6 @@ args = parser.parse_args()
 
 if __name__ == "__main__":
 
-    import os
-
-    sys.setrecursionlimit(10000)
 
     device="cuda"
 

@@ -1,9 +1,8 @@
 from abc import ABC
-from verifai.modd import pymodd
+
 from dotmap import DotMap
-import os
-from verifai.samplers import ScenicSampler
-from verifai.scenic_server import ScenicServer
+
+from verifai.modd import pymodd
 
 class ODDLearner(ABC):
     def __init__(self, datagen_params=DotMap(), trainer_params=DotMap(), 

@@ -1,10 +1,7 @@
-
-import warnings
-warnings.filterwarnings("ignore") 
-
 import math
 import os.path
-import sys
+
+from dotmap import DotMap
 import numpy as np
 import torch.nn as nn
 from sklearn.tree import DecisionTreeClassifier
@@ -12,13 +9,10 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
-from verifai.modd.odd_sampler import ODDSampler
+
+from modd_torch import MLP
 from verifai.monitor import specification_monitor, mtl_specification
 from verifai.modd.odd_learner import MODDLearner
-from dotmap import DotMap
-import pickle
-
-from verifai.samplers import ScenicSampler
 from verifai.scenic_server import ScenicServer
 
 
@@ -88,21 +82,6 @@ if MODEL == "LR":
     base_model = LogisticRegression(verbose=1)
 
 if MODEL == "NN_TORCH":
-    class MLP(nn.Module):
-        def __init__(self):
-            super(MLP, self).__init__()
-            self.layers = nn.Sequential(
-                nn.Linear(21, 100),
-                nn.ReLU(),
-                nn.Linear(100, 100),
-                nn.ReLU(),
-                nn.Linear(100, 1)
-            )
-            
-        def forward(self, x):
-            x = self.layers(x)
-            return x
-
     base_model = MLP()
 
 trainer_params = DotMap(
@@ -131,10 +110,10 @@ eval_params = DotMap(
     datagen_save_dir=os.path.join(os.path.dirname(__file__), "out/eval_samples_timeseries"),
     scenes_save_dir=os.path.join(os.path.dirname(__file__), "out/scene_timeseries"),
     datagen_nomon_save_dir=os.path.join(os.path.dirname(__file__), "out/eval_samples_timeseries_nomonitor"),
+    save_model_path=trainer_params.save_model_path,
     verbosity=VERBOSITY,
 )
 
-eval_params.save_model_path = trainer_params.save_model_path
 
 
 
@@ -165,7 +144,26 @@ class SpecMonitor(specification_monitor):
 # Load the Scenic scenario and create a sampler from it
 path = os.path.join(os.path.dirname(__file__), 'carla/followLeader_extracar.scenic')
 
-server_options = DotMap(maxSteps=300, verbosity=VERBOSITY)
+server_options = DotMap(maxSteps=300, 
+                        mode2D=True, 
+                        train_params={"monitor": "", 
+                                      "seed":"", 
+                                      "render" : 1, 
+                                      "verbosity": 3, 
+                                      "timeBound": 300, 
+                                      "controller": os.path.join(os.path.dirname(__file__), 'carla/models/controller_cte_dist_130.pth')},
+                        eval_params={"seed": 42, 
+                                     "render" : 1, 
+                                     "verbosity": 3, 
+                                     "timeBound": 300, 
+                                     "controller": os.path.join(os.path.dirname(__file__), 'carla/models/controller_cte_dist_130.pth')},
+                        eval_nomonitor_params={"monitor": "", 
+                                               "seed": 42, 
+                                               "render" : 1, 
+                                               "verbosity": 3, 
+                                               "timeBound": 300, 
+                                               "controller": os.path.join(os.path.dirname(__file__), 'carla/models/controller_cte_dist_130.pth')},
+                        verbosity=VERBOSITY)
 
 sampling_params = DotMap(
     path=path,
@@ -174,6 +172,9 @@ sampling_params = DotMap(
     server_type="scenic",
     server_class=ScenicServer,
     server_options=server_options,
+    monitor = eval_params.save_model_path,
+    maxSteps = 300,
+    mode2D = True,
     verbosity=VERBOSITY,
 )
 
@@ -203,7 +204,7 @@ modd = MODDLearner(datagen_params=datagen_params,
             global_params=global_params)
 
 # Train ODD monitor and print the results
-oddMonitor = modd.run()
+oddMonitor = modd.generate_monitor()
 print('ODD monitor trained:')
 print(oddMonitor)
 print('Training results:')
