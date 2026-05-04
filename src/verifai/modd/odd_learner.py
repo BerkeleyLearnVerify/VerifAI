@@ -37,8 +37,8 @@ class MODDLearner(ODDLearner):
                          sampling_params=sampling_params, 
                          global_params=global_params)
         
-    def run(self):
-        self.monitor, self.training_results, self.evaluation_results = self.modd.run()
+    def generate_monitor(self):
+        self.monitor, self.training_results, self.evaluation_results = self.modd.generate_monitor()
         return self.monitor
 
 
