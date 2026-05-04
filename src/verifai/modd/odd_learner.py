@@ -1,9 +1,8 @@
 from abc import ABC
-from verifai.modd import pymodd
+
 from dotmap import DotMap
-import os
-from verifai.samplers import ScenicSampler
-from verifai.scenic_server import ScenicServer
+
+from verifai.modd import pymodd
 
 class ODDLearner(ABC):
     def __init__(self, datagen_params=DotMap(), trainer_params=DotMap(), 
@@ -38,8 +37,8 @@ class MODDLearner(ODDLearner):
                          sampling_params=sampling_params, 
                          global_params=global_params)
         
-    def run(self):
-        self.monitor, self.training_results, self.evaluation_results = self.modd.run()
+    def generate_monitor(self):
+        self.monitor, self.training_results, self.evaluation_results = self.modd.generate_monitor()
         return self.monitor
 
 

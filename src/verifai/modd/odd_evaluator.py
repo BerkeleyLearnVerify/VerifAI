@@ -1,11 +1,12 @@
 import time
-import progressbar
-from verifai.server import ServerTimings
 from abc import ABC
-import numpy as np
-from verifai.modd.odd_sampler import ODDSampler
 import pickle
 import os
+
+import numpy as np
+
+from verifai.server import ServerTimings
+from verifai.modd.odd_sampler import ODDSampler
 
 class Evaluator(ABC):
     def __init__(self, eval_params, sampling_params, global_params):
@@ -42,8 +43,6 @@ class GenericEvaluator(Evaluator):
         if self.eval_params.verbosity >= 2:
             print(f'Server class is {type(self.sampling_params.server)}')
 
-        if self.eval_params.verbosity >= 1:
-            bar = progressbar.ProgressBar(max_value=num_simulations)
 
         try:
             while True:
@@ -73,17 +72,17 @@ class GenericEvaluator(Evaluator):
                     self.samples[i] = (result.records, rho)
                     self.evals.append(int(rho > 0))
                     i += 1
-                    if self.eval_params.verbosity >= 1:
-                        bar.update(i)
                     if i == 1:
                         t0 = time.time()
                     if i == num_simulations:
-                        filehandler = open(f"{save_datagen_path}eval_{i}.pkl", 'wb') 
-                        pickle.dump(self.samples, filehandler)
+                        filename = os.path.join(save_datagen_path, f"eval_{i}.pkl")
+                        with open(filename, 'wb') as filehandler: 
+                            pickle.dump(self.samples, filehandler)
                         break
                     if i == 1 or i % 10 == 0:
-                        filehandler = open(f"{save_datagen_path}eval_{i}.pkl", 'wb') 
-                        pickle.dump(self.samples, filehandler)
+                        filename = os.path.join(save_datagen_path, f"eval_{i}.pkl")
+                        with open(filename, 'wb') as filehandler: 
+                            pickle.dump(self.samples, filehandler)
 
                 except:
                     if self.eval_params.verbosity >= 1:
@@ -94,8 +93,6 @@ class GenericEvaluator(Evaluator):
                             break
                     pass
         finally:
-            if self.eval_params.verbosity >= 1:
-                bar.finish()
             self.sampling_params.server.terminate()
         if self.eval_params.verbosity >= 1:
             print('All simulations generated.')
@@ -104,8 +101,6 @@ class GenericEvaluator(Evaluator):
     
     def generate(self, num_simulations, num_steps, save_path):
         save_scenes_path=self.eval_params.scenes_save_dir
-        if save_scenes_path[-1] != "/":
-            save_scenes_path += "/"
         os.makedirs(save_path, exist_ok=True)
         self.sample_simulations(num_simulations, num_steps, os.path.abspath(save_path), os.path.abspath(save_scenes_path))
         self.evaluation_data = float(np.mean(np.array(self.evals)))
@@ -115,15 +110,11 @@ class GenericEvaluator(Evaluator):
     def evaluate(self, monitor):
         self.init_sampler("eval")
         save_path=self.eval_params.datagen_save_dir
-        if save_path[-1] != "/":
-            save_path += "/"
         os.makedirs(save_path, exist_ok=True)
         eval_data = self.generate(self.eval_params.eval_num_simulations, self.eval_params.eval_num_steps, save_path)
         self.evaluation_results = {"eval_score": eval_data}
         self.init_sampler("eval_nomonitor")
         save_path=self.eval_params.datagen_nomon_save_dir
-        if save_path[-1] != "/":
-            save_path += "/"
         os.makedirs(save_path, exist_ok=True)
         eval_data_nomon = self.generate(self.eval_params.eval_num_simulations, self.eval_params.eval_num_steps, save_path)
         self.evaluation_results["eval_score_nomon"] =  eval_data_nomon

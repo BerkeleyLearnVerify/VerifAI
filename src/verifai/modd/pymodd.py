@@ -1,8 +1,9 @@
+from dotmap import DotMap
+
 from verifai.modd.odd_evaluator import GenericEvaluator
 from verifai.modd.odd_data_generator import GenericDataGenerator
 from verifai.modd.odd_trainer import GenericTrainer
 from verifai.modd.odd_monitor import Monitor
-from dotmap import DotMap
 
 class MODD():
     def __init__(self, 
@@ -33,7 +34,7 @@ class MODD():
 
    
 
-    def run(self):
+    def generate_monitor(self):
         refinement_iters = 0
         if self.global_params.has_key("refinement_iters"):
             refinement_iters = self.global_params.refinement_iters
@@ -57,12 +58,3 @@ class MODD():
             refinement_iters -= 1
 
         return self.monitor, self.training_results, self.evaluation_results
-    
-
-
-    
-    
-
-    
-
-        

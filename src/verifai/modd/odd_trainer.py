@@ -1,11 +1,13 @@
 from abc import ABC
-from verifai.modd.odd_monitor import GenericMonitor, TorchMonitor
-from sklearn import tree
-from matplotlib import pyplot as plt
 import pickle
 import os
+
+from sklearn import tree
+from matplotlib import pyplot as plt
 import torch
 
+
+from verifai.modd.odd_monitor import GenericMonitor
 
 class Trainer(ABC):
     def __init__(self, trainer_params):
