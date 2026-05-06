@@ -11,7 +11,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
-from verifai.features import FilteredDomain, TimeSeriesFeature, Sample, _PrecomputedSample
+from verifai.features import FilteredDomain, TimeSeriesFeature, Sample
+from verifai.features.features import _PrecomputedSample
 from verifai.samplers.domain_sampler import SplitSampler, TerminationException
 from verifai.samplers.rejection import RejectionSampler
 from verifai.samplers.halton import HaltonSampler

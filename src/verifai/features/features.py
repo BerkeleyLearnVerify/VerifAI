@@ -1026,7 +1026,7 @@ class _SampleBase(ABC):
                     self.attr = attr
 
                 def __getitem__(self, i):
-                    if i > len(self._dynamicSamples):
+                    if i > len(self._dynamicSamples)-1:
                         raise IndexError("Attempting to access dynamic sample value that has not been sampled.")
                     return getattr(self._dynamicSamples[i], self.attr)
 
@@ -1077,7 +1077,7 @@ class CompletedSample(_SampleBase):
     def __init__(self, staticSample, dynamicSamples, space, dynamicSampleLengths):
         super().__init__(space, dynamicSampleLengths)
         self._staticSample = staticSample
-        self._dynamicSamples = dynamicSamples
+        self._dynamicSamples = tuple(dynamicSamples)
 
     @property
     def staticSample(self):
@@ -1091,10 +1091,10 @@ class CompletedSample(_SampleBase):
         if not isinstance(other, CompletedSample):
             return False
         
-        return self.staticSample == other.staticSample and tuple(self.dynamicSamples) == tuple(other.dynamicSamples)
+        return self.staticSample == other.staticSample and self.dynamicSamples == other.dynamicSamples
 
     def __hash__(self):
-        return hash(self.staticSample, tuple(self.dynamicSamples))
+        return hash((self.staticSample, self.dynamicSamples))
 
 class _PrecomputedSample(Sample):
     """A precompleted sample, which has fully computed static and dynamic points.

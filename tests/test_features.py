@@ -102,6 +102,7 @@ def test_fs_flatten_fixed_dimension_dynamic():
         for _ in range(duration):
             point.getDynamicSample()
         point = point.complete(None)
+        hash(point)
         flat = space.flatten(point, fixedDimension=True)
         assert type(flat) is tuple
         assert len(flat) == 13
@@ -127,6 +128,25 @@ def test_fs_flatten_fixed_dimension_dynamic():
     assert space.pandasIndexForFlatCoordinate(3) == ('b', 0, 0)
     assert space.pandasIndexForFlatCoordinate(4) == ('b', 1, 0)
     assert all(space.coordinateIsNumerical(i) for i in range(4))
+
+def test_fs_utilities():
+    space = FeatureSpace({
+        'a': Feature(DiscreteBox([0, 12])),
+        'b': TimeSeriesFeature(Box((0, 1)), lengthDomain=DiscreteBox((1, 2)))
+        },
+        timeBound=5
+    )
+    assert space.fixedFlattenedDimension == 13
+    sampler = FeatureSampler.randomSamplerFor(space)
+    for i in range(100):
+        point = sampler.getSample()
+        duration = random.randint(0, 5)
+        for d in range(duration):
+            point.getDynamicSample()
+            assert 0 <= point.b[d][0][0] <= 1
+        point = point.complete(None)
+        hash(point)
+        assert all(0 <= point.b[i][0][0] <= 1 for i in range(duration))
 
 def test_fs_distance():
     box = Box([0, 10])
