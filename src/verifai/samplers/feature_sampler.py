@@ -239,8 +239,8 @@ class LateFeatureSampler(FeatureSampler):
         complete_callback = lambda rho: self.update(sample_id, rho)
 
         # Make static points and iterable over dynamic points
-        static_features = [(k, domainPoint._asdict()[k]) for k in self.space.staticFeatureNamed.keys()]
-        dynamic_features = [(k, domainPoint._asdict()[k]) for k in self.space.dynamicFeatureNamed.keys()]
+        static_features = [(k, domainPoint._asdict()[k]) for k in self.space.staticFeatureNamed]
+        dynamic_features = [(k, domainPoint._asdict()[k]) for k in self.space.dynamicFeatureNamed]
         static_point = self.space.makeStaticPoint(*[v[1] for v in static_features])
 
         dynamic_points = []

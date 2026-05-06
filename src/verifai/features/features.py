@@ -1027,7 +1027,7 @@ class _SampleBase(ABC):
 
                 def __getitem__(self, i):
                     if i > len(self._dynamicSamples):
-                        raise ValueError("Attempting to access dynamic sample value that has not been sampled.")
+                        raise IndexError("Attempting to access dynamic sample value that has not been sampled.")
                     return getattr(self._dynamicSamples[i], self.attr)
 
                 def __len__(self):
@@ -1039,7 +1039,7 @@ class _SampleBase(ABC):
 
 
 class Sample(_SampleBase):
-    """A sample from a feature space, containing static points and able to generate dynamic points.
+    """A sample from a feature space, containing a static point and able to generate dynamic points.
     
     Args:
         space (FeatureSpace): The feature space this Sample was sampled from.
@@ -1176,7 +1176,7 @@ class FeatureSpace:
         self.timeBound = timeBound
 
         if len(self.dynamicFeatureNamed) > 0 and self.timeBound == 0:
-            raise RuntimeError("FeatureSpace which includes TimeSeriesFeature has no timeBound.")
+            raise ValueError("must specify timeBound when creating a FeatureSpace with a TimeSeriesFeature")
 
     @cached_property
     def domains(self):
