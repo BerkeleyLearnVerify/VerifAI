@@ -15,7 +15,7 @@ def test_objects(new_Object):
         f'ego = {new_Object} at 4 @ 9',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample()
     objects = sample.objects
     assert len(objects) == 1
     pos = objects.object0.position
@@ -28,7 +28,7 @@ def test_params(new_Object):
         f'ego = {new_Object}',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample()
     x = sample.params.x
     assert type(x) is float
     assert 3 <= x <= 5
@@ -39,7 +39,7 @@ def test_quoted_param(new_Object):
         f'ego = {new_Object}',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample()
     v = sampler.paramDictForSample(sample)['x/y']
     assert type(v) is float
     assert 3 <= v <= 5
@@ -49,7 +49,7 @@ def test_lists(new_Object):
         f'ego = {new_Object} with foo [1, -1, 3.3]',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample()
     foo = sample.objects.object0.foo
     assert type(foo) is tuple
     assert foo == pytest.approx((1, -1, 3.3))
@@ -68,7 +68,7 @@ def test_object_order(new_Object):
         f'    {new_Object} at 2*i @ 0',
         maxIterations=1
     )
-    sample = sampler.nextSample()
+    sample = sampler.getSample().complete(None)
     objects = sample.objects
     assert len(objects) == 11
     for i in range(len(objects)):
@@ -112,7 +112,7 @@ def test_active_save_restore(new_Object, tmpdir):
 
 def runSampler(sampler):
     for i in range(3):
-        sample = sampler.nextSample()
+        sample = sampler.getSample()
         print(f'Sample #{i}:')
         print(sample)
 
@@ -179,3 +179,55 @@ def test_driving_dynamic(pathToLocalFile):
                                   server_class=ScenicServer,
                                   server_options=server_options)
     falsifier.run_falsifier()
+
+def test_driving_dynamic_behavior(pathToLocalFile):
+    path = pathToLocalFile('scenic_driving_behavior.scenic')
+    sampler = ScenicSampler.fromScenario(
+        path,
+        params=dict(render=False),
+        mode2D=True,
+        maxSteps=2
+    )
+    falsifier_params = DotMap(
+        n_iters=3,
+        save_error_table=False,
+        save_safe_table=False,
+    )
+    server_options = DotMap(maxSteps=2, verbosity=3)
+    falsifier = generic_falsifier(sampler=sampler,
+                                  falsifier_params=falsifier_params,
+                                  server_class=ScenicServer,
+                                  server_options=server_options)
+    falsifier.run_falsifier()
+
+double_access_scenario = """
+model scenic.simulators.newtonian.model
+foo = TimeSeries(VerifaiRange(0, 0.01))
+behavior TestBehavior():
+    while True:
+        foo.getSample()
+        foo.getSample()
+        wait
+ego = new Object with behavior TestBehavior()
+"""
+
+def test_double_time_series_access():
+    with pytest.raises(RuntimeError, match=r"Attempted `getSample` for a TimeSeries external parameter twice in one timestep."):
+        sampler = ScenicSampler.fromScenicCode(
+                double_access_scenario,
+                model='scenic.simulators.newtonian.model',
+                maxIterations=1,
+                maxSteps=2,
+                params=dict(render=False),
+            )
+        falsifier_params = DotMap(
+            n_iters=3,
+            save_error_table=False,
+            save_safe_table=False,
+        )
+        server_options = DotMap(maxSteps=2, verbosity=3)
+        falsifier = generic_falsifier(sampler=sampler,
+                                    falsifier_params=falsifier_params,
+                                    server_class=ScenicServer,
+                                    server_options=server_options)
+        falsifier.run_falsifier()

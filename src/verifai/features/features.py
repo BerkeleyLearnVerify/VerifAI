@@ -9,7 +9,9 @@ import math
 import random
 import itertools
 import functools
+from abc import ABC, abstractmethod
 from collections import OrderedDict, namedtuple
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -964,19 +966,26 @@ class Feature:
         else:
             return self.distanceMetric(valueA, valueB)
 
-    @cached_property
-    def fixedDomains(self):
+    @staticmethod
+    def _timeExpandDomain(domain, timeBound):
+        return domain
+
+    def fixedDomains(self, timeBound):
         """Return the fixed-length Domains associated with this feature."""
+        timeExpandedDomain = self._timeExpandDomain(self.domain, timeBound) if timeBound is not None else self.domain
+
         if not self.lengthDomain:
-            return self.domain
-        domains = {}
-        for length in self.lengthDomain:
-            length = length[0]
-            domains[length] = Array(self.domain, (length,))
+            domains = timeExpandedDomain
+        else:
+            domains = {}
+            for length in self.lengthDomain:
+                length = length[0]
+                domains[length] = Array(timeExpandedDomain, (length,))
+        
         return domains
 
     def __repr__(self):
-        rep = f'Feature({self.domain}'
+        rep = f'{self.__class__.__name__}({self.domain}'
         if self.distribution is not None:
             rep += f', distribution={self.distribution}'
         if self.lengthDomain is not None:
@@ -987,10 +996,157 @@ class Feature:
             rep += f', distanceMetric={self.distanceMetric}'
         return rep + ')'
 
-### Feature spaces
+class TimeSeriesFeature(Feature):
+    """A feature with a value at each timestep of a simulation."""
+    @staticmethod
+    def _timeExpandDomain(domain, timeBound):
+        return Array(domain, (timeBound,))
+
+### Feature spaces and Samples
+class _SampleBase(ABC):
+    def __init__(self, space, dynamicSampleLengths):
+        self.space = space
+        self.dynamicSampleLengths = dynamicSampleLengths
+
+        self._dynamicSamples = []
+
+    @property
+    @abstractmethod
+    def staticSample(self):
+        pass
+
+    def __getattr__(self, attr):
+        space = super().__getattribute__("space")
+        if attr in space.staticFeatureNamed:
+            return getattr(self.staticSample, attr)
+        elif attr in space.dynamicFeatureNamed:
+            class DynamicFeatureHelper(Sequence):
+                def __init__(self, dynamicSampleHistory, attr):
+                    self._dynamicSamples = dynamicSampleHistory
+                    self.attr = attr
+
+                def __getitem__(self, i):
+                    if i > len(self._dynamicSamples)-1:
+                        raise IndexError("Attempting to access dynamic sample value that has not been sampled.")
+                    return getattr(self._dynamicSamples[i], self.attr)
+
+                def __len__(self):
+                    return len(self._dynamicSamples)
+
+            return DynamicFeatureHelper(self._dynamicSamples, attr)
+        else:
+            return super().__getattribute__(attr)
+
+
+class Sample(_SampleBase):
+    """A sample from a feature space, containing a static point and able to generate dynamic points.
+    
+    Args:
+        space (FeatureSpace): The feature space this Sample was sampled from.
+        dynamicSampleLengths (dict): A dictionary containing the lengths of each dynamic feature
+            with a length domain.
+    """
+    def __init__(self, space, dynamicSampleLengths):
+        super().__init__(space, dynamicSampleLengths)
+
+    @property
+    @abstractmethod
+    def staticSample(self):
+        pass
+
+    @abstractmethod
+    def _getDynamicSample(self, info):
+        pass
+
+    def getDynamicSample(self, info=None):
+        sample = self._getDynamicSample(info)
+        self._dynamicSamples.append(sample)
+        return sample
+
+    def complete(self, rho):
+        """Super method should be called after providing rho to the sampler to return a `CompletedSample`"""
+        return CompletedSample(self.staticSample, self._dynamicSamples, self.space, self.dynamicSampleLengths)
+
+
+class CompletedSample(_SampleBase):
+    """A completed sample from a feature space, containing the static point the history of sampled dynamic points.
+    
+    This class is returned when calling `complete` on a `Sample`, and is useful for storage, comparisons, hashing, etc...
+    """
+
+    def __init__(self, staticSample, dynamicSamples, space, dynamicSampleLengths):
+        super().__init__(space, dynamicSampleLengths)
+        self._staticSample = staticSample
+        self._dynamicSamples = tuple(dynamicSamples)
+
+    @property
+    def staticSample(self):
+        return self._staticSample
+
+    @property
+    def dynamicSamples(self):
+        return self._dynamicSamples
+
+    def __eq__(self, other):
+        if not isinstance(other, CompletedSample):
+            return False
+        
+        return self.staticSample == other.staticSample and self.dynamicSamples == other.dynamicSamples
+
+    def __hash__(self):
+        return hash((self.staticSample, self.dynamicSamples))
+
+class _PrecomputedSample(Sample):
+    """A precompleted sample, which has fully computed static and dynamic points.
+
+    Note: This class is an implementation detail, and one should only assume the `Sample` API
+    with it.
+    
+    Args:
+        space (FeatureSpace): The feature space this Sample was sampled from.
+        staticSample: The static point for this sample
+        dynamicSampleList: A list of the dynamic points for this sample.
+        completeCallback: A callback that is called with the value passed to complete.
+        dynamicSampleLengths (dict): A dictionary containing the lengths of each dynamic feature
+            with a length domain.
+    """
+    def __init__(self, space, staticSample, dynamicSampleList, completeCallback, dynamicSampleLengths):
+        super().__init__(space, dynamicSampleLengths)
+        self._staticSample = staticSample
+        self._dynamicSampleList = dynamicSampleList
+        self._completeCallback = completeCallback
+        self._i = 0
+
+    @property
+    def staticSample(self):
+        return self._staticSample
+
+    def _getDynamicSample(self, info):
+        if self.space.timeBound == 0:
+            raise RuntimeError("Called `getDynamicSample` with `timeBound` of `FeatureSpace` set to 0")
+
+        if self._i >= self.space.timeBound:
+            raise RuntimeError("Exceeded `timeBound` of `FeatureSpace`")
+        
+        assert self._i < len(self._dynamicSampleList)
+
+        dynamic_sample = self._dynamicSampleList[self._i]
+        self._i += 1
+
+        return dynamic_sample
+
+    def complete(self, rho):
+        self._completeCallback(rho)
+        return super().complete(rho)
 
 class FeatureSpace:
     """A space consisting of named features.
+
+    Args:
+        features (Iterable): An iterable of the `Feature` objects in this space.
+        distanceMetric (function; optional): An optional distance metric to be used with this space.
+        timeBound (int; optional): An upper bound on the number of timesteps of a simulation using
+            this space.
 
     .. testcode::
 
@@ -1001,22 +1157,37 @@ class FeatureSpace:
         })
     """
 
-    def __init__(self, features, distanceMetric=None):
+    def __init__(self, features, distanceMetric=None, timeBound=0):
         self.namedFeatures = tuple(sorted(features.items(), key=lambda i: i[0]))
         self.featureNamed = OrderedDict(self.namedFeatures)
         self.features = tuple(self.featureNamed.values())
-        self.makePoint = namedtuple('SpacePoint', self.featureNamed.keys())
+
+        self.staticFeatureNamed = OrderedDict({name: feat for name, feat in self.featureNamed.items()
+                                               if not isinstance(feat, TimeSeriesFeature)})
+        self.dynamicFeatureNamed = OrderedDict({name: feat for name, feat in self.featureNamed.items()
+                                               if isinstance(feat, TimeSeriesFeature)})
+
+        self.hasTimeSeries = len(self.dynamicFeatureNamed) > 0
+
+        self.makeStaticPoint = namedtuple('StaticSpacePoint', self.staticFeatureNamed)
+        self.makeDynamicPoint = namedtuple('DynamicSpacePoint', self.dynamicFeatureNamed)
+
         self.distanceMetric = distanceMetric
+        self.timeBound = timeBound
+
+        if len(self.dynamicFeatureNamed) > 0 and self.timeBound == 0:
+            raise ValueError("must specify timeBound when creating a FeatureSpace with a TimeSeriesFeature")
 
     @cached_property
     def domains(self):
-        """Return the domain or domains associated with this space.
+        """Return the expanded domain or domains associated with this space.
 
         Returns a pair consisting of the Domain of all lengths of feature
         lists, plus a dict mapping each (flattened) point in that Domain to the
         corresponding Domain of other features. If the FeatureSpace has no
         feature lists, then returns (None, dom) where dom is the fixed Domain
-        of all features.
+        of all features. If any Features are TimeSeriesFeatures then they are
+        expanded to a max of timeBound.
         """
         fixedDomains = {}
         lengthDomains = {}
@@ -1024,9 +1195,9 @@ class FeatureSpace:
         for name, feature in self.namedFeatures:
             if feature.lengthDomain:
                 lengthDomains[name] = feature.lengthDomain
-                variableDomains[name] = feature.fixedDomains
+                variableDomains[name] = feature.fixedDomains(self.timeBound)
             else:
-                fixedDomains[name] = feature.domain
+                fixedDomains[name] = feature._timeExpandDomain(feature.domain, self.timeBound)
         if len(lengthDomains) == 0:
             return (None, Struct(fixedDomains))
         lengthDomain = Struct(lengthDomains)
@@ -1056,16 +1227,18 @@ class FeatureSpace:
         """Flatten a point in this space. See Domain.flatten.
 
         If fixedDimension is True, the point is flattened out as if all feature
-        lists had their maximum lengths, with None as a placeholder. This means
-        that all points in the space will flatten to the same length.
+        lists had their maximum lengths and time steps, with None as a placeholder.
+        This means that all points in the space will flatten to the same length.
         """
+        assert isinstance(point, CompletedSample)
+
         flattened = []
-        for feature, value in zip(self.features, point):
+        for feature, value in zip(self.staticFeatureNamed.values(), point.staticSample):
             domain = feature.domain
             if feature.lengthDomain:
                 length = len(value)
                 flattened.append(length)
-                fixedDomain = feature.fixedDomains[length]
+                fixedDomain = feature.fixedDomains(None)[length]
                 fixedDomain.flattenOnto(value, flattened)
                 if fixedDimension:      # add padding to maximum length
                     sizePerElt = domain.flattenedDimension
@@ -1074,6 +1247,43 @@ class FeatureSpace:
                         flattened.append(None)
             else:
                 domain.flattenOnto(value, flattened)
+
+        if self.hasTimeSeries:
+            duration = len(point.dynamicSamples)
+            flattened.append(duration)
+
+            for feature_i, f in enumerate(self.dynamicFeatureNamed.items()):
+                feature_name, feature = f
+                domain = feature.domain
+                sizePerElt = domain.flattenedDimension
+
+                if feature.lengthDomain:
+                    length = point.dynamicSampleLengths[feature_name]
+                else:
+                    length = None
+
+                flattened.append(length)
+
+                for dynamic_point in point.dynamicSamples:
+                    value = dynamic_point[feature_i]
+
+                    if length is None:
+                        domain.flattenOnto(value, flattened)
+                    else:
+                        fixedDomain = feature.fixedDomains(None)[length]
+                        fixedDomain.flattenOnto(value, flattened)
+                        if fixedDimension:
+                            needed = (feature.maxLength - length) * sizePerElt
+                            for i in range(needed):
+                                flattened.append(None)
+
+                if fixedDimension:
+                    needed = (self.timeBound - len(point.dynamicSamples)) * feature.maxLength * sizePerElt
+                    flattened += [None for _ in range(needed)]
+
+        flattened_point = tuple(flattened)
+        if fixedDimension:
+            assert len(flattened_point) == self.fixedFlattenedDimension
         return tuple(flattened)
 
     @cached_property
@@ -1083,13 +1293,16 @@ class FeatureSpace:
         Also an upper bound on the length of the vector returned by flatten
         by default, when fixedDimension=False."""
         dim = 0
+        if self.hasTimeSeries:
+            dim += 1 # Timesteps
         for feature in self.features:
             domain = feature.domain
+            timeMult = self.timeBound if isinstance(feature, TimeSeriesFeature) else 1
             if feature.lengthDomain:
                 dim += 1    # dimension storing length of the feature list
-                dim += feature.maxLength * domain.flattenedDimension
+                dim += timeMult * feature.maxLength * domain.flattenedDimension
             else:
-                dim += domain.flattenedDimension
+                dim += timeMult * domain.flattenedDimension
         return dim
 
     def meaningOfFlatCoordinate(self, index, pointName='point'):
@@ -1100,7 +1313,7 @@ class FeatureSpace:
         have different meaning depending on the lengths of feature lists.
         """
         assert 0 <= index < self.fixedFlattenedDimension
-        for name, feature in self.namedFeatures:
+        for name, feature in self.staticFeatureNamed.items():
             domain = feature.domain
             if feature.lengthDomain:
                 if index == 0:
@@ -1120,6 +1333,35 @@ class FeatureSpace:
                     return domain.meaningOfFlatCoordinate(index,
                                                           pointName=subPoint)
                 index -= domain.flattenedDimension
+
+        if index == 0:
+            return f'len({pointName}.dynamicSampleHistory)'
+        index -= 1
+
+        for name, feature in self.dynamicFeatureNamed.items():
+            domain = feature.domain
+            if feature.lengthDomain:
+                if index == 0:
+                    return f'{pointName}.dynamicSampleLengths["{name}"]'
+                else:
+                    index -= 1
+                    for time_i in range(self.timeBound):
+                        elem = index // domain.flattenedDimension
+                        if elem < feature.maxLength:
+                            subIndex = index % domain.flattenedDimension
+                            subPoint = f'{pointName}.{name}[{time_i}][{elem}]'
+                            return domain.meaningOfFlatCoordinate(subIndex,
+                                pointName=subPoint)
+                        index -= feature.maxLength * domain.flattenedDimension
+            else:
+                index -= 1
+                for time_i in range(self.timeBound):
+                    if index < domain.flattenedDimension:
+                        subPoint = f'{pointName}.{name}[{time_i}]'
+                        return domain.meaningOfFlatCoordinate(index,
+                                                            pointName=subPoint)
+                    index -= domain.flattenedDimension
+
         raise RuntimeError('impossible index arithmetic')
 
     def pandasIndexForFlatCoordinate(self, index):
@@ -1128,7 +1370,7 @@ class FeatureSpace:
         See meaningOfFlatCoordinate, and Domain.pandasIndexForFlatCoordinate.
         """
         assert 0 <= index < self.fixedFlattenedDimension
-        for name, feature in self.namedFeatures:
+        for name, feature in self.staticFeatureNamed.items():
             domain = feature.domain
             if feature.lengthDomain:
                 if index == 0:
@@ -1146,7 +1388,34 @@ class FeatureSpace:
                     panda = domain.pandasIndexForFlatCoordinate(index)
                     return (name,) + panda
                 index -= domain.flattenedDimension
+
+        if index == 0:
+            return ("dynamicSamples", "length")
+        index -= 1
+
+        for name, feature in self.dynamicFeatureNamed.items():
+            domain = feature.domain
+            if feature.lengthDomain:
+                if index == 0:
+                    return (name, 'length')
+                else:
+                    index -= 1
+                    for time_i in range(self.timeBound):
+                        elem = index // domain.flattenedDimension
+                        if elem < feature.maxLength:
+                            subIndex = index % domain.flattenedDimension
+                            panda = domain.pandasIndexForFlatCoordinate(subIndex)
+                            return (name, elem) + panda
+                        index -= feature.maxLength * domain.flattenedDimension
+            else:
+                for time_i in range(self.timeBound):
+                    if index < domain.flattenedDimension:
+                        panda = domain.pandasIndexForFlatCoordinate(index)
+                        return (name,) + panda
+                    index -= domain.flattenedDimension
+
         raise RuntimeError('impossible index arithmetic')
+
 
     def coordinateIsNumerical(self, index):
         """Whether the value of a coordinate is intrinsically numerical.
@@ -1154,7 +1423,7 @@ class FeatureSpace:
         See meaningOfFlatCoordinate, and Domain.coordinateIsNumerical.
         """
         assert 0 <= index < self.fixedFlattenedDimension
-        for name, feature in self.namedFeatures:
+        for name, feature in self.staticFeatureNamed.items():
             domain = feature.domain
             if feature.lengthDomain:
                 if index == 0:
@@ -1170,29 +1439,94 @@ class FeatureSpace:
                 if index < domain.flattenedDimension:
                     return domain.coordinateIsNumerical(index)
                 index -= domain.flattenedDimension
+
+        if index == 0:
+            return True
+        index -= 1
+
+        for name, feature in self.dynamicFeatureNamed.items():
+            domain = feature.domain
+            if feature.lengthDomain:
+                if index == 0:
+                    return True
+                else:
+                    index -= 1
+                    for time_i in range(self.timeBound):
+                        elem = index // domain.flattenedDimension
+                        if elem < feature.maxLength:
+                            subIndex = index % domain.flattenedDimension
+                            return domain.coordinateIsNumerical(subIndex)
+                        index -= feature.maxLength * domain.flattenedDimension
+            else:
+                for time_i in range(self.timeBound):
+                    if index < domain.flattenedDimension:
+                        return domain.coordinateIsNumerical(index)
+                    index -= domain.flattenedDimension
+
         raise RuntimeError('impossible index arithmetic')
 
     def unflatten(self, coords, fixedDimension=False):
         """Unflatten a tuple of coordinates to a point in this space."""
-        values = []
+        staticValues = []
         iterator = iter(coords)
-        for feature in self.features:
+
+        for feature in self.staticFeatureNamed.values():
             domain = feature.domain
             if feature.lengthDomain:
                 length = next(iterator)
-                fixedDomain = feature.fixedDomains[length]
-                values.append(fixedDomain.unflattenIterator(iterator))
+                fixedDomain = feature.fixedDomains(None)[length]
+                staticValues.append(fixedDomain.unflattenIterator(iterator))
                 if fixedDimension:      # consume padding
                     sizePerElt = domain.flattenedDimension
                     needed = (feature.maxLength - length) * sizePerElt
                     for i in range(needed):
                         next(iterator)
             else:
-                values.append(domain.unflattenIterator(iterator))
-        return self.makePoint(*values)
+                staticValues.append(domain.unflattenIterator(iterator))
+
+        staticSample = self.makeStaticPoint(*staticValues)
+
+        if self.hasTimeSeries:
+            duration = next(iterator)
+
+            dynamicValuesList = [[] for _ in range(duration)]
+            dynamicSampleLengths = {}
+
+            for feature_name, feature in self.dynamicFeatureNamed.items():
+                domain = feature.domain
+                sizePerElt = domain.flattenedDimension
+                length = next(iterator)
+                dynamicSampleLengths[feature_name] = length
+                
+                for time_i in range(duration):
+                    if length is None:
+                        dynamicValuesList[time_i].append(domain.unflattenIterator(iterator))
+                    else:
+                        fixedDomain = feature.fixedDomains(None)[length]
+                        dynamicValuesList[time_i].append(fixedDomain.unflattenIterator(iterator))
+                        if fixedDimension:      # consume padding
+                            needed = (feature.maxLength - length) * sizePerElt
+                            for _ in range(needed):
+                                next(iterator)
+
+                if fixedDimension:
+                    needed = (self.timeBound - duration) * length * sizePerElt
+                    for _ in range(needed):
+                        next(iterator)
+
+            dynamicSampleList = [self.makeDynamicPoint(*dynamicValues) for dynamicValues in dynamicValuesList]
+        else:
+            duration = 0
+            dynamicSampleList = []
+            dynamicSampleLengths = {}
+
+        sample = CompletedSample(staticSample, dynamicSampleList, self, dynamicSampleLengths)
+
+        return sample
 
     def __repr__(self):
         rep = f'FeatureSpace({self.featureNamed}'
         if self.distanceMetric is not None:
             rep += f', distanceMetric={self.distanceMetric}'
         return rep + ')'
+    

@@ -24,7 +24,7 @@ def test_halton():
 
     for i in range(3):
         print(f'Sample #{i}:')
-        print(sampler.nextSample())
+        print(sampler.getSample().complete(None))
 
 def test_save_restore(tmpdir):
     space = FeatureSpace({
