@@ -1,6 +1,6 @@
 [project]
 name = "verifai"
-version = "2.1.2"
+version = "2.2.0"
 description = "A toolkit for the formal design and analysis of systems that include artificial intelligence (AI) and machine learning (ML) components."
 authors = [
 	{ name = "Tommaso Dreossi" },
@@ -40,7 +40,7 @@ dependencies = [
 	'pygame-ce >= 2.5.7, <3; python_version >= "3.10"',
     'pygame ~= 2.1; python_version < "3.10"',
 	"kmodes <= 0.10.2",
-	"scenic >= 2.1.0b1, <4",
+	"scenic >= 3.1.1, <4",
 	"progressbar2 ~= 3.53",
 	"networkx >= 2.6",
 	"statsmodels >= 0.13.2",
