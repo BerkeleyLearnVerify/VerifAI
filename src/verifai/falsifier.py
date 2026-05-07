@@ -4,7 +4,7 @@ from verifai.scenic_server import ScenicServer, ParallelScenicServer
 from verifai.samplers import TerminationException
 from dotmap import DotMap
 from verifai.monitor import mtl_specification, specification_monitor, multi_objective_monitor
-from verifai.rulebook import rulebook
+from verifai.rulebook import Rulebook
 from verifai.error_table import error_table
 import numpy as np
 import progressbar
@@ -37,12 +37,12 @@ class falsifier(ABC):
             params.update(falsifier_params)
         if params.sampler_params is None:
             params.sampler_params = DotMap(thres=params.fal_thres)
-        self.multi = isinstance(self.monitor, multi_objective_monitor) or isinstance(self.monitor, rulebook)
-        self.dynamic = isinstance(self.monitor, rulebook)
+        self.multi = isinstance(self.monitor, multi_objective_monitor) or isinstance(self.monitor, Rulebook)
+        self.dynamic = isinstance(self.monitor, Rulebook)
         if isinstance(self.monitor, multi_objective_monitor):
             params.sampler_params.priority_graph = self.monitor.graph
-        elif isinstance(self.monitor, rulebook):
-            pass
+        elif isinstance(self.monitor, Rulebook):
+            params.sampler_params.rulebook = self.monitor
         self.save_error_table = params.save_error_table
         self.save_safe_table = params.save_safe_table
         self.error_table_path = params.error_table_path
@@ -163,12 +163,6 @@ class falsifier(ABC):
                     break
                 if self.verbosity >= 2:
                     print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
-                if self.dynamic and self.verbosity >= 1:
-                    print('RHO')
-                    for rh in rho:
-                        for r in rh:
-                            print(r, end=' ')
-                        print()
                 self.samples[i] = sample
                 server_samples.append(sample)
                 rhos.append(rho)
@@ -188,8 +182,14 @@ class falsifier(ABC):
         for sample, rho in zip(server_samples, rhos):
             ce = False
             if self.dynamic:
-                for r in rho:
-                    self.populate_error_table(sample, r)
+                if isinstance(rho, int) and rho == 1:
+                    num_rule_outputs = sum(
+                        len(graph.nodes) for graph in self.monitor.priority_graphs.values()
+                    )
+                    concatenated_rho = [1.0] * num_rule_outputs
+                else:
+                    concatenated_rho = [value for rho_list in rho for value in rho_list]
+                self.populate_error_table(sample, concatenated_rho)
             else:
                 if self.multi:
                     ce = any([r <= self.fal_thres for r in rho])

@@ -57,12 +57,6 @@ class ScenicServer(Server):
         scene = self.sampler.lastScene
         assert scene
         result = self._simulate(scene)
-        if self.dynamic:
-            while result is None:
-                sample = self.get_sample(1)
-                scene = self.sampler.lastScene
-                assert scene
-                result = self._simulate(scene)
         if result is None:
             return self.rejectionFeedback
         value = (0 if self.monitor is None

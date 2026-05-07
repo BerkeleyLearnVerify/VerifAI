@@ -35,9 +35,6 @@ TERM_DIST = 80
 # AGENT BEHAVIORS               #
 #################################
 
-behavior DecelerateBehavior(brake):
-    take SetBrakeAction(brake)
-
 behavior EgoBehavior():
     try:
         do FollowLaneBehavior(target_speed=globalParameters.EGO_SPEED)
@@ -51,9 +48,9 @@ behavior EgoBehavior():
                     target_speed=globalParameters.EGO_SPEED,
                     laneToFollow=fasterLaneSec.lane)
         interrupt when (distance from adv3 to ego) < SAFE_DIST:
-            do DecelerateBehavior(brake=globalParameters.EGO_BRAKE)
+            take SetBrakeAction(globalParameters.EGO_BRAKE)
     interrupt when (distance from adv1 to ego) < SAFE_DIST:
-        do DecelerateBehavior(brake=globalParameters.EGO_BRAKE)
+        take SetBrakeAction(globalParameters.EGO_BRAKE)
 
 behavior Adv1Behavior():
     do FollowLaneBehavior(target_speed=globalParameters.ADV_SPEED)
@@ -99,20 +96,20 @@ adv3 = new Car following roadDirection for ADV3_DIST,
     with blueprint MODEL,
     with behavior Adv3Behavior()
 
-require (distance to intersection) > INIT_DIST
-require (distance from adv1 to intersection) > INIT_DIST
-require (distance from adv2 to intersection) > INIT_DIST
-require (distance from adv3 to intersection) > INIT_DIST
-require always (adv1.laneSection._fasterLane is not None)
-terminate when (distance to egoSpawnPt) > TERM_DIST
+require distance to intersection > INIT_DIST
+require distance from adv1 to intersection > INIT_DIST
+require distance from adv2 to intersection > INIT_DIST
+require distance from adv3 to intersection > INIT_DIST
+require always adv1.laneSection._fasterLane is not None
+terminate when distance to egoSpawnPt > TERM_DIST
 
 #################################
 # RECORDING                     #
 #################################
 
-record (ego.lane is initLane or ego.lane is not adv2.lane) as egoIsInInitLane
-record (adv2.lane is initLane) as adv2IsInInitLane # start evaluation only when adv2 reaches another lane
-record (adv3.lane is initLane) as adv3IsInInitLane # start evaluation only when adv3 reaches another lane
+record ego.lane is initLane or ego.lane is not adv2.lane as egoIsInInitLane
+record adv2.lane is initLane as adv2IsInInitLane # start evaluation only when adv2 reaches another lane
+record adv3.lane is initLane as adv3IsInInitLane # start evaluation only when adv3 reaches another lane
 
 record ego._boundingPolygon as egoPoly
 record adv1._boundingPolygon as adv1Poly

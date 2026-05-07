@@ -15,7 +15,7 @@ model scenic.domains.driving.model
 # CONSTANTS                     #
 #################################
 
-MODEL = 'vehicle.lincoln.mkz_2017' #'vehicle.toyota.prius'
+MODEL = 'vehicle.lincoln.mkz_2017'
 MODEL_ADV = 'vehicle.lincoln.mkz_2017'
 
 EGO_INIT_DIST = [30, 40]
@@ -43,6 +43,7 @@ TERM_DIST = 80
 #################################
 
 behavior EgoBehavior(trajectory):
+    '''The ego vehicle follows the planned trajectory, and brakes if the pedestrian is within the safety distance and is in the drivable region. Ego will keep braking until the pedestrian is out of the safety distance + 3 meters. The condition will only be triggered once to ensure the ego can make progress.'''
     flag = True
     try:
         do FollowTrajectoryBehavior(target_speed=globalParameters.EGO_SPEED, trajectory=trajectory)
@@ -55,9 +56,7 @@ behavior EgoBehavior(trajectory):
 behavior Adv1Behavior(trajectory):
     try:
         do FollowTrajectoryBehavior(target_speed=globalParameters.ADV1_SPEED, trajectory=trajectory)
-        #do FollowLaneBehavior(target_speed=globalParameters.ADV1_SPEED)
     interrupt when (distance from adv1 to ego) < SAFETY_DIST:
-    #interrupt when (distance from adv1 to ego) < SAFETY_DIST + 3:
         take SetBrakeAction(ADV_BRAKE)
 
 behavior Adv2Behavior(trajectory):
@@ -65,8 +64,6 @@ behavior Adv2Behavior(trajectory):
         do FollowTrajectoryBehavior(target_speed=globalParameters.ADV_SPEED, trajectory=trajectory)
         do FollowLaneBehavior(target_speed=globalParameters.ADV2_SPEED)
     interrupt when (distance from self to ped) < SAFETY_DIST:
-    #    take SetBrakeAction(ADV_BRAKE)
-    #interrupt when withinDistanceToAnyObjs(self, SAFETY_DIST + 3):
         take SetBrakeAction(ADV_BRAKE)
 
 behavior Adv3Behavior(trajectory):
@@ -74,8 +71,6 @@ behavior Adv3Behavior(trajectory):
         do FollowTrajectoryBehavior(target_speed=globalParameters.ADV_SPEED, trajectory=trajectory)
         do FollowLaneBehavior(target_speed=globalParameters.ADV_SPEED)
     interrupt when (distance from self to ped) < SAFETY_DIST:
-    #    take SetBrakeAction(ADV_BRAKE)
-    #interrupt when withinDistanceToAnyObjs(self, SAFETY_DIST + 3):
         take SetBrakeAction(ADV_BRAKE)
 
 behavior Adv4Behavior(trajectory):
@@ -153,25 +148,24 @@ adv4 = new Car at ego offset by -10 @ 85,
 
 ped = new Pedestrian at pedSpawnPt,
     facing toward pedEndPt,
-    with regionContainedIn None,
+    with regionContainedIn everywhere,
     with behavior Pedbehavior()
 
 require EGO_INIT_DIST[0] <= (distance to intersection) <= EGO_INIT_DIST[1]
 require ADV_INIT_DIST[0] <= (distance from adv2 to intersection) <= ADV_INIT_DIST[1]
 require adv3InitLane.road is egoManeuver.endLane.road
-terminate when (distance to egoSpawnPt) > TERM_DIST 
-#or (distance from adv2 to adv2SpawnPt) > TERM_DIST + 40
+terminate when (distance to egoSpawnPt) > TERM_DIST
 
 #################################
 # RECORDING                     #
 #################################
 
-record (ego in network.drivableRegion) as egoIsInDrivableRegion
-record (distance from ego to network.drivableRegion) as egoDistToDrivableRegion
-record (distance from ego to egoInitLane.group) as egoDistToEgoInitLane
-record (distance from ego to egoManeuver.endLane.group) as egoDistToEgoEndLane
-record (distance from ego to ego.lane.centerline) as egoDistToEgoLaneCenterline
-record (distance from ego to intersection) as egoDistToIntersection
+record ego in network.drivableRegion as egoIsInDrivableRegion
+record distance from ego to network.drivableRegion as egoDistToDrivableRegion
+record distance from ego to egoInitLane.group as egoDistToEgoInitLane
+record distance from ego to egoManeuver.endLane.group as egoDistToEgoEndLane
+record distance from ego to ego.lane.centerline as egoDistToEgoLaneCenterline
+record distance from ego to intersection as egoDistToIntersection
 
-record (distance from ego to adv1) as egoDistToAdv1
-record (distance to egoSpawnPt) as egoDistToEgoSpawnPt
+record distance from ego to adv1 as egoDistToAdv1
+record distance to egoSpawnPt as egoDistToEgoSpawnPt

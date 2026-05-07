@@ -1,5 +1,5 @@
 """
-TITLE: Verifai 2.0 Left Turn
+TITLE: Verifai 3.0 Left Turn
 AUTHOR: Kai-Chun Chang, kaichunchang@berkeley.edu
 """
 
@@ -117,21 +117,12 @@ terminate when (distance to egoSpawnPt) > TERM_DIST
 # RECORDING                     #
 #################################
 
-record (ego in network.drivableRegion) as egoIsInDrivableRegion
-record (distance from ego to network.drivableRegion) as egoDistToDrivableRegion
-record (distance from ego to egoInitLane.group) as egoDistToEgoInitLane
-record (distance from ego to egoManeuver.endLane.group) as egoDistToEgoEndLane
-record (distance from ego to ego.lane.centerline) as egoDistToEgoLaneCenterline
-record (distance from ego to intersection) as egoDistToIntersection
+record ego in network.drivableRegion as egoIsInDrivableRegion
+record distance from ego to network.drivableRegion as egoDistToDrivableRegion
+record distance from ego to egoInitLane.group as egoDistToEgoInitLane
+record distance from ego to egoManeuver.endLane.group as egoDistToEgoEndLane
+record distance from ego to ego.lane.centerline as egoDistToEgoLaneCenterline
+record distance from ego to intersection as egoDistToIntersection
 
-record (distance from ego to adv1) as egoDistToAdv1
-record (distance to egoSpawnPt) as egoDistToEgoSpawnPt
-
-record ego._boundingPolygon as egoPoly
-record adv1._boundingPolygon as adv1Poly
-record adv2._boundingPolygon as adv2Poly
-record adv3._boundingPolygon as adv3Poly
-record ego.lane.polygon as egoLanePoly
-record adv1.lane.polygon as adv1LanePoly
-record adv2.lane.polygon as adv2LanePoly
-record adv3.lane.polygon as adv3LanePoly
+record distance from ego to adv1 as egoDistToAdv1
+record distance to egoSpawnPt as egoDistToEgoSpawnPt

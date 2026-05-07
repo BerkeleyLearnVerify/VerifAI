@@ -120,5 +120,3 @@ venv.bak/
 dmypy.json
 
 *.cproject
-
-examples/dynamic_rulebook/*/outputs/

@@ -1,54 +1,34 @@
 import numpy as np
 import networkx as nx
-from itertools import product
-from verifai.samplers.domain_sampler import BoxSampler, DiscreteBoxSampler, \
-    DomainSampler, SplitSampler
-from verifai.samplers.random_sampler import RandomSampler
-from verifai.samplers.cross_entropy import DiscreteCrossEntropySampler
+from verifai.samplers.domain_sampler import BoxSampler, DomainSampler
 from verifai.samplers.multi_objective import MultiObjectiveSampler
-from verifai.rulebook import rulebook
 
 class DynamicRulebookMultiArmedBanditSampler(DomainSampler):
     verbosity = 1
     
     def __init__(self, domain, dmab_params):
         super().__init__(domain)
+        rb = getattr(dmab_params, 'rulebook', None)
+        if rb is None:
+            raise ValueError('dmab_params.rulebook must be set to a Rulebook instance')
         self.alpha = dmab_params.alpha
         self.thres = dmab_params.thres
         self.cont_buckets = dmab_params.cont.buckets
         self.cont_dist = dmab_params.cont.dist
-        self.disc_dist = dmab_params.disc.dist
-        self.cont_ce = lambda domain: ContinuousDynamicMABSampler(domain=domain,
+        self.cont_ce = lambda domain, priority_graph: ContinuousDynamicMABSampler(domain=domain,
                                                      buckets=self.cont_buckets,
                                                      dist=self.cont_dist,
                                                      alpha=self.alpha,
-                                                     thres=self.thres)
-        self.disc_ce = lambda domain: DiscreteDynamicMABSampler(domain=domain,
-                                                   dist=self.disc_dist,
-                                                   alpha=self.alpha,
-                                                   thres=self.thres)
-        partition = (
-            (lambda d: d.standardizedDimension > 0, self.cont_ce),
-            (lambda d: d.standardizedIntervals, self.disc_ce)
-        )
+                                                     thres=self.thres,
+                                                     priority_graph=priority_graph)
         self.split_samplers = {}
-        for id, priority_graph in rulebook.priority_graphs.items():
-            self.split_samplers[id] = SplitSampler.fromPartition(domain,
-                                                                partition,
-                                                                RandomSampler)
-            for subsampler in self.split_samplers[id].samplers:
-                if isinstance(subsampler, ContinuousDynamicMABSampler):
-                    subsampler.set_graph(priority_graph)
-                    subsampler.compute_error_weight()
-                elif isinstance(subsampler, DiscreteDynamicMABSampler):
-                    assert True
-                else:
-                    assert isinstance(subsampler, RandomSampler)
-        if not sorted(list(self.split_samplers.keys())) == list(range(len(rulebook.priority_graphs))):
+        for id, priority_graph in rb.priority_graphs.items():
+            self.split_samplers[id] = self.cont_ce(domain, priority_graph)
+        if not sorted(list(self.split_samplers.keys())) == list(range(len(rb.priority_graphs))):
             raise ValueError('Priority graph IDs should be in order and start from 0')
         self.num_segs = len(self.split_samplers)
         self.sampler_idx = 0
-        self.using_sampler = rulebook.using_sampler # -1: round-robin
+        self.using_sampler = rb.using_sampler # -1: round-robin
         assert self.using_sampler < self.num_segs
 
     def getSample(self):
@@ -63,7 +43,7 @@ class DynamicRulebookMultiArmedBanditSampler(DomainSampler):
         # Update each sampler based on the corresponding segment
         try:
             iter(rhos)
-        except:
+        except Exception as e:
             for i in range(len(self.split_samplers)):
                 self.split_samplers[i].update(sample, info, rhos)
             return
@@ -82,7 +62,7 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
     verbosity = 2
 
     def __init__(self, domain, alpha, thres,
-                 buckets=10, dist=None, restart_every=100):
+                 buckets=10, dist=None, restart_every=100, priority_graph=None):
         super().__init__(domain)
         if isinstance(buckets, int):
             buckets = np.ones(self.dimension) * buckets
@@ -109,11 +89,11 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
         self.rho_values = []
         self.restart_every = restart_every
         self.exploration_ratio = 2.0
+        if priority_graph is not None:
+            self.set_graph(priority_graph)
+            self.compute_error_weight()
 
     def getVector(self):
-        return self.generateSample()
-    
-    def generateSample(self):
         proportions = self.errors / self.counts
         Q = proportions + np.sqrt(self.exploration_ratio / self.counts * np.log(self.t))
         # choose the bucket with the highest "goodness" value, breaking ties randomly.
@@ -238,6 +218,3 @@ class ContinuousDynamicMABSampler(BoxSampler, MultiObjectiveSampler):
         for key, value in sorted(self.error_weight.items()):
             if self.verbosity >= 2:
                 print(f"Node {key}: {value}")
-
-class DiscreteDynamicMABSampler(DiscreteCrossEntropySampler):
-    pass

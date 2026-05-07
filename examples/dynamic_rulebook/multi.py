@@ -6,21 +6,22 @@ Author: Kai-Chun Chang. Based on Kesav Viswanadha's code.
 
 import time
 import os
-import numpy as np
-from dotmap import DotMap
+import glob
 import traceback
 import argparse
 import importlib
 import random
 
+import networkx as nx
+import pandas as pd
+import numpy as np
+from dotmap import DotMap
+
 from verifai.samplers.scenic_sampler import ScenicSampler
 from verifai.scenic_server import ScenicServer
 from verifai.falsifier import generic_falsifier, generic_parallel_falsifier
 from verifai.monitor import multi_objective_monitor, specification_monitor
-from verifai.rulebook import rulebook
-
-import networkx as nx
-import pandas as pd
+from verifai.rulebook import Rulebook
 
 def announce(message):
     lines = message.split('\n')
@@ -46,17 +47,13 @@ def run_experiments(path, rulebook=None, parallel=False, model=None,
         os.mkdir(output_dir)
     paths = []
     if os.path.isdir(path):
-        for root, _, files in os.walk(path):
-            for name in files:
-                fname = os.path.join(root, name)
-                if os.path.splitext(fname)[1] == '.scenic':
-                    paths.append(fname)
+        paths = glob.glob(f"{path}/**/*.scenic", recursive=True)
     else:
         paths = [path]
     for p in paths:
         falsifier = run_experiment(p, rulebook=rulebook, 
-        parallel=parallel, model=model, sampler_type=sampler_type, headless=headless,
-        num_workers=num_workers, max_time=max_time, n_iters=n_iters, max_steps=max_steps)
+                                   parallel=parallel, model=model, sampler_type=sampler_type, headless=headless,
+                                   num_workers=num_workers, max_time=max_time, n_iters=n_iters, max_steps=max_steps)
         df = pd.concat([falsifier.error_table.table, falsifier.safe_table.table])
         if experiment_name is not None:
             outfile = experiment_name
@@ -76,14 +73,6 @@ def run_experiments(path, rulebook=None, parallel=False, model=None,
 
 """
 Runs a single falsification experiment.
-
-Arguments:
-    path: Path to Scenic script to be run.
-    parallel: Whether or not to enable parallelism.
-    model: Which simulator model to use (e.g. scenic.simulators.newtonian.driving_model)
-    sampler_type: Which VerifAI sampelr to use (e.g. halton, scenic, ce, mab, etc.)
-    headless: Whether or not to display each simulation.
-    num_workers: Number of parallel workers. Only used if parallel is true.
 """
 def run_experiment(scenic_path, rulebook=None, parallel=False, model=None,
                    sampler_type=None, headless=False, num_workers=5, max_time=None,
@@ -97,6 +86,8 @@ def run_experiment(scenic_path, rulebook=None, parallel=False, model=None,
     params['render'] = not headless
     params['seed'] = 0
     params['use2DMap'] = True
+    if rb is not None:
+        params['verifaiSamplerParams'] = DotMap(rulebook=rb)
     sampler = ScenicSampler.fromScenario(scenic_path, maxIterations=40000, params=params, model=model)
     s_type = sampler.scenario.params.get('verifaiSamplerType', None)
 
@@ -121,10 +112,10 @@ def run_experiment(scenic_path, rulebook=None, parallel=False, model=None,
     print(f'(multi.py) Sampler type: {falsifier.sampler_type}')
     
     # Run falsification
-    t0 = time.time()
+    t0 = time.monotonic()
     print('(multi.py) Running falsifier...')
     falsifier.run_falsifier()
-    t = time.time() - t0
+    t = time.monotonic() - t0
     print()
     print(f'(multi.py) Generated {len(falsifier.samples)} samples in {t} seconds with {falsifier.num_workers} workers')
     print(f'(multi.py) Number of counterexamples: {len(falsifier.error_table.table)}')
@@ -170,7 +161,7 @@ if __name__ == '__main__':
     random.seed(args.seed)
     np.random.seed(args.seed)
     
-    rb = rulebook(args.graph_path, args.rule_path, args.segment_func_path, save_path=args.output_dir, single_graph=args.single_graph, 
+    rb = Rulebook(args.graph_path, args.rule_path, args.segment_func_path, save_path=args.output_dir, single_graph=args.single_graph, 
                   using_sampler=args.using_sampler, exploration_ratio=args.exploration_ratio)
     run_experiments(args.scenic_path, rulebook=rb,
     parallel=args.parallel, model=args.model,

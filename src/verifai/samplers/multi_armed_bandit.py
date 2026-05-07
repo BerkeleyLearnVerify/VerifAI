@@ -6,7 +6,6 @@ from verifai.samplers.domain_sampler import BoxSampler, DiscreteBoxSampler, \
 from verifai.samplers.random_sampler import RandomSampler
 from verifai.samplers.cross_entropy import DiscreteCrossEntropySampler
 from verifai.samplers.multi_objective import MultiObjectiveSampler
-from verifai.rulebook import rulebook
 
 class MultiArmedBanditSampler(DomainSampler):
     def __init__(self, domain, mab_params):

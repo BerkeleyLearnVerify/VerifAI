@@ -65,6 +65,8 @@ def choose_sampler(sample_space, sampler_type,
                 mab_params.thres = sampler_params.thres
             if 'priority_graph' in sampler_params:
                 mab_params.priority_graph = sampler_params.priority_graph
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                mab_params.rulebook = sampler_params.rulebook
         sampler = FeatureSampler.multiArmedBanditSamplerFor(
             sample_space, mab_params=mab_params)
         return 'mab', sampler
@@ -87,6 +89,8 @@ def choose_sampler(sample_space, sampler_type,
                 demab_params.thres = sampler_params.thres
             if 'priority_graph' in sampler_params:
                 demab_params.priority_graph = sampler_params.priority_graph
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                demab_params.rulebook = sampler_params.rulebook
         sampler = FeatureSampler.dynamicRulebookExtendedMultiArmedBanditSamplerFor(
             sample_space, demab_params=demab_params)
         return 'demab', sampler
@@ -109,6 +113,8 @@ def choose_sampler(sample_space, sampler_type,
                 dmab_params.thres = sampler_params.thres
             if 'priority_graph' in sampler_params:
                 dmab_params.priority_graph = sampler_params.priority_graph
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                dmab_params.rulebook = sampler_params.rulebook
         sampler = FeatureSampler.dynamicRulebookMultiArmedBanditSamplerFor(
             sample_space, dmab_params=dmab_params)
         return 'dmab', sampler
@@ -129,6 +135,8 @@ def choose_sampler(sample_space, sampler_type,
                 dce_params.alpha = sampler_params.alpha
             if 'thres' in sampler_params:
                 dce_params.thres = sampler_params.thres
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                dce_params.rulebook = sampler_params.rulebook
         sampler = FeatureSampler.dynamicRulebookCrossEntropySamplerFor(
             sample_space, dce_params=dce_params)
         return 'dce', sampler

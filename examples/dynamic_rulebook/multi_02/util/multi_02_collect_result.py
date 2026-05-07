@@ -1,11 +1,15 @@
 import sys
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+import os
+from pathlib import Path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-infile = open(sys.argv[1], 'r') # *.txt
-mode = sys.argv[2] # multi / single
-order = sys.argv[3] # -1 / 0 / 1
+import numpy as np
+
+from result_reporter import print_result_summary
+
+infile_path = Path(sys.argv[1])  # *.txt
+mode = sys.argv[2]  # multi / single
+order = sys.argv[3]  # -1 / 0 / 1
 
 # error weights
 result_count_0 = [[] for i in range(2)]
@@ -14,8 +18,8 @@ result_count_1 = [[] for i in range(2)]
 counterexample_type_0 = [{} for i in range(2)]
 counterexample_type_1 = [{} for i in range(2)]
 curr_source = 0
-lines = infile.readlines()
-infile.close()
+with infile_path.open('r') as infile:
+    lines = infile.readlines()
 
 count = 0
 
@@ -25,7 +29,7 @@ for i in range(len(lines)):
     elif order == '1':
         curr_source = 1
     if mode == 'multi':
-        if 'RHO' in lines[i]:
+        if 'Dynamic Rulebook Rhos' in lines[i]:
             line = lines[i+1].strip().split(' ')
             val1 = []
             for s in line:
@@ -57,7 +61,7 @@ for i in range(len(lines)):
             if count == 900:
                 break
     else:
-        if 'Actual rho' in lines[i]:
+        if 'Dynamic Rulebook Rhos' in lines[i]:
             line = lines[i+1].strip().split(' ')
             val1 = []
             for s in line:
@@ -82,23 +86,7 @@ for i in range(len(lines)):
             else:
                 counterexample_type_1[curr_source][tuple(1*np.array([val2[3], val2[2]]))] = 1
 
-print('Error weights')
-print('segment 0:')
-for i in range(1):
-    print('average:', np.mean(result_count_0[i]), 'max:', np.max(result_count_0[i]), 'percentage:', float(np.count_nonzero(result_count_0[i])/len(result_count_0[i])), result_count_0[i])
-print('segment 1:')
-for i in range(1):
-    print('average:', np.mean(result_count_1[i]), 'max:', np.max(result_count_1[i]), 'percentage:', float(np.count_nonzero(result_count_1[i])/len(result_count_1[i])), result_count_1[i])
-
-print('\nCounterexample types')
-print('segment 0:')
-for i in range(1):
-    print('Types:', len(counterexample_type_0[i]))
-    for key, value in reversed(sorted(counterexample_type_0[i].items(), key=lambda x: x[0])):
-        print("{} : {}".format(key, value))
-print('segment 1:')
-for i in range(1):
-    print('Types:', len(counterexample_type_1[i]))
-    for key, value in reversed(sorted(counterexample_type_1[i].items(), key=lambda x: x[0])):
-        print("{} : {}".format(key, value))
-print()
+print_result_summary(
+    [result_count_0, result_count_1],
+    [counterexample_type_0, counterexample_type_1],
+)

@@ -14,14 +14,14 @@ class FunctionVisitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         self.functions.append(node)
 
-class rulebook(ABC):
-    priority_graphs = {}
-    using_sampler = -1
-    verbosity = 1
-    exploration_ratio = 2.0
-    using_continuous = False
-    
-    def __init__(self, graph_path, rule_file, segment_func_path, save_path=None, single_graph=False, using_sampler=-1, exploration_ratio=2.0):
+class Rulebook(ABC):
+
+    def __init__(self, graph_path, rule_file, segment_func_path, save_path=None, single_graph=False, using_sampler=-1, exploration_ratio=2.0, verbosity=1, using_continuous=False):
+        self.priority_graphs = {}
+        self.using_sampler = using_sampler
+        self.exploration_ratio = exploration_ratio
+        self.verbosity = verbosity
+        self.using_continuous = using_continuous
         print('(rulebook.py) Parsing rules...')
         self._parse_rules(rule_file)
         print('(rulebook.py) Parsing rulebooks...')
@@ -33,25 +33,24 @@ class rulebook(ABC):
         print('(rulebook.py) Parsing the segment function...')
         self._parse_segment_function(segment_func_path)
         self.save_path = save_path
-        rulebook.using_sampler = using_sampler
-        rulebook.exploration_ratio = exploration_ratio
 
     def _parse_rules(self, file_path):
-        # Parse the input rules (*_spec.py)
         with open(file_path, 'r') as file:
             file_contents = file.read()
 
         tree = ast.parse(file_contents)
+        module_code = compile(tree, file_path, 'exec')
 
-        function_visitor = FunctionVisitor()
-        function_visitor.visit(tree)
+        namespace = {'__builtins__': __builtins__}
+        exec(module_code, namespace)
 
         self.functions = {}
-        for function_node in function_visitor.functions:
-            function_name = function_node.name
-            function_code = compile(ast.Module(body=[function_node], type_ignores=[]), '<string>', 'exec')
-            exec(function_code)
-            self.functions[function_name] = locals()[function_name]
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) and node.name.startswith('rule'):
+                function = namespace.get(node.name)
+                if not callable(function):
+                    raise ValueError(f'Rule function {node.name} is not callable in {file_path}')
+                self.functions[node.name] = function
 
         print(f'(rulebook.py) Parsed functions: {self.functions}')
 
@@ -156,7 +155,7 @@ class rulebook(ABC):
         # Use evaluate_segment to evaluate each segment
         if self.single_graph:
             if self.verbosity >= 1:
-                print('Actual rho:')
+                print('Dynamic Rulebook Rhos:')
             for i in range(len(segments)):
                 rho = self.evaluate_segment(simulation, 0, segments[i])
                 if self.verbosity >= 1:
@@ -171,6 +170,12 @@ class rulebook(ABC):
             for i in range(len(segments)):
                 rho = self.evaluate_segment(simulation, i, segments[i])
                 rhos.append(rho)
+            if self.verbosity >= 1:
+                print('Dynamic Rulebook Rhos:')
+                for rho in rhos:
+                    for r in rho:
+                        print(r, end=' ')
+                    print()
             return np.array(rhos, dtype=object)
 
     def update_graph(self):

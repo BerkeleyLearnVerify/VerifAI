@@ -13,29 +13,16 @@ source venv_verifai/bin/activate
 git clone https://github.com/BerkeleyLearnVerify/VerifAI
 cd VerifAI
 python -m pip install --upgrade pip
-python -m pip install -e .
+python -m pip install -e ".[examples]"
 ```
 
-Then, for this example, we adopt the [Metadrive simulator](https://metadriverse.github.io/metadrive/) as the backend simulator. To install Metadrive, run the following command:
-
-```bash
-python -m pip install "metadrive-simulator @ git+https://github.com/metadriverse/metadrive.git@main"
-python -m pip install "sumolib >= 1.21.0"
-```
-
-As there exists a dependency conflict on the `progressbar` package between VerifAI and Metadrive, we need to uninstall the `progressbar` package and reinstall the `progressbar2` package:
-
-```bash
-python -m pip uninstall progressbar
-python -m pip install --force-reinstall progressbar2==3.55.0
-```
+The `examples` extra includes dependencies used by this dynamic rulebook example, including the [MetaDrive simulator](https://metadriverse.github.io/metadrive/) and `sumolib`.
 
 ## Running the Examples
 
-We provide six different scenarios in the `examples/dynamic_rulebook` folder, and you can run any of them by modifying and executing the `run_multi_dynamic.sh` script.
+We provide six different scenarios in the `examples/dynamic_rulebook` folder. To run one, edit the configuration block at the top of `run_multi_dynamic.sh` (instead of modifying the rest of the script):
 
-```bash linenums="1"
-#!/bin/bash
+```bash
 iteration=100
 scenario='multi_inter_left'
 use_dynamic_rulebook=true # true / false (false is for a monolithic rulebook)
@@ -47,34 +34,9 @@ simulation_steps=180
 log_file="result_${scenario}_${sampler_type}_${sampler_idx}_${use_dynamic_rulebook}.log"
 result_file="result_${scenario}_${sampler_type}_${sampler_idx}_${use_dynamic_rulebook}.txt"
 csv_file="result_${scenario}_${sampler_type}_${sampler_idx}_${use_dynamic_rulebook}"
-
-rm $scenario/outputs/$log_file
-rm $scenario/outputs/$result_file
-rm $scenario/outputs/$csv_file.*csv
-rm $scenario/outputs/$csv_file\_scatter.png
-if [ "$use_dynamic_rulebook" = true ]; then
-
-    for seed in $(seq 0 1);
-    do
-        python multi.py -n $iteration --headless -e $csv_file.$seed -sp $scenario/$scenario.scenic -gp $scenario/ -rp $scenario/$scenario\_spec.py -sfp $scenario/$scenario\_segment.py -s $sampler_type --seed $seed --using-sampler $sampler_idx -m $simulator --max-simulation-steps $simulation_steps -co $scenario/outputs --exploration-ratio $exploration_ratio >> $scenario/outputs/$log_file
-    done
-
-    python $scenario/util/$scenario\_collect_result.py $scenario/outputs/$log_file multi $sampler_idx >> $scenario/outputs/$result_file
-    python $scenario/util/$scenario\_analyze_diversity.py $scenario/outputs/ $csv_file multi >> $scenario/outputs/$result_file
-
-else
-
-    for seed in $(seq 0 0);
-    do
-        python multi.py -n $iteration --headless -e $csv_file.$seed -sp $scenario/$scenario.scenic --single-graph -gp $scenario/$scenario.sgraph -rp $scenario/$scenario\_spec.py -sfp $scenario/$scenario\_segment.py -s $sampler_type --seed $seed --using-sampler 0 -m $simulator --max-simulation-steps $simulation_steps -co $scenario/outputs --exploration-ratio $exploration_ratio >> $scenario/outputs/$log_file
-    done
-
-    python $scenario/util/$scenario\_collect_result.py $scenario/outputs/$log_file single 0 >> $scenario/outputs/$result_file
-    python $scenario/util/$scenario\_analyze_diversity.py $scenario/outputs/ $csv_file single >> $scenario/outputs/$result_file
-fi
 ```
 
-You can modify the parameters in the script (first 12 lines) to run different scenarios with different configurations. The detailed descriptions of the parameters are as follows:
+The detailed descriptions of these parameters are as follows:
 - `iteration`: The number of iterations for the falsification process, i.e., the number of samples to be generated.
 - `scenario`: The name of the scenario to be tested. We provide six different scenarios in the `examples/dynamic_rulebook` folder, and you can change this parameter to run any of them.
 - `use_dynamic_rulebook`: A boolean parameter that determines whether to use the dynamic rulebook or the static rulebook. If set to `true`, the dynamic rulebook will be used; otherwise, the static rulebook will be used.
@@ -87,7 +49,7 @@ You can modify the parameters in the script (first 12 lines) to run different sc
 - `result_file`: The name of the result file where the analyzed falsification results will be stored.
 - `csv_file`: The prefix of the CSV files where the raw falsification results will be stored.
 
-After modifying the parameters, you can run the script to start the falsification process:
+After modifying the parameters, you can run the script to start the falsification process. We assume that you are in the `examples/dynamic_rulebook` folder.
 ```bash
 sh run_multi_dynamic.sh
 ```
@@ -122,26 +84,39 @@ It describes the scenario using the Scenic programming language. The detailed Sc
 
 ### `scenario_name_spec.py`
 
-It defines all the objective functions (rules) in the rulebooks. Each rule is defined as a Python function with following inputs:
+It defines all objective functions (rules) used by the rulebooks. Each rule is a Python function with the following inputs:
 - `simulation`: The Scenic simulation results, which contains the trajectories of all the agents and the recorded variables.
 - `indices`: The indices of the corresponding scenario segment. The function should only evaluate within the specified segment. The expected type of `indices` is a one-dimensional numpy array, where each element is the index of a simulation step that belongs to the corresponding segment. For example, if `indices` is `[0, 1, 2]`, the function should only evaluate the simulation results at steps 0, 1, and 2.
 
-The function should return a scalar value that represents the degree of violation to the corresponding rule. The returned value is negative if and only if the rule is violated, and a smaller value indicates a more severe violation.
+Each rule should return a scalar robustness value: negative means violated, and smaller values indicate more severe violations.
 
-An example of a rule function is as follows: 
+To reduce repeated boilerplate across scenarios, shared decorators/helpers are available in `examples/dynamic_rulebook/rule_helpers.py`:
+- `@non_empty_indices()`: returns `1` when `indices` is empty.
+- `@require_terminal_step()`: only evaluates rules when the segment reaches the final simulation step.
+- `pairwise_distance_margin(...)`: computes robustness from ego-other Euclidean distances.
+- `record_margin(...)`: computes robustness from recorded timeseries entries.
+
+When writing imports in `scenario_name_spec.py`, assume commands are run from `examples/dynamic_rulebook` and import helpers directly:
 
 ```python
-def rule0(simulation, indices):
-    if indices.size == 0:
-        return 1
-    positions = np.array(simulation.result.trajectory)
-    distances_to_adv = positions[indices, [0], :] - positions[indices, [1], :]
-    distances_to_adv = np.linalg.norm(distances_to_adv, axis=1)
-    rho = np.min(distances_to_adv, axis=0) - 8
-    return rho
+from rule_helpers import non_empty_indices, pairwise_distance_margin
 ```
 
-This function evaluates the minimum distance between the ego vehicle (agent 0) and the adversarial vehicle (agent 1) within the specified segment, and returns the minimum distance minus a safety margin (8 in this case) as the degree of violation.
+A concise rule example:
+
+```python
+@non_empty_indices()
+def rule0(simulation, indices):
+    return pairwise_distance_margin(
+        simulation,
+        indices,
+        other_actor_idx=1,
+        margin=8,
+        reducer=np.min,
+    )
+```
+
+This computes the minimum distance between ego (agent 0) and another actor (agent 1), then subtracts the safety margin (`8`) to produce the robustness value.
 
 ### `scenario_name_segment.py`
 
@@ -231,7 +206,7 @@ In this section, we provide an overview of the key implementations corresponding
 
 ### The `Rulebook` Class
 
-The core data structure for representing rulebooks in VerifAI is the `rulebook` class, which is defined in `src/verifai/rulebook.py`. It handles the parsing of the rulebook structure files (`scenario_name_*.graph`) and rule function files (`scenario_name_spec.py`), as well as the evaluation of the rules. In `rulebook`, each rule is stored as a `rule` object (the definition of the `rule` class can be found in the same file). The priority structure of the rulebook is stored as a directed graph using `DiGraph` in the [`networkx` library](https://networkx.org/en/).
+The core data structure for representing rulebooks in VerifAI is the `Rulebook` class, which is defined in `src/verifai/rulebook.py`. It handles the parsing of the rulebook structure files (`scenario_name_*.graph`) and rule function files (`scenario_name_spec.py`), as well as the evaluation of the rules. In `Rulebook`, each rule is stored as a `rule` object (the definition of the `rule` class can be found in the same file). The priority structure of the rulebook is stored as a directed graph using `DiGraph` in the [`networkx` library](https://networkx.org/en/).
 
 ### Samplers
 

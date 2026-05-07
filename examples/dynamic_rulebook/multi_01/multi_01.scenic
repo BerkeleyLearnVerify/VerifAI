@@ -31,7 +31,7 @@ TERM_DIST = 40
 #################################
 
 behavior EgoBehavior(path):
-    current_lane = network.laneAt(self)
+    current_lane = self.lane
     laneChangeCompleted = False
     bypassed = False
     try:
@@ -41,7 +41,7 @@ behavior EgoBehavior(path):
         do FollowLaneBehavior(globalParameters.EGO_SPEED, is_oppositeTraffic=True) until (distance to blockingCar) > globalParameters.BYPASS_DIST
         laneChangeCompleted = True
     interrupt when (blockingCar can see ego) and (distance to blockingCar) > globalParameters.BYPASS_DIST and not bypassed:
-        current_laneSection = network.laneSectionAt(self)
+        current_laneSection = self.laneSection
         rightLaneSec = current_laneSection._laneToLeft
         do LaneChangeBehavior(rightLaneSec, is_oppositeTraffic=False, target_speed=globalParameters.EGO_SPEED)
         bypassed = True
@@ -79,14 +79,14 @@ blockingCar = new Car following roadDirection from ego for globalParameters.BLOC
             with blueprint MODEL,
             with viewAngle 90 deg
 
-require (distance from blockingCar to intersection) > DIST_TO_INTERSECTION
-terminate when (distance to spawnPt) > TERM_DIST
+require distance from blockingCar to intersection > DIST_TO_INTERSECTION
+terminate when distance to spawnPt > TERM_DIST
 
 #################################
 # RECORDING                     #
 #################################
 
-record initial (initLaneSec.polygon.exterior.coords) as initLaneCoords
-record initial (leftLaneSec.polygon.exterior.coords) as leftLaneCoords
-record (ego.lane is initLaneSec.lane) as egoIsInInitLane
-record (ego.lane is leftLaneSec.lane) as egoIsInLeftLane
+record initial initLaneSec.polygon.exterior.coords as initLaneCoords
+record initial leftLaneSec.polygon.exterior.coords as leftLaneCoords
+record ego.lane is initLaneSec.lane as egoIsInInitLane
+record ego.lane is leftLaneSec.lane as egoIsInLeftLane

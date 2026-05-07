@@ -1,12 +1,12 @@
 import sys
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 
-directory = sys.argv[1]
-all_files = os.listdir(directory)
-all_files = [f for f in all_files if f.endswith('.csv') and f.startswith(sys.argv[2]+'.')]
-mode = sys.argv[3] # multi / single
+p = Path(sys.argv[1])
+all_files = [f for f in p.iterdir() if f.is_file() and f.suffix == '.csv' and f.name.startswith(sys.argv[2] + '.')]
+mode = sys.argv[3]  # multi / single
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
@@ -16,44 +16,29 @@ dist_threshold = []
 blocking_car_dist = []
 bypass_dist = []
 
-ego_speed_max = []
-dist_threshold_max = []
-blocking_car_dist_max = []
-bypass_dist_max = []
-
 for file in all_files:
-    infile = open(directory+'/'+file, 'r')
-    lines = infile.readlines()
+    with file.open('r') as infile:
+        lines = infile.readlines()
     if mode == 'single':
         for i in range(1, len(lines)):
             line = lines[i]
-            if float(line.split(',')[-1]) < 0 or float(line.split(',')[-2]) < 0:
-                ego_speed.append(float(line.split(',')[-3]))
-                dist_threshold.append(float(line.split(',')[-4]))
-                bypass_dist.append(float(line.split(',')[-5]))
-                blocking_car_dist.append(float(line.split(',')[-6]))
+            ego_speed.append(float(line.split(',')[-3]))
+            dist_threshold.append(float(line.split(',')[-4]))
+            bypass_dist.append(float(line.split(',')[-5]))
+            blocking_car_dist.append(float(line.split(',')[-6]))
     else:
-        for i in range(1, len(lines), 3):
-            line1 = lines[i]
-            line2 = lines[i+1]
-            line3 = lines[i+2]
-            if float(line2.split(',')[-1]) < 0 and float(line2.split(',')[-2]) < 0:
-                ego_speed_max.append(float(line1.split(',')[-3]))
-                dist_threshold_max.append(float(line1.split(',')[-4]))
-                bypass_dist_max.append(float(line1.split(',')[-5]))
-                blocking_car_dist_max.append(float(line1.split(',')[-6]))
-            else:
-                ego_speed.append(float(line1.split(',')[-3]))
-                dist_threshold.append(float(line1.split(',')[-4]))
-                bypass_dist.append(float(line1.split(',')[-5]))
-                blocking_car_dist.append(float(line1.split(',')[-6]))
+        for i in range(1, len(lines)):
+            line = lines[i]
+            ego_speed.append(float(line.split(',')[-6]))
+            dist_threshold.append(float(line.split(',')[-7]))
+            bypass_dist.append(float(line.split(',')[-8]))
+            blocking_car_dist.append(float(line.split(',')[-9]))
 
 ax.scatter(ego_speed, dist_threshold, bypass_dist, c='b')
-ax.scatter(ego_speed_max, dist_threshold_max, bypass_dist_max, c='r')
 ax.set_xlabel('EGO_SPEED')
 ax.set_ylabel('DIST_THRESHOLD')
 ax.set_zlabel('BYPASS_DIST')
-plt.savefig(directory+'/'+sys.argv[2]+'_scatter.png')
+plt.savefig(str(p / f"{sys.argv[2]}_scatter.png"))
 
 print("Standard deviation of ego_speed:", np.std(ego_speed), len(ego_speed))
 print("Standard deviation of dist_threshold:", np.std(dist_threshold), len(dist_threshold))
