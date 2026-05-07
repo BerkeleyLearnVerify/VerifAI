@@ -1,6 +1,7 @@
 import sys
 import os
 from pathlib import Path
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 import numpy as np
@@ -20,101 +21,129 @@ counterexample_type_0 = [{} for i in range(3)]
 counterexample_type_1 = [{} for i in range(3)]
 counterexample_type_2 = [{} for i in range(3)]
 curr_source = 0
-with infile_path.open('r') as infile:
+with infile_path.open("r") as infile:
     lines = infile.readlines()
 
 for i in range(len(lines)):
-    if mode == 'multi':
-        if 'Dynamic Rulebook Rhos' in lines[i]:
-            line = lines[i+1].strip().split(' ')
+    if mode == "multi":
+        if "Dynamic Rulebook Rhos" in lines[i]:
+            line = lines[i + 1].strip().split(" ")
             val1 = []
             val_print = []
             for s in line:
-                if s != '':
+                if s != "":
                     val1.append(float(s) < 0)
                     val_print.append(float(s))
-            assert len(val1) == 2, 'Invalid length of rho'
-            result_count_0[curr_source].append(val1[0]*1 + val1[1]*2)
-            if tuple(1*np.array([val1[0], val1[1]])) in counterexample_type_0[curr_source]:
-                counterexample_type_0[curr_source][tuple(1*np.array([val1[0], val1[1]]))] += 1
+            assert len(val1) == 2, "Invalid length of rho"
+            result_count_0[curr_source].append(val1[0] * 1 + val1[1] * 2)
+            if (
+                tuple(1 * np.array([val1[0], val1[1]]))
+                in counterexample_type_0[curr_source]
+            ):
+                counterexample_type_0[curr_source][
+                    tuple(1 * np.array([val1[0], val1[1]]))
+                ] += 1
             else:
-                counterexample_type_0[curr_source][tuple(1*np.array([val1[0], val1[1]]))] = 1
+                counterexample_type_0[curr_source][
+                    tuple(1 * np.array([val1[0], val1[1]]))
+                ] = 1
 
-            line = lines[i+2].strip().split(' ')
+            line = lines[i + 2].strip().split(" ")
             val2 = []
             val_print = []
             for s in line:
-                if s != '':
+                if s != "":
                     val2.append(float(s) < 0)
                     val_print.append(float(s))
-            assert len(val2) == 2, 'Invalid length of rho'
-            result_count_1[curr_source].append(val2[0]*2 + val2[1]*1)
-            if tuple(1*np.array([val2[0], val2[1]])) in counterexample_type_1[curr_source]:
-                counterexample_type_1[curr_source][tuple(1*np.array([val2[0], val2[1]]))] += 1
+            assert len(val2) == 2, "Invalid length of rho"
+            result_count_1[curr_source].append(val2[0] * 2 + val2[1] * 1)
+            if (
+                tuple(1 * np.array([val2[0], val2[1]]))
+                in counterexample_type_1[curr_source]
+            ):
+                counterexample_type_1[curr_source][
+                    tuple(1 * np.array([val2[0], val2[1]]))
+                ] += 1
             else:
-                counterexample_type_1[curr_source][tuple(1*np.array([val2[0], val2[1]]))] = 1
+                counterexample_type_1[curr_source][
+                    tuple(1 * np.array([val2[0], val2[1]]))
+                ] = 1
 
-            line = lines[i+3].strip().split(' ')
+            line = lines[i + 3].strip().split(" ")
             val3 = []
             val_print = []
             for s in line:
-                if s != '':
+                if s != "":
                     val3.append(float(s) < 0)
                     val_print.append(float(s))
-            assert len(val3) == 1, 'Invalid length of rho'
-            result_count_2[curr_source].append(val3[0]*1)
-            if tuple(1*np.array([val3[0]])) in counterexample_type_2[curr_source]:
-                counterexample_type_2[curr_source][tuple(1*np.array([val3[0]]))] += 1
+            assert len(val3) == 1, "Invalid length of rho"
+            result_count_2[curr_source].append(val3[0] * 1)
+            if tuple(1 * np.array([val3[0]])) in counterexample_type_2[curr_source]:
+                counterexample_type_2[curr_source][tuple(1 * np.array([val3[0]]))] += 1
             else:
-                counterexample_type_2[curr_source][tuple(1*np.array([val3[0]]))] = 1
+                counterexample_type_2[curr_source][tuple(1 * np.array([val3[0]]))] = 1
 
-            if order == '-1':
+            if order == "-1":
                 curr_source = curr_source + 1 if curr_source < 2 else 0
     else:
-        if 'Dynamic Rulebook Rhos' in lines[i]:
-            line = lines[i+1].strip().split(' ')
+        if "Dynamic Rulebook Rhos" in lines[i]:
+            line = lines[i + 1].strip().split(" ")
             val1 = []
             val_print = []
             for s in line:
-                if s != '':
+                if s != "":
                     val1.append(float(s) < 0)
                     val_print.append(float(s))
-            assert len(val1) == 2, 'Invalid length of rho'
-            result_count_0[curr_source].append(val1[0]*1 + val1[1]*2)
-            if tuple(1*np.array([val1[0], val1[1]])) in counterexample_type_0[curr_source]:
-                counterexample_type_0[curr_source][tuple(1*np.array([val1[0], val1[1]]))] += 1
+            assert len(val1) == 2, "Invalid length of rho"
+            result_count_0[curr_source].append(val1[0] * 1 + val1[1] * 2)
+            if (
+                tuple(1 * np.array([val1[0], val1[1]]))
+                in counterexample_type_0[curr_source]
+            ):
+                counterexample_type_0[curr_source][
+                    tuple(1 * np.array([val1[0], val1[1]]))
+                ] += 1
             else:
-                counterexample_type_0[curr_source][tuple(1*np.array([val1[0], val1[1]]))] = 1
+                counterexample_type_0[curr_source][
+                    tuple(1 * np.array([val1[0], val1[1]]))
+                ] = 1
 
-            line = lines[i+2].strip().split(' ')
+            line = lines[i + 2].strip().split(" ")
             val2 = []
             val_print = []
             for s in line:
-                if s != '':
+                if s != "":
                     val2.append(float(s) < 0)
                     val_print.append(float(s))
-            assert len(val2) == 2, 'Invalid length of rho'
-            result_count_1[curr_source].append(val2[0]*2 + val2[1]*1)
-            if tuple(1*np.array([val2[0], val2[1]])) in counterexample_type_1[curr_source]:
-                counterexample_type_1[curr_source][tuple(1*np.array([val2[0], val2[1]]))] += 1
+            assert len(val2) == 2, "Invalid length of rho"
+            result_count_1[curr_source].append(val2[0] * 2 + val2[1] * 1)
+            if (
+                tuple(1 * np.array([val2[0], val2[1]]))
+                in counterexample_type_1[curr_source]
+            ):
+                counterexample_type_1[curr_source][
+                    tuple(1 * np.array([val2[0], val2[1]]))
+                ] += 1
             else:
-                counterexample_type_1[curr_source][tuple(1*np.array([val2[0], val2[1]]))] = 1
+                counterexample_type_1[curr_source][
+                    tuple(1 * np.array([val2[0], val2[1]]))
+                ] = 1
 
-            line = lines[i+3].strip().split(' ')
+            line = lines[i + 3].strip().split(" ")
             val3 = []
             val_print = []
             for s in line:
-                if s != '':
+                if s != "":
                     val3.append(float(s) < 0)
                     val_print.append(float(s))
-            assert len(val3) == 2, 'Invalid length of rho'
-            result_count_2[curr_source].append(val3[1]*1)
-            if tuple(1*np.array([val3[1]])) in counterexample_type_2[curr_source]:
-                counterexample_type_2[curr_source][tuple(1*np.array([val3[1]]))] += 1
+            assert len(val3) == 2, "Invalid length of rho"
+            result_count_2[curr_source].append(val3[1] * 1)
+            if tuple(1 * np.array([val3[1]])) in counterexample_type_2[curr_source]:
+                counterexample_type_2[curr_source][tuple(1 * np.array([val3[1]]))] += 1
             else:
-                counterexample_type_2[curr_source][tuple(1*np.array([val3[1]]))] = 1
+                counterexample_type_2[curr_source][tuple(1 * np.array([val3[1]]))] = 1
 
-            if order == '-1':
+            if order == "-1":
                 curr_source = curr_source + 1 if curr_source < 2 else 0
 
 print_result_summary(

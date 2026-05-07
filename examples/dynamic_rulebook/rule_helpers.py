@@ -33,7 +33,9 @@ def require_terminal_step(default=1):
     return decorator
 
 
-def pairwise_distance_margin(simulation, indices, other_actor_idx, margin, reducer=np.min):
+def pairwise_distance_margin(
+    simulation, indices, other_actor_idx, margin, reducer=np.min
+):
     """Robustness margin based on ego-other actor Euclidean distance."""
     positions = np.array(simulation.result.trajectory)
     distances = positions[indices, [0], :] - positions[indices, [other_actor_idx], :]

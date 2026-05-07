@@ -55,13 +55,19 @@ def test_demab_rejects_nonconsecutive_priority_graph_ids():
     rb = RulebookStub(priority_graphs={0: _make_graph(), 2: _make_graph()})
     params = _make_params(rb)
 
-    with pytest.raises(ValueError, match="Priority graph IDs should be in order and start from 0"):
+    with pytest.raises(
+        ValueError, match="Priority graph IDs should be in order and start from 0"
+    ):
         DynamicRulebookExtendedMultiArmedBanditSampler(Box((0, 1)), params)
 
 
 def test_demab_round_robin_and_fixed_sampler_routing():
-    rb = RulebookStub(priority_graphs={0: _make_graph(), 1: _make_graph()}, using_sampler=-1)
-    sampler = DynamicRulebookExtendedMultiArmedBanditSampler(Box((0, 1)), _make_params(rb))
+    rb = RulebookStub(
+        priority_graphs={0: _make_graph(), 1: _make_graph()}, using_sampler=-1
+    )
+    sampler = DynamicRulebookExtendedMultiArmedBanditSampler(
+        Box((0, 1)), _make_params(rb)
+    )
 
     spy0 = SegmentSamplerSpy("seg0")
     spy1 = SegmentSamplerSpy("seg1")
@@ -78,8 +84,12 @@ def test_demab_round_robin_and_fixed_sampler_routing():
     sample1, info1 = sampler.getSample()
     assert (sample1, info1) == ("seg1_sample", "seg1_info")
 
-    rb_fixed = RulebookStub(priority_graphs={0: _make_graph(), 1: _make_graph()}, using_sampler=1)
-    fixed = DynamicRulebookExtendedMultiArmedBanditSampler(Box((0, 1)), _make_params(rb_fixed))
+    rb_fixed = RulebookStub(
+        priority_graphs={0: _make_graph(), 1: _make_graph()}, using_sampler=1
+    )
+    fixed = DynamicRulebookExtendedMultiArmedBanditSampler(
+        Box((0, 1)), _make_params(rb_fixed)
+    )
     fixed0 = SegmentSamplerSpy("fixed0")
     fixed1 = SegmentSamplerSpy("fixed1")
     fixed.split_samplers = {0: fixed0, 1: fixed1}

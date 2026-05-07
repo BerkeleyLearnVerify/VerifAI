@@ -117,7 +117,9 @@ def test_rulebook_segment_file_requires_single_function(tmp_path):
         )
     )
 
-    with pytest.raises(ValueError, match="Multiple functions found in segment function file"):
+    with pytest.raises(
+        ValueError, match="Multiple functions found in segment function file"
+    ):
         Rulebook(
             str(graph_file),
             str(rule_file),

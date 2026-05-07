@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def segment_function(simulation):
     # Extract trajectory information
     ego_is_in_init_lane = np.array(simulation.result.records["egoIsInInitLane"])
@@ -20,10 +21,12 @@ def segment_function(simulation):
         if ego_is_in_init_lane[i][1] == 0:
             switch_idx = i
             break
-    assert switch_idx > start_idx, "Switching point should be larger than starting point"
-    
+    assert (
+        switch_idx > start_idx
+    ), "Switching point should be larger than starting point"
+
     # Evaluation
     indices_0 = np.arange(start_idx, switch_idx)
     indices_1 = np.arange(switch_idx, len(simulation.result.trajectory))
-    
+
     return [indices_0, indices_1]
