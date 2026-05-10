@@ -181,7 +181,7 @@ if __name__ == "__main__":
         "--scenic-path",
         "-sp",
         type=str,
-        default="uberCrashNewton.scenic",
+        default="multi_inter_left/multi_inter_left.scenic",
         help="Path to Scenic script",
     )
     parser.add_argument(

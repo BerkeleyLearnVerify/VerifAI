@@ -24,14 +24,11 @@ class DynamicRulebookCrossEntropySampler(DomainSampler):
             thres=self.thres,
             priority_graph=priority_graph,
         )
-        self.split_samplers = {}
-        for id, priority_graph in rb.priority_graphs.items():
-            self.split_samplers[id] = self.cont_ce(domain, priority_graph)
-        if not sorted(list(self.split_samplers.keys())) == list(
-            range(len(rb.priority_graphs))
-        ):
-            raise ValueError("Priority graph IDs should be in order and start from 0")
-        self.num_segs = len(self.split_samplers)
+        self.cont_ce_samplers = {
+            id: self.cont_ce(domain, priority_graph)
+            for id, priority_graph in rb.priority_graphs.items()
+        }
+        self.num_segs = len(self.cont_ce_samplers)
         self.sampler_idx = 0
         self.using_sampler = rb.using_sampler  # -1: round-robin
         assert self.using_sampler < self.num_segs
@@ -42,15 +39,15 @@ class DynamicRulebookCrossEntropySampler(DomainSampler):
             idx = self.sampler_idx % self.num_segs
         else:
             idx = self.using_sampler
-        return self.split_samplers[idx].getSample()
+        return self.cont_ce_samplers[idx].getSample()
 
     def update(self, sample, info, rhos):
         # Update each sampler based on the corresponding segment
         try:
             iter(rhos)
-        except Exception as e:
-            for i in range(len(self.split_samplers)):
-                self.split_samplers[i].update(sample, info, rhos)
+        except TypeError as e:
+            for i in range(len(self.cont_ce_samplers)):
+                self.cont_ce_samplers[i].update(sample, info, rhos)
             return
         if self.using_sampler == -1:
             if self.verbosity >= 2:
@@ -59,13 +56,13 @@ class DynamicRulebookCrossEntropySampler(DomainSampler):
                     self.sampler_idx % self.num_segs,
                 )
             for i in range(len(rhos)):
-                self.split_samplers[i].update(sample, info, rhos[i])
+                self.cont_ce_samplers[i].update(sample, info, rhos[i])
         else:
             if self.verbosity >= 2:
                 print(
                     "(dynamic_ce.py) Getting feedback from segment", self.using_sampler
                 )
-            self.split_samplers[self.using_sampler].update(
+            self.cont_ce_samplers[self.using_sampler].update(
                 sample, info, rhos[self.using_sampler]
             )
         self.sampler_idx += 1
@@ -124,7 +121,7 @@ class ContinuousDynamicCESampler(BoxSampler, MultiObjectiveSampler):
     def update_dist_from_multi(self, sample, info, rho):
         try:
             iter(rho)
-        except:
+        except TypeError as e:
             return
         assert len(rho) == self.num_properties
 

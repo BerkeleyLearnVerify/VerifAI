@@ -110,13 +110,3 @@ terminate when distance to egoSpawnPt > TERM_DIST
 record ego.lane is initLane or ego.lane is not adv2.lane as egoIsInInitLane
 record adv2.lane is initLane as adv2IsInInitLane # start evaluation only when adv2 reaches another lane
 record adv3.lane is initLane as adv3IsInInitLane # start evaluation only when adv3 reaches another lane
-
-record ego._boundingPolygon as egoPoly
-record adv1._boundingPolygon as adv1Poly
-record adv2._boundingPolygon as adv2Poly
-record adv3._boundingPolygon as adv3Poly
-
-record ego.laneSection.polygon as egoLanePoly
-record adv1.laneSection.polygon as adv1LanePoly
-record adv2.laneSection.polygon as adv2LanePoly
-record adv3.laneSection.polygon as adv3LanePoly

@@ -9,14 +9,6 @@ import numpy as np
 from verifai.monitor import specification_monitor
 
 
-class FunctionVisitor(ast.NodeVisitor):
-    def __init__(self):
-        self.functions = []
-
-    def visit_FunctionDef(self, node):
-        self.functions.append(node)
-
-
 class Rulebook(ABC):
 
     def __init__(
@@ -36,15 +28,20 @@ class Rulebook(ABC):
         self.exploration_ratio = exploration_ratio
         self.verbosity = verbosity
         self.using_continuous = using_continuous
-        print("(rulebook.py) Parsing rules...")
+        if verbosity >= 1:
+            print("(rulebook.py) Parsing rules...")
         self._parse_rules(rule_file)
-        print("(rulebook.py) Parsing rulebooks...")
+        if verbosity >= 1:
+            print("(rulebook.py) Parsing rulebooks...")
         if single_graph:
             self._parse_rulebook(graph_path)
         else:
             self._parse_rulebooks(graph_path)
         self.single_graph = single_graph
-        print("(rulebook.py) Parsing the segment function...")
+        if sorted(self.priority_graphs.keys()) != list(range(len(self.priority_graphs))):
+            raise ValueError("Priority graph IDs should be in order and start from 0")
+        if verbosity >= 1:
+            print("(rulebook.py) Parsing the segment function...")
         self._parse_segment_function(segment_func_path)
         self.save_path = save_path
 
@@ -55,7 +52,7 @@ class Rulebook(ABC):
         tree = ast.parse(file_contents)
         module_code = compile(tree, file_path, "exec")
 
-        namespace = {"__builtins__": __builtins__}
+        namespace = {}
         exec(module_code, namespace)
 
         self.functions = {}
@@ -68,7 +65,8 @@ class Rulebook(ABC):
                     )
                 self.functions[node.name] = function
 
-        print(f"(rulebook.py) Parsed functions: {self.functions}")
+        if self.verbosity >= 1:
+            print(f"(rulebook.py) Parsed functions: {self.functions}")
 
     def _parse_rulebooks(self, dir):
         if os.path.isdir(dir):
@@ -77,6 +75,10 @@ class Rulebook(ABC):
                     fname = os.path.join(root, name)
                     if os.path.splitext(fname)[1] == ".graph":
                         self._parse_rulebook(fname)
+        else:
+            raise ValueError(
+                f"Rulebook graph path must be an existing directory."
+            )
 
     def _parse_rulebook(self, file):
         priority_graph = nx.DiGraph()
@@ -132,21 +134,25 @@ class Rulebook(ABC):
             file_contents = file.read()
 
         tree = ast.parse(file_contents)
+        module_code = compile(tree, file_path, "exec")
 
-        function_visitor = FunctionVisitor()
-        function_visitor.visit(tree)
+        namespace = {}
+        exec(module_code, namespace)
 
-        if len(function_visitor.functions) == 0:
+        segment_defs = [
+            node for node in tree.body if isinstance(node, ast.FunctionDef)
+        ]
+        if len(segment_defs) == 0:
             raise ValueError("No function found in segment function file")
-        if len(function_visitor.functions) > 1:
+        if len(segment_defs) > 1:
             raise ValueError("Multiple functions found in segment function file")
 
-        function_node = function_visitor.functions[0]
-        function_code = compile(
-            ast.Module(body=[function_node], type_ignores=[]), "<string>", "exec"
-        )
-        exec(function_code)
-        self.segment_function = locals()[function_node.name]
+        function_node = segment_defs[0]
+        self.segment_function = namespace.get(function_node.name)
+        if not callable(self.segment_function):
+            raise ValueError(
+                f"Segment function {function_node.name} is not callable in {file_path}"
+            )
 
     def evaluate_segment(self, traj, graph_idx=0, indices=None):
         # Evaluate the result of each rule on the segment traj[indices] of the trajectory

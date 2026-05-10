@@ -17,7 +17,7 @@ class DynamicRulebookExtendedMultiArmedBanditSampler(DomainSampler):
         self.thres = demab_params.thres
         self.cont_buckets = demab_params.cont.buckets
         self.cont_dist = demab_params.cont.dist
-        self.cont_ce = lambda domain, priority_graph: ContinuousDynamicEMABSampler(
+        self.cont_emab = lambda domain, priority_graph: ContinuousDynamicEMABSampler(
             domain=domain,
             buckets=self.cont_buckets,
             dist=self.cont_dist,
@@ -27,14 +27,10 @@ class DynamicRulebookExtendedMultiArmedBanditSampler(DomainSampler):
             priority_graph=priority_graph,
             rulebook_instance=rb,
         )
-        self.split_samplers = {}
+        self.cont_emab_samplers = {}
         for id, priority_graph in rb.priority_graphs.items():
-            self.split_samplers[id] = self.cont_ce(domain, priority_graph)
-        if not sorted(list(self.split_samplers.keys())) == list(
-            range(len(rb.priority_graphs))
-        ):
-            raise ValueError("Priority graph IDs should be in order and start from 0")
-        self.num_segs = len(self.split_samplers)
+            self.cont_emab_samplers[id] = self.cont_emab(domain, priority_graph)
+        self.num_segs = len(self.cont_emab_samplers)
         self.sampler_idx = 0
         self.using_sampler = rb.using_sampler  # -1: round-robin
         assert self.using_sampler < self.num_segs
@@ -45,15 +41,15 @@ class DynamicRulebookExtendedMultiArmedBanditSampler(DomainSampler):
             idx = self.sampler_idx % self.num_segs
         else:
             idx = self.using_sampler
-        return self.split_samplers[idx].getSample()
+        return self.cont_emab_samplers[idx].getSample()
 
     def update(self, sample, info, rhos):
         # Update each sampler based on the corresponding segment
         try:
             iter(rhos)
-        except Exception as e:
-            for i in range(len(self.split_samplers)):
-                self.split_samplers[i].update(sample, info, rhos)
+        except TypeError as e:
+            for i in range(len(self.cont_emab_samplers)):
+                self.cont_emab_samplers[i].update(sample, info, rhos)
             return
         if self.using_sampler == -1:
             if self.verbosity >= 2:
@@ -62,14 +58,14 @@ class DynamicRulebookExtendedMultiArmedBanditSampler(DomainSampler):
                     self.sampler_idx % self.num_segs,
                 )
             for i in range(len(rhos)):
-                self.split_samplers[i].update(sample, info, rhos[i])
+                self.cont_emab_samplers[i].update(sample, info, rhos[i])
         else:
             if self.verbosity >= 2:
                 print(
                     "(dynamic_emab.py) Getting feedback from segment",
                     self.using_sampler,
                 )
-            self.split_samplers[self.using_sampler].update(
+            self.cont_emab_samplers[self.using_sampler].update(
                 sample, info, rhos[self.using_sampler]
             )
         self.sampler_idx += 1
@@ -115,7 +111,6 @@ class ContinuousDynamicEMABSampler(BoxSampler, MultiObjectiveSampler):
         self.t = 1  # time, used in Q
         self.counterexamples = dict()
         self.is_multi = True  # False
-        self.invalid = np.array([np.zeros(int(b)) for b in buckets])  # N*d, ???
         self.monitor = None
         self.rho_values = []
         self.restart_every = restart_every
@@ -191,14 +186,12 @@ class ContinuousDynamicEMABSampler(BoxSampler, MultiObjectiveSampler):
     def update_dist_from_multi(self, sample, info, rho):
         try:
             iter(rho)
-        except:
-            for i, b in enumerate(info):
-                self.invalid[i][b] += 1.0
+        except TypeError as e:
             return
         if len(rho) != self.num_properties:
-            for i, b in enumerate(info):
-                self.invalid[i][b] += 1.0
-            return
+            raise ValueError(
+                f"rho must have length {self.num_properties}; got {len(rho)}"
+            )
         counter_ex_dict = {}
         idx = 0
         for node in sorted(self.priority_graph.nodes):
@@ -223,36 +216,18 @@ class ContinuousDynamicEMABSampler(BoxSampler, MultiObjectiveSampler):
         if self.verbosity >= 2:
             for ce in self.counterexamples:
                 if self._compute_error_value(ce) > 0:
-                    print(
-                        "counterexamples =",
-                        ce,
-                        ", times =",
-                        int(
-                            np.sum(self.counterexamples[ce], axis=1)[0]
-                            / self._compute_error_value(ce)
-                        ),
-                    )
+                    times = np.sum(self.counterexamples[ce], axis=1)[0] / self._compute_error_value(ce)
+                    print(f"counterexamples = {ce}, times = {int(times)}")
         if self.verbosity >= 2:
             proportions = self.errors / self.counts
             print("self.errors[0] =", self.errors[0])
             print("self.counts[0] =", self.counts[0])
-            Q = proportions + np.sqrt(
-                self.exploration_ratio / self.counts * np.log(self.t)
-            )
-            print(
-                "Q[0] =",
-                Q[0],
-                "\nfirst_term[0] =",
-                proportions[0],
-                "\nsecond_term[0] =",
-                np.sqrt(self.exploration_ratio / self.counts * np.log(self.t))[0],
-                "\nratio[0] =",
-                proportions[0]
-                / (
-                    proportions
-                    + np.sqrt(self.exploration_ratio / self.counts * np.log(self.t))
-                )[0],
-            )
+            sqrt_term = np.sqrt(self.exploration_ratio / self.counts * np.log(self.t))
+            Q = proportions + sqrt_term
+            print(f"Q[0] = {Q[0]}")
+            print(f"first_term[0] = {proportions[0]}")
+            print(f"second_term[0] = {sqrt_term[0]}")
+            print(f"ratio[0] = {proportions[0] / (proportions + sqrt_term)[0]}")
 
     def _compute_error_value(self, counter_ex):
         error_value = 0
@@ -294,6 +269,6 @@ class ContinuousDynamicEMABSampler(BoxSampler, MultiObjectiveSampler):
         for node in level:
             self.error_weight[node] = ranking_map[level[node]]
             self.sum_error_weight += 2 ** self.error_weight[node]
-        for key, value in sorted(self.error_weight.items()):
-            if self.verbosity >= 2:
+        if self.verbosity >= 2:
+            for key, value in sorted(self.error_weight.items()):
                 print(f"Node {key}: {value}")

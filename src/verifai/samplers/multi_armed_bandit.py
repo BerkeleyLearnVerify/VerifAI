@@ -182,7 +182,6 @@ class ContinuousMultiArmedBanditSampler(BoxSampler, MultiObjectiveSampler):
             self.counts[i][b] += 1.
             if is_ce:
                 self.counterexamples[counter_ex][i][b] += 1.
-        #self.errors = self.invalid + self._get_total_counterexamples()
         self.errors = self._get_total_counterexamples()
         self.t += 1
         if self.verbosity >= 2:
