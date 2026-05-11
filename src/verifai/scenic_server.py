@@ -50,6 +50,7 @@ class ScenicServer(Server):
             self.simulator = self.sampler.scenario.getSimulator()
         else:
             self.simulator = defaults.simulator
+        self.dynamic = defaults.get('dynamic', False)
 
     def evaluate_sample(self, sample):
         scene = self.sampler.lastScene

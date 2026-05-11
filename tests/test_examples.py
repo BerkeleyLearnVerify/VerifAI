@@ -15,7 +15,7 @@ def test_example():
     sampler = FeatureSampler.samplerFor(space)
 
     for i in range(3):
-        sample = sampler.nextSample()
+        sample = sampler.getSample().complete(None)
         print(f'Sample #{i}:')
         print(sample)
         flat = space.flatten(sample)

@@ -10,7 +10,7 @@ def test_fs_flatten():
     })
     sampler = FeatureSampler.randomSamplerFor(space)
     for i in range(100):
-        point = sampler.nextSample()
+        point = sampler.getSample().complete(None)
         flat = space.flatten(point)
         assert type(flat) is tuple
         assert len(flat) <= space.fixedFlattenedDimension
@@ -25,7 +25,7 @@ def test_fs_flatten_fixed_dimension():
     assert space.fixedFlattenedDimension == 4
     sampler = FeatureSampler.randomSamplerFor(space)
     for i in range(100):
-        point = sampler.nextSample()
+        point = sampler.getSample().complete(None)
         flat = space.flatten(point, fixedDimension=True)
         assert type(flat) is tuple
         assert len(flat) == 4
@@ -58,7 +58,7 @@ def test_fs_flatten_fixed_dimension2():
     assert space.fixedFlattenedDimension == 6
     sampler = FeatureSampler.randomSamplerFor(space)
     for i in range(100):
-        point = sampler.nextSample()
+        point = sampler.getSample().complete(None)
         flat = space.flatten(point, fixedDimension=True)
         assert type(flat) is tuple
         assert len(flat) == 6
@@ -87,12 +87,73 @@ def test_fs_flatten_fixed_dimension2():
     assert not any(space.coordinateIsNumerical(i) for i in range(1, 4))
     assert all(space.coordinateIsNumerical(i) for i in range(4, 6))
 
+def test_fs_flatten_fixed_dimension_dynamic():
+    space = FeatureSpace({
+        'a': Feature(DiscreteBox([0, 12])),
+        'b': TimeSeriesFeature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2)))
+        },
+        timeBound=5
+    )
+    assert space.fixedFlattenedDimension == 13
+    sampler = FeatureSampler.randomSamplerFor(space)
+    for i in range(100):
+        point = sampler.getSample()
+        duration = random.randint(0, 5)
+        for _ in range(duration):
+            point.getDynamicSample()
+        point = point.complete(None)
+        hash(point)
+        flat = space.flatten(point, fixedDimension=True)
+        assert type(flat) is tuple
+        assert len(flat) == 13
+        assert eval(space.meaningOfFlatCoordinate(0)) == point.a[0]
+        assert flat[1] == duration
+        for t in range(duration):
+            offset = 2*t
+            bLen = len(point.dynamicSamples[t].b)
+            assert flat[2] == bLen
+            assert eval(space.meaningOfFlatCoordinate(2)) == bLen
+            if bLen < 1:
+                assert flat[offset+3] is None
+            else:
+                assert eval(space.meaningOfFlatCoordinate(offset+3)) == point.dynamicSamples[t].b[0][0]
+            if bLen < 2:
+                assert flat[offset+4] is None
+            else:
+                assert eval(space.meaningOfFlatCoordinate(offset+4)) == point.dynamicSamples[t].b[1][0]
+        unflat = space.unflatten(flat, fixedDimension=True)
+        assert point == unflat
+    assert space.pandasIndexForFlatCoordinate(0) == ('a', 0)
+    assert space.pandasIndexForFlatCoordinate(2) == ('b', 'length')
+    assert space.pandasIndexForFlatCoordinate(3) == ('b', 0, 0)
+    assert space.pandasIndexForFlatCoordinate(4) == ('b', 1, 0)
+    assert all(space.coordinateIsNumerical(i) for i in range(4))
+
+def test_fs_utilities():
+    space = FeatureSpace({
+        'a': Feature(DiscreteBox([0, 12])),
+        'b': TimeSeriesFeature(Box((0, 1)), lengthDomain=DiscreteBox((1, 2)))
+        },
+        timeBound=5
+    )
+    assert space.fixedFlattenedDimension == 13
+    sampler = FeatureSampler.randomSamplerFor(space)
+    for i in range(100):
+        point = sampler.getSample()
+        duration = random.randint(0, 5)
+        for d in range(duration):
+            point.getDynamicSample()
+            assert 0 <= point.b[d][0][0] <= 1
+        point = point.complete(None)
+        hash(point)
+        assert all(0 <= point.b[i][0][0] <= 1 for i in range(duration))
+
 def test_fs_distance():
     box = Box([0, 10])
     space = FeatureSpace({ 'a': Feature(box), 'b': Feature(box) })
     sampler = FeatureSampler.randomSamplerFor(space)
-    pointA = sampler.nextSample()
-    pointB = sampler.nextSample()
+    pointA = sampler.getSample().staticSample
+    pointB = sampler.getSample().staticSample
     assert pointA != pointB
     assert space.distance(pointA, pointA) == 0
     assert space.distance(pointB, pointB) == 0

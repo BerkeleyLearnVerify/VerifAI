@@ -16,7 +16,7 @@ from scenic.simulators.webots.road.car_models import (
 
 from verifai.features import (Constant, Categorical, Real, Box, Array, Struct,
                               Feature, FeatureSpace)
-from verifai.samplers.feature_sampler import FeatureSampler
+from verifai.samplers.feature_sampler import FeatureSampler, Sample
 from verifai.utils.frozendict import frozendict
 
 scenicMajorVersion = int(importlib.metadata.version('scenic').split('.')[0])
@@ -223,6 +223,23 @@ def spaceForScenario(scenario, ignoredProperties):
     })
     return space, quotedParams
 
+class ScenicSample(Sample):
+    def __init__(self, space, staticSample, completeCallback, dynamicSampleLengths):
+        super().__init__(space, dynamicSampleLengths)
+        self._staticSample = staticSample
+        self._completeCallback = completeCallback
+
+    @property
+    def staticSample(self):
+        return self._staticSample
+
+    def _getDynamicSample(self, info):
+        raise RuntimeError("ScenicSampler does not support dynamic sampling.")
+
+    def complete(self, rho):
+        self._completeCallback(rho)
+        return super().complete(rho)
+
 class ScenicSampler(FeatureSampler):
     """Samples from the induced distribution of a Scenic scenario.
 
@@ -236,14 +253,16 @@ class ScenicSampler(FeatureSampler):
     def __init__(self, scenario, maxIterations=None, ignoredProperties=None):
         self.scenario = scenario
         self.maxIterations = 2000 if maxIterations is None else maxIterations
+        self._nextScene = None
         self.lastScene = None
+        self.lastFeedback = None
         if ignoredProperties is None:
             ignoredProperties = defaultIgnoredProperties
         space, self.quotedParams = spaceForScenario(scenario, ignoredProperties)
         super().__init__(space)
 
     @classmethod
-    def fromScenario(cls, path, maxIterations=None,
+    def fromScenario(cls, path, maxIterations=None, maxSteps=None,
                      ignoredProperties=None, **kwargs):
         """Create a sampler corresponding to a Scenic program.
 
@@ -262,24 +281,39 @@ class ScenicSampler(FeatureSampler):
               e.g. ``params`` to override global parameters or ``model`` to set the
               :term:`world model`.
         """
+        params = kwargs.setdefault("params", {})
+        params["timeBound"] = maxSteps if maxSteps else 0
+
         scenario = scenic.scenarioFromFile(path, **kwargs)
         return cls(scenario, maxIterations=maxIterations,
                    ignoredProperties=ignoredProperties)
 
     @classmethod
-    def fromScenicCode(cls, code, maxIterations=None,
+    def fromScenicCode(cls, code, maxIterations=None, maxSteps=None,
                        ignoredProperties=None, **kwargs):
         """As above, but given a Scenic program as a string."""
+        params = kwargs.setdefault("params", {})
+        params["timeBound"] = maxSteps if maxSteps else 0
+
         scenario = scenic.scenarioFromString(code, **kwargs)
         return cls(scenario, maxIterations=maxIterations,
                    ignoredProperties=ignoredProperties)
 
-    def nextSample(self, feedback=None):
+    def getSample(self):
         ret = self.scenario.generate(
-            maxIterations=self.maxIterations, feedback=feedback, verbosity=0
+            maxIterations=self.maxIterations, feedback=self.lastFeedback, verbosity=0
         )
+
+        self.lastFeedback = None
         self.lastScene, _ = ret
+
         return self.pointForScene(self.lastScene)
+
+    def update(self, sample_id, rho):
+        assert sample_id == 0
+        if self.lastFeedback is not None:
+            raise RuntimeError("Called `update` twice in a row (ScenicSampler does not support non-sequential sampling)")
+        self.lastFeedback = rho
 
     def pointForScene(self, scene):
         """Convert a sampled Scenic :obj:`~scenic.core.scenarios.Scene` to a point in our feature space.
@@ -314,7 +348,12 @@ class ScenicSampler(FeatureSampler):
             params[param] = pointForValue(subdom, scene.params[originalName])
         paramPoint = paramDomain.makePoint(**params)
 
-        return self.space.makePoint(objects=objPoint, params=paramPoint)
+        staticSample = self.space.makeStaticPoint(objects=objPoint, params=paramPoint)
+
+        completeCallback = lambda rho: self.update(0, rho)
+        dynamicSampleLengths = []
+
+        return ScenicSample(self.space, staticSample, completeCallback, dynamicSampleLengths)
 
     @staticmethod
     def nameForObject(i):

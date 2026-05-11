@@ -1,0 +1,9 @@
+# ID 0
+# Node list
+0 rule0
+1 rule1
+2 rule2
+3 rule3
+# Edge list
+0 1
+3 2

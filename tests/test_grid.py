@@ -14,7 +14,8 @@ def test_grid():
     dict_samples = defaultdict(int)
     while True:
         try:
-            sample = sampler.nextSample()
+            sample = sampler.getSample()
+            sample.complete(None)
             dict_samples[(sample.weather[0], sample.car_positions[0],
                           sample.car_positions[1])] = 0
         except TerminationException:
@@ -46,7 +47,8 @@ def test_grid_oper():
     y_samples = []
 
     for i in range(21):
-        sample = sampler.nextSample()
+        sample = sampler.getSample()
+        sample.complete(None)
         samples.append(sample)
         y_samples.append(f(sample))
 
