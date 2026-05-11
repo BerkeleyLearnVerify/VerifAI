@@ -15,8 +15,7 @@ def test_grid():
     while True:
         try:
             sample = sampler.getSample()
-            sample.update(None)
-            sample = sample
+            sample.complete(None)
             dict_samples[(sample.weather[0], sample.car_positions[0],
                           sample.car_positions[1])] = 0
         except TerminationException:
@@ -49,8 +48,7 @@ def test_grid_oper():
 
     for i in range(21):
         sample = sampler.getSample()
-        sample.update(None)
-        sample = sample
+        sample.complete(None)
         samples.append(sample)
         y_samples.append(f(sample))
 
@@ -63,6 +61,6 @@ def test_grid_non_standardizable():
         'b': Feature(FilteredDomain(Box([0,1]), lambda x: x[0] > 0.5))
     })
     sampler = FeatureSampler.gridSamplerFor(space)
-    samples = [s for s in sampler]
+    samples = list(sampler)
     assert len(samples) == 13
     assert all(sample.b[0] > 0.5 for sample in samples)

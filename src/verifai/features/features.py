@@ -11,6 +11,7 @@ import itertools
 import functools
 from abc import ABC, abstractmethod
 from collections import OrderedDict, namedtuple
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -996,15 +997,49 @@ class Feature:
         return rep + ')'
 
 class TimeSeriesFeature(Feature):
-    """A feature with a value at each timesetep of a simulation."""
+    """A feature with a value at each timestep of a simulation."""
     @staticmethod
     def _timeExpandDomain(domain, timeBound):
         return Array(domain, (timeBound,))
 
 ### Feature spaces and Samples
+class _SampleBase(ABC):
+    def __init__(self, space, dynamicSampleLengths):
+        self.space = space
+        self.dynamicSampleLengths = dynamicSampleLengths
 
-class Sample(ABC):
-    """A sample from a feature space, containing static points and able to generate dynamic points.
+        self._dynamicSamples = []
+
+    @property
+    @abstractmethod
+    def staticSample(self):
+        pass
+
+    def __getattr__(self, attr):
+        space = super().__getattribute__("space")
+        if attr in space.staticFeatureNamed:
+            return getattr(self.staticSample, attr)
+        elif attr in space.dynamicFeatureNamed:
+            class DynamicFeatureHelper(Sequence):
+                def __init__(self, dynamicSampleHistory, attr):
+                    self._dynamicSamples = dynamicSampleHistory
+                    self.attr = attr
+
+                def __getitem__(self, i):
+                    if i > len(self._dynamicSamples)-1:
+                        raise IndexError("Attempting to access dynamic sample value that has not been sampled.")
+                    return getattr(self._dynamicSamples[i], self.attr)
+
+                def __len__(self):
+                    return len(self._dynamicSamples)
+
+            return DynamicFeatureHelper(self._dynamicSamples, attr)
+        else:
+            return super().__getattribute__(attr)
+
+
+class Sample(_SampleBase):
+    """A sample from a feature space, containing a static point and able to generate dynamic points.
     
     Args:
         space (FeatureSpace): The feature space this Sample was sampled from.
@@ -1012,9 +1047,7 @@ class Sample(ABC):
             with a length domain.
     """
     def __init__(self, space, dynamicSampleLengths):
-        self.space = space
-        self.dynamicSampleHistory = []
-        self.dynamicSampleLengths = dynamicSampleLengths
+        super().__init__(space, dynamicSampleLengths)
 
     @property
     @abstractmethod
@@ -1027,49 +1060,61 @@ class Sample(ABC):
 
     def getDynamicSample(self, info=None):
         sample = self._getDynamicSample(info)
-        self.dynamicSampleHistory.append(sample)
+        self._dynamicSamples.append(sample)
         return sample
 
-    @abstractmethod
-    def update(self, rho):
-        pass
-
-    def __getattr__(self, attr):
-        space = super().__getattribute__("space")
-        if attr in space.staticFeatureNamed:
-            return getattr(self.staticSample, attr)
-        elif attr in space.dynamicFeatureNamed:
-            class DynamicFeatureHelper:
-                def __init__(self, dynamicSampleHistory, attr):
-                    self.dynamicSampleHistory = dynamicSampleHistory
-                    self.attr = attr
-
-                def __getitem__(self, i):
-                    if i > len(self.dynamicSampleHistory):
-                        raise ValueError("Attempting to access dynamic sample value that has not been sampled.")
-                    return getattr(self.dynamicSampleHistory[i], self.attr)
-
-            return DynamicFeatureHelper(self.dynamicSampleHistory, attr)
-        else:
-            return super().__getattr__(attr)
+    def complete(self, rho):
+        """Super method should be called after providing rho to the sampler to return a `CompletedSample`"""
+        return CompletedSample(self.staticSample, self._dynamicSamples, self.space, self.dynamicSampleLengths)
 
 
-class CompleteSample(Sample):
-    """A completed sample, which has fully computed static and dynamic points.
+class CompletedSample(_SampleBase):
+    """A completed sample from a feature space, containing the static point the history of sampled dynamic points.
+    
+    This class is returned when calling `complete` on a `Sample`, and is useful for storage, comparisons, hashing, etc...
+    """
+
+    def __init__(self, staticSample, dynamicSamples, space, dynamicSampleLengths):
+        super().__init__(space, dynamicSampleLengths)
+        self._staticSample = staticSample
+        self._dynamicSamples = tuple(dynamicSamples)
+
+    @property
+    def staticSample(self):
+        return self._staticSample
+
+    @property
+    def dynamicSamples(self):
+        return self._dynamicSamples
+
+    def __eq__(self, other):
+        if not isinstance(other, CompletedSample):
+            return False
+        
+        return self.staticSample == other.staticSample and self.dynamicSamples == other.dynamicSamples
+
+    def __hash__(self):
+        return hash((self.staticSample, self.dynamicSamples))
+
+class _PrecomputedSample(Sample):
+    """A precompleted sample, which has fully computed static and dynamic points.
+
+    Note: This class is an implementation detail, and one should only assume the `Sample` API
+    with it.
     
     Args:
         space (FeatureSpace): The feature space this Sample was sampled from.
         staticSample: The static point for this sample
         dynamicSampleList: A list of the dynamic points for this sample.
-        updateCallback: A callback that is called with the value passed to update.
+        completeCallback: A callback that is called with the value passed to complete.
         dynamicSampleLengths (dict): A dictionary containing the lengths of each dynamic feature
             with a length domain.
     """
-    def __init__(self, space, staticSample, dynamicSampleList, updateCallback, dynamicSampleLengths):
+    def __init__(self, space, staticSample, dynamicSampleList, completeCallback, dynamicSampleLengths):
         super().__init__(space, dynamicSampleLengths)
         self._staticSample = staticSample
         self._dynamicSampleList = dynamicSampleList
-        self._updateCallback = updateCallback
+        self._completeCallback = completeCallback
         self._i = 0
 
     @property
@@ -1090,8 +1135,9 @@ class CompleteSample(Sample):
 
         return dynamic_sample
 
-    def update(self, rho):
-        return self._updateCallback(rho)
+    def complete(self, rho):
+        self._completeCallback(rho)
+        return super().complete(rho)
 
 class FeatureSpace:
     """A space consisting of named features.
@@ -1130,7 +1176,7 @@ class FeatureSpace:
         self.timeBound = timeBound
 
         if len(self.dynamicFeatureNamed) > 0 and self.timeBound == 0:
-            raise RuntimeError("FeatureSpace which includes TimeSeriesFeature has no timeBound.")
+            raise ValueError("must specify timeBound when creating a FeatureSpace with a TimeSeriesFeature")
 
     @cached_property
     def domains(self):
@@ -1184,7 +1230,7 @@ class FeatureSpace:
         lists had their maximum lengths and time steps, with None as a placeholder.
         This means that all points in the space will flatten to the same length.
         """
-        assert isinstance(point, Sample)
+        assert isinstance(point, CompletedSample)
 
         flattened = []
         for feature, value in zip(self.staticFeatureNamed.values(), point.staticSample):
@@ -1203,7 +1249,7 @@ class FeatureSpace:
                 domain.flattenOnto(value, flattened)
 
         if self.hasTimeSeries:
-            duration = len(point.dynamicSampleHistory)
+            duration = len(point.dynamicSamples)
             flattened.append(duration)
 
             for feature_i, f in enumerate(self.dynamicFeatureNamed.items()):
@@ -1218,7 +1264,7 @@ class FeatureSpace:
 
                 flattened.append(length)
 
-                for dynamic_point in point.dynamicSampleHistory:
+                for dynamic_point in point.dynamicSamples:
                     value = dynamic_point[feature_i]
 
                     if length is None:
@@ -1232,7 +1278,7 @@ class FeatureSpace:
                                 flattened.append(None)
 
                 if fixedDimension:
-                    needed = (self.timeBound - len(point.dynamicSampleHistory)) * feature.maxLength * sizePerElt
+                    needed = (self.timeBound - len(point.dynamicSamples)) * feature.maxLength * sizePerElt
                     flattened += [None for _ in range(needed)]
 
         flattened_point = tuple(flattened)
@@ -1344,7 +1390,7 @@ class FeatureSpace:
                 index -= domain.flattenedDimension
 
         if index == 0:
-            return ("dynamicSampleHistory", "length")
+            return ("dynamicSamples", "length")
         index -= 1
 
         for name, feature in self.dynamicFeatureNamed.items():
@@ -1474,12 +1520,7 @@ class FeatureSpace:
             dynamicSampleList = []
             dynamicSampleLengths = {}
 
-        updateCallback = lambda rho: None
-
-        sample = CompleteSample(space=self, staticSample=staticSample, dynamicSampleList=dynamicSampleList, updateCallback=updateCallback,dynamicSampleLengths=dynamicSampleLengths)
-
-        for _ in range(duration):
-            sample.getDynamicSample()
+        sample = CompletedSample(staticSample, dynamicSampleList, self, dynamicSampleLengths)
 
         return sample
 

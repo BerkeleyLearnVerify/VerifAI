@@ -38,7 +38,7 @@ class error_table():
         self.table.columns = column_names
         self.column_names = column_names
 
-    def update_error_table(self, sample, rho):
+    def update_error_table(self, sample, rho, is_multi=False):
         sample = self.space.flatten(sample, fixedDimension=True)
         sample_dict = {}
         for k, v in zip(self.table.columns, list(sample)):

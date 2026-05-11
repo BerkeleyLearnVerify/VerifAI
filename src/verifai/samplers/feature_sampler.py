@@ -11,7 +11,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
-from verifai.features import FilteredDomain, TimeSeriesFeature, Sample, CompleteSample
+from verifai.features import FilteredDomain, TimeSeriesFeature, Sample
+from verifai.features.features import _PrecomputedSample
 from verifai.samplers.domain_sampler import SplitSampler, TerminationException
 from verifai.samplers.rejection import RejectionSampler
 from verifai.samplers.halton import HaltonSampler
@@ -22,6 +23,9 @@ from verifai.samplers.eg_sampler import EpsilonGreedySampler
 from verifai.samplers.bayesian_optimization import BayesOptSampler
 from verifai.samplers.simulated_annealing import SimulatedAnnealingSampler
 from verifai.samplers.grid_sampler import GridSampler
+from verifai.samplers.dynamic_rulebook_emab import DynamicRulebookExtendedMultiArmedBanditSampler
+from verifai.samplers.dynamic_rulebook_mab import DynamicRulebookMultiArmedBanditSampler
+from verifai.samplers.dynamic_rulebook_ce import DynamicRulebookCrossEntropySampler
 
 ### Samplers defined over FeatureSpaces
 
@@ -98,7 +102,46 @@ class FeatureSampler(ABC):
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: MultiArmedBanditSampler(domain=domain,
                                                    mab_params=mab_params))
+    
+    @staticmethod
+    def dynamicRulebookExtendedMultiArmedBanditSamplerFor(space, demab_params=None):
+        """Creates a dynamic rulebook extended multi-armed bandit sampler for a given space.
 
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable.
+        """
+        if demab_params is None:
+            demab_params = default_sampler_params('demab')
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: DynamicRulebookExtendedMultiArmedBanditSampler(domain=domain,
+                                                                          demab_params=demab_params))
+    
+    @staticmethod
+    def dynamicRulebookMultiArmedBanditSamplerFor(space, dmab_params=None):
+        """Creates a dynamic rulebook multi-armed bandit sampler for a given space.
+
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable.
+        """
+        if dmab_params is None:
+            dmab_params = default_sampler_params('dmab')
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: DynamicRulebookMultiArmedBanditSampler(domain=domain,
+                                                                  dmab_params=dmab_params))
+    
+    @staticmethod
+    def dynamicRulebookCrossEntropySamplerFor(space, dce_params=None):
+        """Creates a dynamic rulebook cross-entropy sampler for a given space.
+
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable.
+        """
+        if dce_params is None:
+            dce_params = default_sampler_params('dce')
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: DynamicRulebookCrossEntropySampler(domain=domain,
+                                                              dce_params=dce_params))
+    
     @staticmethod
     def gridSamplerFor(space, grid_params=None):
         """Creates a grid sampler for a given space.
@@ -157,7 +200,7 @@ class FeatureSampler(ABC):
 
     @abstractmethod
     def getSample(self):
-        """Returns a `Sample` object"""
+        """Generate a `Sample`."""
         pass
 
     def set_graph(self, graph):
@@ -184,19 +227,19 @@ class FeatureSampler(ABC):
             while True:
                 sample = self.getSample()
                 rho = yield sample
-                sample.update(rho)
+                sample.complete(rho)
         except TerminationException:
             return
 
 
 class LateFeatureSampler(FeatureSampler):
-    """ FeatureSampler that greedily samples a CompleteSample.
+    """ FeatureSampler that greedily samples the dynamic portion of a Sample.
     
-    FeatureSampler works as follows:
+    LateFeatureSampler works as follows:
         1. Sample lengths of feature lists.
-        2. Expand TimeSeriesFeatures into flattened features with of length
+        2. Expand TimeSeriesFeatures into flattened features of length
            space.timeBound.
-        2. Sample from the resulting fixed-dimensional Domains.
+        3. Sample from the resulting fixed-dimensional Domains.
 
     e.g. LateFeatureSampler(space, RandomSampler, HaltonSampler) creates a
     FeatureSampler which picks lengths uniformly at random and applies
@@ -236,27 +279,25 @@ class LateFeatureSampler(FeatureSampler):
         info = (info1, info2)
         
         sample_id = self._get_info_id(info, length, domainPoint)
-        update_callback = lambda rho: self.update(sample_id, rho)
+        complete_callback = lambda rho: self.update(sample_id, rho)
 
         # Make static points and iterable over dynamic points
-        static_features = [v for v in domainPoint._asdict().items()
-                            if v[0] in self.space.staticFeatureNamed]
-        dynamic_features = [v for v in domainPoint._asdict().items()
-                            if v[0] not in self.space.staticFeatureNamed]
+        static_features = [(k, domainPoint._asdict()[k]) for k in self.space.staticFeatureNamed]
+        dynamic_features = [(k, domainPoint._asdict()[k]) for k in self.space.dynamicFeatureNamed]
         static_point = self.space.makeStaticPoint(*[v[1] for v in static_features])
 
         dynamic_points = []
-        if any(isinstance(f, TimeSeriesFeature) for f in self.space.features):
+        if self.space.hasTimeSeries:
             for t in range(self.space.timeBound):
-                point_dict = {}
+                raw_point_list = []
 
                 for f, val in dynamic_features:
                     if not self.space.featureNamed[f].lengthDomain:
-                        point_dict[f] = val[t]
+                        raw_point_list.append(val[t])
                     else:
-                        point_dict[f] = tuple(v[t] for v in val)
+                        raw_point_list.append(tuple(v[t] for v in val))
 
-                dynamic_points.append(self.space.makeDynamicPoint(*point_dict.values()))
+                dynamic_points.append(self.space.makeDynamicPoint(*raw_point_list))
 
 
         dynamicSampleLengths = ({feature_name: getattr(length, feature_name)[0]
@@ -264,7 +305,7 @@ class LateFeatureSampler(FeatureSampler):
                                  if feature.lengthDomain}
                                 if self.lengthSampler else {})
 
-        return CompleteSample(self.space, static_point, dynamic_points, update_callback, dynamicSampleLengths)
+        return _PrecomputedSample(self.space, static_point, dynamic_points, complete_callback, dynamicSampleLengths)
 
     def update(self, sample_id, rho):
         info, lengthPoint, domainPoint = self._id_metadata_dict[sample_id]
@@ -288,6 +329,10 @@ def default_sampler_params(sampler_type):
     if sampler_type == 'halton':
         return DotMap(sample_index=0, bases_skipped=0)
     elif sampler_type in ('ce', 'eg', 'mab'):
+        cont = DotMap(buckets=5, dist=None)
+        disc = DotMap(dist=None)
+        return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
+    elif sampler_type in ('demab', 'dmab', 'dce'):
         cont = DotMap(buckets=5, dist=None)
         disc = DotMap(dist=None)
         return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
