@@ -1,7 +1,6 @@
-from verifai.features.features import *
-from verifai.falsifier import generic_falsifier
+from verifai.features import *
+from verifai import Falsifier, Monitor
 from dotmap import DotMap
-from verifai.monitor import specification_monitor
 
 try:
     import gym
@@ -40,15 +39,12 @@ PORT = 8888
 MAXREQS = 5
 BUFSIZE = 4096
 
-class mountaincar_spec(specification_monitor):
-    def __init__(self):
-        def specification(traj):
-            traj_x = traj['traj_x']
-            if sample_type == 1:
-                return mc.env.goal_position - max(traj_x)
-            else:
-                return max(traj_x) - mc.env.goal_position
-        super().__init__(specification)
+def mountaincar_spec(traj):
+    traj_x = traj['traj_x']
+    if sample_type == 1:
+        return mc.env.goal_position - max(traj_x)
+    else:
+        return max(traj_x) - mc.env.goal_position
 
 falsifier_params = DotMap()
 falsifier_params.n_iters = MAX_ITERS
@@ -58,9 +54,9 @@ falsifier_params.fal_thres = 0.0
 server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
 
 
-falsifier = generic_falsifier(sample_space=sample_space, sampler_type=SAMPLERTYPE,
-                              monitor=mountaincar_spec(), falsifier_params=falsifier_params,
-                              server_options=server_options)
+falsifier = Falsifier(sample_space=sample_space, sampler_type=SAMPLERTYPE,
+                      monitor=mountaincar_spec, falsifier_params=falsifier_params,
+                      server_options=server_options)
 falsifier.run_falsifier()
 analysis_params = DotMap()
 analysis_params.k_closest_params.k = 4

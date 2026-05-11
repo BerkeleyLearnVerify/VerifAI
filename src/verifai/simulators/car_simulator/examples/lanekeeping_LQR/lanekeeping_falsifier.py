@@ -1,5 +1,5 @@
-from verifai.features.features import *
-from verifai.falsifier import mtl_falsifier
+from verifai.features import *
+from verifai import Falsifier, Monitor
 from dotmap import DotMap
 
 init_conditions = Struct({
@@ -16,7 +16,7 @@ PORT = 8888
 MAXREQS = 5
 BUFSIZE = 4096
 
-specification = ["G(xdeviation)"]
+monitor = Monitor.fromMTL("G(xdeviation)")
 
 falsifier_params = DotMap()
 falsifier_params.n_iters = MAX_ITERS
@@ -31,9 +31,9 @@ sampler_params = DotMap()
 sampler_params.init_num = 2
 falsifier_params.sampler_params = sampler_params
 
-falsifier = mtl_falsifier(sample_space=sample_space, sampler_type=SAMPLERTYPE,
-                             specification=specification, falsifier_params=falsifier_params,
-                          server_options=server_options)
+falsifier = Falsifier(sample_space=sample_space, sampler_type=SAMPLERTYPE,
+                      monitor=monitor, falsifier_params=falsifier_params,
+                      server_options=server_options)
 falsifier.run_falsifier()
 analysis_params = DotMap()
 analysis_params.k_closest_params.k = 4

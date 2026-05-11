@@ -143,12 +143,12 @@ class ErrorTable():
         stats = numerical.describe()
 
         normalized_dict = {r: (numerical[r] - stats[r]['min']) / (stats[r]['max'] - stats[r]['min'])
-                         for r in numerical.columns}
+                         for r in stats.columns}
         normalized_table = pd.DataFrame(normalized_dict)
 
         return normalized_table, categorical, \
-               np.array([stats[r]['min'] for r in numerical.columns]),\
-               np.array([stats[r]['max'] for r in numerical.columns])
+               np.array([stats[r]['min'] for r in stats.columns]),\
+               np.array([stats[r]['max'] for r in stats.columns])
 
 
     def build_standardized(self, column_names=None):
@@ -166,12 +166,12 @@ class ErrorTable():
         stats = numerical.describe()
 
         standardized_dict = {r: (numerical[r] - stats[r]['mean']) / stats[r]['std']
-                             for r in numerical.columns}
+                             for r in stats.columns}
         standardized_table = pd.DataFrame(standardized_dict)
 
         return standardized_table, categorical, \
-               np.array([stats[r]['mean'] for r in numerical.columns]),\
-               np.array([stats[r]['std'] for r in numerical.columns])
+               np.array([stats[r]['mean'] for r in stats.columns]),\
+               np.array([stats[r]['std'] for r in stats.columns])
 
     def dist_element(self, numerical, point_n):
 

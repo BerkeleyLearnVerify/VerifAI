@@ -14,4 +14,4 @@ param 'sim/weather/cloud_type[0]' = Uniform(0, 1, 2, 3, 4, 5)
 param 'sim/weather/rain_percent' = 0
 
 # Plane up to 8 m to left or right, facing down the runway
-ego = Plane at Range(-8, 8) @ 0
+ego = new Plane at Range(-8, 8) @ 0

@@ -1,6 +1,6 @@
-from verifai.samplers.scenic_sampler import ScenicSampler
 from dotmap import DotMap
-from verifai.falsifier import generic_falsifier
+
+from verifai import Falsifier, ScenicSampler
 
 
 path_to_scenic_file = 'intersection_crash.scenic'
@@ -18,9 +18,9 @@ falsifier_params.save_safe_table = False
 
 server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
 
-falsifier = generic_falsifier(sampler=sampler, sampler_type='scenic',
-                              falsifier_params=falsifier_params,
-                              server_options=server_options)
+falsifier = Falsifier(sampler=sampler,
+                      falsifier_params=falsifier_params,
+                      server_options=server_options)
 
 falsifier.run_falsifier()
 

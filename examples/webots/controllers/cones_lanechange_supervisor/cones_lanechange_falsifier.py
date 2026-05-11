@@ -1,5 +1,5 @@
-from verifai.falsifier import mtl_falsifier
-from verifai.features.features import *
+from verifai import Falsifier, Monitor
+from verifai.features import *
 from dotmap import DotMap
 
 control_params = Struct({
@@ -27,7 +27,7 @@ PORT = 8888
 MAXREQS = 5
 BUFSIZE = 4096
 
-specification = ["G(collisioncone0 & collisioncone1 & collisioncone2)"]
+monitor = Monitor.fromMTL("G(collisioncone0 & collisioncone1 & collisioncone2)")
 
 falsifier_params = DotMap()
 falsifier_params.n_iters = MAX_ITERS
@@ -35,9 +35,9 @@ falsifier_params.compute_error_table = True
 
 server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
 
-falsifier = mtl_falsifier(sample_space=sample_space, sampler_type=SAMPLERTYPE,
-                          specification=specification, falsifier_params=falsifier_params,
-                          server_options=server_options)
+falsifier = Falsifier(sample_space=sample_space, sampler_type=SAMPLERTYPE,
+                      monitor=specification, falsifier_params=falsifier_params,
+                      server_options=server_options)
 falsifier.run_falsifier()
 
 print("Unsafe samples: Error table")

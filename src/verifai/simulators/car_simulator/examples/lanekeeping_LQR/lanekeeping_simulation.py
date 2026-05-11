@@ -20,9 +20,7 @@ def controller(x_trajectory, u_trajectory, control_params):
         a = a_star if np.linalg.norm(v - v_star) > 0.1 else 0.0
         c = np.array([0.0, a * control_freq * dt, 0.0])
         K, k = discrete_LQR(A, B, Q, R, c)
-        u = K.dot(np.array([[x],
-                            [v - v_star],
-                            [-theta+np.pi/2]])) + k
+        u = K[0].dot([x, v - v_star, -theta+np.pi/2]) + k[0]
         u = min(float(u), np.pi / 4.)
         u = max(float(u), -np.pi / 4.)
         control = np.array([u, a])
