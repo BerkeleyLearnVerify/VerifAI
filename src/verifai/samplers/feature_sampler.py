@@ -23,6 +23,9 @@ from verifai.samplers.eg_sampler import EpsilonGreedySampler
 from verifai.samplers.bayesian_optimization import BayesOptSampler
 from verifai.samplers.simulated_annealing import SimulatedAnnealingSampler
 from verifai.samplers.grid_sampler import GridSampler
+from verifai.samplers.dynamic_rulebook_emab import DynamicRulebookExtendedMultiArmedBanditSampler
+from verifai.samplers.dynamic_rulebook_mab import DynamicRulebookMultiArmedBanditSampler
+from verifai.samplers.dynamic_rulebook_ce import DynamicRulebookCrossEntropySampler
 
 ### Samplers defined over FeatureSpaces
 
@@ -99,7 +102,46 @@ class FeatureSampler(ABC):
         return LateFeatureSampler(space, RandomSampler,
             lambda domain: MultiArmedBanditSampler(domain=domain,
                                                    mab_params=mab_params))
+    
+    @staticmethod
+    def dynamicRulebookExtendedMultiArmedBanditSamplerFor(space, demab_params=None):
+        """Creates a dynamic rulebook extended multi-armed bandit sampler for a given space.
 
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable.
+        """
+        if demab_params is None:
+            demab_params = default_sampler_params('demab')
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: DynamicRulebookExtendedMultiArmedBanditSampler(domain=domain,
+                                                                          demab_params=demab_params))
+    
+    @staticmethod
+    def dynamicRulebookMultiArmedBanditSamplerFor(space, dmab_params=None):
+        """Creates a dynamic rulebook multi-armed bandit sampler for a given space.
+
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable.
+        """
+        if dmab_params is None:
+            dmab_params = default_sampler_params('dmab')
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: DynamicRulebookMultiArmedBanditSampler(domain=domain,
+                                                                  dmab_params=dmab_params))
+    
+    @staticmethod
+    def dynamicRulebookCrossEntropySamplerFor(space, dce_params=None):
+        """Creates a dynamic rulebook cross-entropy sampler for a given space.
+
+        Uses random sampling for lengths of feature lists and any Domains
+        that are not standardizable.
+        """
+        if dce_params is None:
+            dce_params = default_sampler_params('dce')
+        return LateFeatureSampler(space, RandomSampler,
+            lambda domain: DynamicRulebookCrossEntropySampler(domain=domain,
+                                                              dce_params=dce_params))
+    
     @staticmethod
     def gridSamplerFor(space, grid_params=None):
         """Creates a grid sampler for a given space.
@@ -287,6 +329,10 @@ def default_sampler_params(sampler_type):
     if sampler_type == 'halton':
         return DotMap(sample_index=0, bases_skipped=0)
     elif sampler_type in ('ce', 'eg', 'mab'):
+        cont = DotMap(buckets=5, dist=None)
+        disc = DotMap(dist=None)
+        return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)
+    elif sampler_type in ('demab', 'dmab', 'dce'):
         cont = DotMap(buckets=5, dist=None)
         disc = DotMap(dist=None)
         return DotMap(alpha=0.9, thres=0.0, cont=cont, disc=disc)

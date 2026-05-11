@@ -26,6 +26,7 @@ def choose_sampler(sample_space, sampler_type,
         sampler = FeatureSampler.haltonSamplerFor(sample_space,
                                                   halton_params=halton_params)
         return 'halton', sampler
+    
     if sampler_type == 'ce':
         if sampler_params is None:
             ce_params = default_sampler_params('ce')
@@ -45,6 +46,7 @@ def choose_sampler(sample_space, sampler_type,
         sampler = FeatureSampler.crossEntropySamplerFor(
             sample_space, ce_params=ce_params)
         return 'ce', sampler
+    
     if sampler_type == 'mab':
         if sampler_params is None:
             mab_params = default_sampler_params('mab')
@@ -63,9 +65,82 @@ def choose_sampler(sample_space, sampler_type,
                 mab_params.thres = sampler_params.thres
             if 'priority_graph' in sampler_params:
                 mab_params.priority_graph = sampler_params.priority_graph
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                mab_params.rulebook = sampler_params.rulebook
         sampler = FeatureSampler.multiArmedBanditSamplerFor(
             sample_space, mab_params=mab_params)
         return 'mab', sampler
+    
+    if sampler_type == 'demab':
+        if sampler_params is None:
+            demab_params = default_sampler_params('demab')
+        else:
+            demab_params = default_sampler_params('demab')
+            if 'cont' in sampler_params:
+                if 'buckets' in sampler_params.cont:
+                    demab_params.cont.buckets = sampler_params.cont.buckets
+                if 'dist' in sampler_params.cont:
+                    demab_params.cont.dist = sampler_params.cont.dist
+            if 'dist' in sampler_params.disc:
+                demab_params.disc.dist = sampler_params.disc.dist
+            if 'alpha' in sampler_params:
+                demab_params.alpha = sampler_params.alpha
+            if 'thres' in sampler_params:
+                demab_params.thres = sampler_params.thres
+            if 'priority_graph' in sampler_params:
+                demab_params.priority_graph = sampler_params.priority_graph
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                demab_params.rulebook = sampler_params.rulebook
+        sampler = FeatureSampler.dynamicRulebookExtendedMultiArmedBanditSamplerFor(
+            sample_space, demab_params=demab_params)
+        return 'demab', sampler
+    
+    if sampler_type == 'dmab':
+        if sampler_params is None:
+            dmab_params = default_sampler_params('dmab')
+        else:
+            dmab_params = default_sampler_params('dmab')
+            if 'cont' in sampler_params:
+                if 'buckets' in sampler_params.cont:
+                    dmab_params.cont.buckets = sampler_params.cont.buckets
+                if 'dist' in sampler_params.cont:
+                    dmab_params.cont.dist = sampler_params.cont.dist
+            if 'dist' in sampler_params.disc:
+                dmab_params.disc.dist = sampler_params.disc.dist
+            if 'alpha' in sampler_params:
+                dmab_params.alpha = sampler_params.alpha
+            if 'thres' in sampler_params:
+                dmab_params.thres = sampler_params.thres
+            if 'priority_graph' in sampler_params:
+                dmab_params.priority_graph = sampler_params.priority_graph
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                dmab_params.rulebook = sampler_params.rulebook
+        sampler = FeatureSampler.dynamicRulebookMultiArmedBanditSamplerFor(
+            sample_space, dmab_params=dmab_params)
+        return 'dmab', sampler
+    
+    if sampler_type == 'dce':
+        if sampler_params is None:
+            dce_params = default_sampler_params('dce')
+        else:
+            dce_params = default_sampler_params('dce')
+            if 'cont' in sampler_params:
+                if 'buckets' in sampler_params.cont:
+                    dce_params.cont.buckets = sampler_params.cont.buckets
+                if 'dist' in sampler_params.cont:
+                    dce_params.cont.dist = sampler_params.cont.dist
+            if 'dist' in sampler_params.disc:
+                dce_params.disc.dist = sampler_params.disc.dist
+            if 'alpha' in sampler_params:
+                dce_params.alpha = sampler_params.alpha
+            if 'thres' in sampler_params:
+                dce_params.thres = sampler_params.thres
+            if getattr(sampler_params, 'rulebook', None) is not None:
+                dce_params.rulebook = sampler_params.rulebook
+        sampler = FeatureSampler.dynamicRulebookCrossEntropySamplerFor(
+            sample_space, dce_params=dce_params)
+        return 'dce', sampler
+    
     if sampler_type == 'eg':
         if sampler_params is None:
             eg_params = default_sampler_params('eg')

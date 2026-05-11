@@ -1,0 +1,10 @@
+# ID 2
+# Node list
+1 rule1
+3 rule3
+5 rule5
+6 rule6
+# Edge list
+1 3
+3 5
+5 6

@@ -4,6 +4,7 @@ from verifai.scenic_server import ScenicServer, ParallelScenicServer
 from verifai.samplers import TerminationException
 from dotmap import DotMap
 from verifai.monitor import mtl_specification, specification_monitor, multi_objective_monitor
+from verifai.rulebook import Rulebook
 from verifai.error_table import error_table
 import numpy as np
 import progressbar
@@ -36,9 +37,12 @@ class falsifier(ABC):
             params.update(falsifier_params)
         if params.sampler_params is None:
             params.sampler_params = DotMap(thres=params.fal_thres)
-        self.multi = isinstance(self.monitor, multi_objective_monitor)
-        if self.multi:
+        self.multi = isinstance(self.monitor, multi_objective_monitor) or isinstance(self.monitor, Rulebook)
+        self.dynamic = isinstance(self.monitor, Rulebook)
+        if isinstance(self.monitor, multi_objective_monitor):
             params.sampler_params.priority_graph = self.monitor.graph
+        elif isinstance(self.monitor, Rulebook):
+            params.sampler_params.rulebook = self.monitor
         self.save_error_table = params.save_error_table
         self.save_safe_table = params.save_safe_table
         self.error_table_path = params.error_table_path
@@ -51,7 +55,7 @@ class falsifier(ABC):
         self.sampler_params = params.sampler_params
         self.verbosity = params.verbosity
 
-        server_params = DotMap(init=True)
+        server_params = DotMap(init=True, dynamic=self.dynamic)
         if server_options is not None:
             server_params.update(server_options)
         if server_params.init:
@@ -82,11 +86,11 @@ class falsifier(ABC):
 
     def populate_error_table(self, sample, rho, error=True):
         if error:
-            self.error_table.update_error_table(sample, rho)
+            self.error_table.update_error_table(sample, rho, is_multi=self.multi)
             if self.error_table_path:
                 self.write_table(self.error_table.table, self.error_table_path)
         else:
-            self.safe_table.update_error_table(sample, rho)
+            self.safe_table.update_error_table(sample, rho, is_multi=self.multi)
             if self.safe_table_path:
                 self.write_table(self.safe_table.table, self.safe_table_path)
 
@@ -176,15 +180,29 @@ class falsifier(ABC):
                 bar.finish()
             self.server.terminate()
         for sample, rho in zip(server_samples, rhos):
-            ce = any([r <= self.fal_thres for r in rho]) if self.multi else rho <= self.fal_thres
-            if ce:
-                if self.save_error_table:
-                    self.populate_error_table(sample, rho)
-                ce_num = ce_num + 1
-                if ce_num >= self.ce_num_max:
-                    break
-            elif self.save_safe_table:
-                self.populate_error_table(sample, rho, error=False)
+            ce = False
+            if self.dynamic:
+                if isinstance(rho, int) and rho == 1:
+                    num_rule_outputs = sum(
+                        len(graph.nodes) for graph in self.monitor.priority_graphs.values()
+                    )
+                    concatenated_rho = [1.0] * num_rule_outputs
+                else:
+                    concatenated_rho = [value for rho_list in rho for value in rho_list]
+                self.populate_error_table(sample, concatenated_rho)
+            else:
+                if self.multi:
+                    ce = any([r <= self.fal_thres for r in rho])
+                else:
+                    ce = rho <= self.fal_thres
+                if ce:
+                    if self.save_error_table:
+                        self.populate_error_table(sample, rho)
+                    ce_num = ce_num + 1
+                    if ce_num >= self.ce_num_max:
+                        break
+                elif self.save_safe_table:
+                    self.populate_error_table(sample, rho, error=False)
         if self.verbosity >= 1:
             print('Falsification complete.')
 
