@@ -5,10 +5,7 @@ import sys
 
 from dotmap import DotMap
 
-from verifai.samplers import ScenicSampler
-from verifai.scenic_server import ScenicServer
-from verifai.falsifier import Falsifier
-from verifai.monitor import Monitor
+from verifai import ScenicSampler, Falsifier, Monitor
 
 # Load the Scenic scenario and create a sampler from it
 if len(sys.argv) > 1:
@@ -29,7 +26,7 @@ def specification(simulation):
     # Get trajectories of objects from the result of the simulation
     traj = simulation.result.trajectory
 
-    # Compute time-stamped sequence of values for 'safe' atomic proposition;
+    # Compute sequence of values for 'safe' atomic proposition;
     # we'll define safe = "distance from ego to all other objects > 5"
     safe_values = []
     for positions in traj:
@@ -38,6 +35,8 @@ def specification(simulation):
                    default=math.inf)
         safe_values.append(dist - 5)
 
+    # Minimize over time steps, so value will be negative if the ego ever gets
+    # closer than 5 meters to another object
     return min(safe_values)
 
 # Set up the falsifier

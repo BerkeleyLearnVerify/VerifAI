@@ -3,16 +3,14 @@ import pytest
 from dotmap import DotMap
 
 from verifai.samplers.scenic_sampler import ScenicSampler, scenicMajorVersion
-from verifai.scenic_server import ScenicServer
-from verifai.falsifier import generic_falsifier
-from verifai.monitor import specification_monitor
+from verifai import Falsifier, Monitor, ScenicServer
 from tests.utils import sampleWithFeedback, checkSaveRestore
 
 ## Basic
 
-def test_objects(new_Object):
+def test_objects():
     sampler = ScenicSampler.fromScenicCode(
-        f'ego = {new_Object} at 4 @ 9',
+        f'ego = new Object at 4 @ 9',
         maxIterations=1
     )
     sample = sampler.nextSample()
@@ -22,10 +20,10 @@ def test_objects(new_Object):
     assert type(pos) is tuple
     assert pos == (4, 9, 0) if scenicMajorVersion >= 3 else (4, 9)
 
-def test_params(new_Object):
+def test_params():
     sampler = ScenicSampler.fromScenicCode(
         'param x = Range(3, 5)\n'
-        f'ego = {new_Object}',
+        f'ego = new Object',
         maxIterations=1
     )
     sample = sampler.nextSample()
@@ -33,10 +31,10 @@ def test_params(new_Object):
     assert type(x) is float
     assert 3 <= x <= 5
 
-def test_quoted_param(new_Object):
+def test_quoted_param():
     sampler = ScenicSampler.fromScenicCode(
         'param "x/y" = Range(3, 5)\n'
-        f'ego = {new_Object}',
+        f'ego = new Object',
         maxIterations=1
     )
     sample = sampler.nextSample()
@@ -44,9 +42,9 @@ def test_quoted_param(new_Object):
     assert type(v) is float
     assert 3 <= v <= 5
 
-def test_lists(new_Object):
+def test_lists():
     sampler = ScenicSampler.fromScenicCode(
-        f'ego = {new_Object} with foo [1, -1, 3.3]',
+        f'ego = new Object with foo [1, -1, 3.3]',
         maxIterations=1
     )
     sample = sampler.nextSample()
@@ -54,18 +52,18 @@ def test_lists(new_Object):
     assert type(foo) is tuple
     assert foo == pytest.approx((1, -1, 3.3))
 
-def test_save_restore(new_Object, tmpdir):
+def test_save_restore(tmpdir):
     sampler = ScenicSampler.fromScenicCode(
-        f'ego = {new_Object} at Range(-1, 1) @ 0',
+        f'ego = new Object at Range(-1, 1) @ 0',
         maxIterations=1
     )
     checkSaveRestore(sampler, tmpdir)
 
-def test_object_order(new_Object):
+def test_object_order():
     sampler = ScenicSampler.fromScenicCode(
-        f'ego = {new_Object} at 0 @ 0\n'
+        f'ego = new Object at 0 @ 0\n'
         'for i in range(1, 11):\n'
-        f'    {new_Object} at 2*i @ 0',
+        f'    new Object at 2*i @ 0',
         maxIterations=1
     )
     sample = sampler.nextSample()
@@ -82,14 +80,14 @@ def test_object_order(new_Object):
 
 ## Active sampling
 
-def test_active_sampling(new_Object):
+def test_active_sampling():
     sampler = ScenicSampler.fromScenicCode(
         'from dotmap import DotMap\n'
         'param verifaiSamplerType = "ce"\n'
         'ce_params = DotMap(alpha=0.9)\n'
         'ce_params.cont.buckets = 2\n'
         'param verifaiSamplerParams = ce_params\n'
-        f'ego = {new_Object} at VerifaiRange(-1, 1) @ 0',
+        f'ego = new Object at VerifaiRange(-1, 1) @ 0',
         maxIterations=1
     )
     def f(sample):
@@ -100,10 +98,10 @@ def test_active_sampling(new_Object):
     assert any(x > 0 for x in xs)
     assert 66 <= sum(x < 0 for x in xs[50:])
 
-def test_active_save_restore(new_Object, tmpdir):
+def test_active_save_restore(tmpdir):
     sampler = ScenicSampler.fromScenicCode(
         'param verifaiSamplerType = "halton"\n'
-        f'ego = {new_Object} at VerifaiRange(-1, 1) @ 0',
+        f'ego = new Object at VerifaiRange(-1, 1) @ 0',
         maxIterations=1
     )
     checkSaveRestore(sampler, tmpdir)
@@ -134,27 +132,23 @@ basic_scenario = """\
 param verifaiSamplerType = 'grid'
 param render = False
 model scenic.simulators.newtonian.model
-ego = {new_Object} with velocity (0, VerifaiOptions([0, 10]))
-{new_Object} at (10, 0), with velocity (-10, 10)
+ego = new Object with velocity (0, VerifaiOptions([0, 10]))
+new Object at (10, 0), with velocity (-10, 10)
 terminate after 1 seconds
 """
 
-def test_dynamic(new_Object):
-    sampler = ScenicSampler.fromScenicCode(basic_scenario.format(new_Object=new_Object))
+def test_dynamic():
+    sampler = ScenicSampler.fromScenicCode(basic_scenario)
 
-    class distance_spec(specification_monitor):
-        def __init__(self):
-            def specification(simulation):
-                egoPos, otherPos = simulation.result.trajectory[-1]
-                dist = egoPos.distanceTo(otherPos)
-                return dist - 1
-            super().__init__(specification)
+    def distance_spec(simulation):
+        egoPos, otherPos = simulation.result.trajectory[-1]
+        dist = egoPos.distanceTo(otherPos)
+        return dist - 1
 
-    falsifier = generic_falsifier(
+    falsifier = Falsifier(
         sampler=sampler,
-        monitor=distance_spec(),
+        monitor=distance_spec,
         falsifier_params=DotMap(n_iters=2, save_safe_table=True),
-        server_class=ScenicServer
     )
     falsifier.run_falsifier()
     assert len(falsifier.error_table.table) == 1
@@ -174,8 +168,7 @@ def test_driving_dynamic(pathToLocalFile):
         save_safe_table=False,
     )
     server_options = DotMap(maxSteps=2, verbosity=3)
-    falsifier = generic_falsifier(sampler=sampler,
-                                  falsifier_params=falsifier_params,
-                                  server_class=ScenicServer,
-                                  server_options=server_options)
+    falsifier = Falsifier(sampler=sampler,
+                          falsifier_params=falsifier_params,
+                          server_options=server_options)
     falsifier.run_falsifier()

@@ -1,7 +1,5 @@
-from verifai.features.features import *
-from verifai.samplers.feature_sampler import *
-from verifai.falsifier import generic_falsifier
-from verifai.monitor import specification_monitor
+from verifai.features import *
+from verifai import Falsifier, FeatureSampler
 from dotmap import DotMap
 from renderer.generator import genImage
 from renderer.kittiLib import getLib
@@ -27,11 +25,8 @@ space = FeatureSpace({
 sampler = FeatureSampler.randomSamplerFor(space)
 
 
-class confidence_spec(specification_monitor):
-    def __init__(self):
-        def specification(traj):
-            return bool(traj['yTrue'] == traj['yPred'])
-        super().__init__(specification)
+def confidence_spec(traj):
+    return traj['yTrue'] == traj['yPred']
 
 
 MAX_ITERS = 40
@@ -46,8 +41,8 @@ falsifier_params = DotMap(n_iters=MAX_ITERS,
 
 server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
 
-falsifier = generic_falsifier(sampler=sampler, server_options=server_options,
-                             monitor=confidence_spec(), falsifier_params=falsifier_params)
+falsifier = Falsifier(sampler=sampler, server_options=server_options,
+                      monitor=confidence_spec, falsifier_params=falsifier_params)
 falsifier.run_falsifier()
 
 analysis_params = DotMap()

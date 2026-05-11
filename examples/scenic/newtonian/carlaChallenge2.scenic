@@ -29,4 +29,4 @@ obstacle = new Car at 171.87 @ 2.04
 ego = new Car following roadDirection from obstacle.position for EGO_TO_OBSTACLE,
     with behavior EgoBehavior(EGO_SPEED)
 
-record (distance to obstacle) - 5 as safe 
+record (distance to obstacle) - 5 as safe

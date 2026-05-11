@@ -1,6 +1,6 @@
 from verifai.server import Server, ParallelServer
 from verifai.scenic_server import ScenicServer, ParallelScenicServer
-from verifai.samplers import TerminationException
+from verifai.samplers import ScenicSampler, TerminationException
 from dotmap import DotMap
 from verifai.monitor import Monitor, MultiObjectiveMonitor, to_monitor
 from verifai.error_table import ErrorTable
@@ -9,15 +9,22 @@ import progressbar
 from statsmodels.stats.proportion import proportion_confint
 import time
 
-def parallelized(server_class):
-    if server_class == Server:
-        return ParallelServer
-    elif server_class == ScenicServer:
-        return ParallelScenicServer
 
 class Falsifier:
-    def __init__(self, monitor, sampler_type=None, sampler=None, sample_space=None,
-                 falsifier_params=None, server_options={}, server_class=ScenicServer):
+    def __init__(self,
+        monitor=None,
+        sampler_type=None,
+        sampler=None,
+        sample_space=None,
+        falsifier_params=None,
+        server_options={},
+        server_class=None,
+    ):
+        if not (sampler_type or sampler):
+            raise ValueError("must specify either sampler or sampler_type")
+        if server_class is None:
+            server_class = self.default_server_for(sampler)
+
         self.sample_space = sample_space
         self.sampler_type = sampler_type
         self.sampler = sampler
@@ -56,6 +63,12 @@ class Falsifier:
         if server_params.init:
             self.init_server(server_params, server_class)
             self.init_error_table()
+
+    @staticmethod
+    def default_server_for(sampler):
+        if isinstance(sampler, ScenicSampler):
+            return ScenicServer
+        return Server
 
     def init_server(self, server_options, server_class):
         if self.verbosity >= 1:
@@ -189,44 +202,16 @@ class Falsifier:
 
 class ParallelFalsifier(Falsifier):
 
-    def __init__(self, monitor, sampler_type=None, sample_space=None,
-                 falsifier_params=None, server_options={}, server_class=ScenicServer, 
-                 sampler=None):
+    def __init__(self, *args, server_options={}, **kwargs):
+        super().__init__(*args, server_options=server_options, **kwargs)
         self.num_workers = server_options.num_workers
         self.scenic_path = server_options.scenic_path
-        super().__init__(sample_space=sample_space, sampler_type=sampler_type,
-                         monitor=monitor, falsifier_params=falsifier_params, sampler=sampler,
-                         server_options=server_options, server_class=parallelized(server_class))
 
-class GenericParallelFalsifier(ParallelFalsifier):
-    def __init__(self, monitor=None, sampler_type= None, sample_space=None, sampler=None,
-                 falsifier_params=None, server_options={}, server_class=ScenicServer):
-        if monitor is None:
-            class monitor(specification_monitor):
-                def __init__(self):
-                    def specification(traj):
-                        return np.inf
-                    super().__init__(specification)
-            monitor = monitor()
-        self.scenario_params = server_options.scenario_params
-
-        super().__init__(sample_space=sample_space, sampler_type=sampler_type,
-                         monitor=monitor, falsifier_params=falsifier_params,
-                         server_options=server_options, server_class=server_class,
-                         sampler=sampler)
-
-    def init_server(self, server_options, server_class):
-        if self.verbosity >= 1:
-            print("Initializing server")
-        sampling_data = DotMap()
-        if self.sampler_type is None:
-            self.sampler_type = 'random'
-        sampling_data.sampler_type = self.sampler_type
-        sampling_data.sample_space = self.sample_space
-        sampling_data.sampler_params = self.sampler_params
-
-        self.server = server_class(self.num_workers, self.n_iters, sampling_data, self.scenic_path,
-        self.monitor, options=server_options, max_time=self.max_time, sampler=self.sampler)
+    @staticmethod
+    def default_server_for(sampler):
+        if isinstance(sampler, ScenicSampler):
+            return ParallelScenicServer
+        return ParallelServer
 
     def run_falsifier(self):
         i = 0
