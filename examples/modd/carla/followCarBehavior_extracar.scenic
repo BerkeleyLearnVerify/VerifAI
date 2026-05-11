@@ -147,7 +147,7 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
                     if leaderCar is None:
                         self.steps_speed += 1
                         if self.steps_speed > 20:
-                            original_target_speed = Range(6,8) # LEADER_SPEED.getSample()
+                            original_target_speed = LEADER_SPEED.getSample()
                             self.steps_speed = 0
                     else:
                         steps_running += 1
@@ -201,7 +201,7 @@ behavior FollowLaneBehaviorModified(target_speed = 10, laneToFollow=None, is_opp
         if leaderCar is None:
             self.steps_speed += 1
             if self.steps_speed > 20:
-                original_target_speed = Range(6,8) #LEADER_SPEED.getSample()
+                original_target_speed = LEADER_SPEED.getSample()
                 self.steps_speed = 0
             
         else:
