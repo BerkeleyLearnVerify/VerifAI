@@ -6,7 +6,7 @@ import os
 import networkx as nx
 import numpy as np
 
-from verifai.monitor import specification_monitor
+from verifai.monitor import Monitor
 
 
 class Rulebook(ABC):
@@ -106,7 +106,7 @@ class Rulebook(ABC):
                     node_info = line.split(" ")
                     node_id = int(node_info[0])
                     rule_name = node_info[1]
-                    ru = rule(node_id, self.functions[rule_name])
+                    ru = Rule(node_id, self.functions[rule_name])
                     priority_graph.add_node(node_id, rule=ru, name=rule_name)
                     if self.verbosity >= 2:
                         print(f"Add node {node_id} with rule {rule_name}")
@@ -214,10 +214,10 @@ class Rulebook(ABC):
         pass
 
 
-class rule(specification_monitor):
+class Rule(Monitor):
     def __init__(self, node_id, spec):
         self.node_id = node_id
-        super().__init__(spec)
+        self.specification = spec
 
     def evaluate(self, traj, indices=None):
         return self.specification(traj, indices)

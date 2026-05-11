@@ -19,7 +19,7 @@ def unit2bbH(boundingBox, ldBox=unitBox):
 
     bbox = bb2array(boundingBox)
     ubox = bb2array(ldBox)
-    h, _ = cv2.findHomography(np.float_(ubox), np.float_(np.array(bbox)))
+    h, _ = cv2.findHomography(np.float64(ubox), np.float64(np.array(bbox)))
 
     return h
 

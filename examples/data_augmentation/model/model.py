@@ -31,7 +31,7 @@ class Model:
         images = []
         #image = cv2.resize(image, (imageSize, imageSize), cv2.INTER_LINEAR)
         pix = Image.fromarray(image, 'RGB')
-        pix = pix.resize((imageSize, imageSize), Image.ANTIALIAS)
+        pix = pix.resize((imageSize, imageSize), Image.LANCZOS)
         image = np.array(pix)
 
         images.append(image)

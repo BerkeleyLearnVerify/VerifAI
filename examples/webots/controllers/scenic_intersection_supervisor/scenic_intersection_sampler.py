@@ -14,7 +14,7 @@ BUFSIZE = 4096
 falsifier_params = DotMap()
 falsifier_params.n_iters = MAX_ITERS
 falsifier_params.save_error_table = False
-falsifier_params.save_good_samples = False
+falsifier_params.save_safe_table = False
 
 server_options = DotMap(port=PORT, bufsize=BUFSIZE, maxreqs=MAXREQS)
 

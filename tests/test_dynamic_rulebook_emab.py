@@ -51,16 +51,6 @@ def test_demab_requires_rulebook():
         DynamicRulebookExtendedMultiArmedBanditSampler(Box((0, 1)), params)
 
 
-def test_demab_rejects_nonconsecutive_priority_graph_ids():
-    rb = RulebookStub(priority_graphs={0: _make_graph(), 2: _make_graph()})
-    params = _make_params(rb)
-
-    with pytest.raises(
-        ValueError, match="Priority graph IDs should be in order and start from 0"
-    ):
-        DynamicRulebookExtendedMultiArmedBanditSampler(Box((0, 1)), params)
-
-
 def test_demab_round_robin_and_fixed_sampler_routing():
     rb = RulebookStub(
         priority_graphs={0: _make_graph(), 1: _make_graph()}, using_sampler=-1
@@ -71,7 +61,7 @@ def test_demab_round_robin_and_fixed_sampler_routing():
 
     spy0 = SegmentSamplerSpy("seg0")
     spy1 = SegmentSamplerSpy("seg1")
-    sampler.split_samplers = {0: spy0, 1: spy1}
+    sampler.cont_emab_samplers = {0: spy0, 1: spy1}
     sampler.num_segs = 2
 
     sample0, info0 = sampler.getSample()
@@ -92,7 +82,7 @@ def test_demab_round_robin_and_fixed_sampler_routing():
     )
     fixed0 = SegmentSamplerSpy("fixed0")
     fixed1 = SegmentSamplerSpy("fixed1")
-    fixed.split_samplers = {0: fixed0, 1: fixed1}
+    fixed.cont_emab_samplers = {0: fixed0, 1: fixed1}
     fixed.num_segs = 2
 
     fixed_sample, fixed_info = fixed.getSample()

@@ -10,7 +10,7 @@ import scenic.domains.driving.model as _model
 from scenic.domains.driving.roads import ManeuverType
 from scenic.domains.driving.behaviors import concatenateCenterlines
 
-LEADER_SPEED = Range(6,8) # TimeSeries(VerifaiRange(6,8))
+LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
 EGO_BRAKING_THRESHOLD = 6
 
 def run_MODD(car, monitor_model, obstacle, leader, monitor_type="sklearn"):
@@ -172,7 +172,7 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
                         if leaderCar is None:
                             self.steps_speed += 1
                             if self.steps_speed > 20:
-                                original_target_speed = Range(6,8) # LEADER_SPEED.getSample()
+                                original_target_speed = LEADER_SPEED.getSample()
                                 self.steps_speed = 0
                         else:
                             steps_running += 1
@@ -235,7 +235,7 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
             if leaderCar is None:
                 self.steps_speed += 1
                 if self.steps_speed > 20:
-                    original_target_speed = Range(6,8) # LEADER_SPEED.getSample()
+                    original_target_speed = LEADER_SPEED.getSample()
                     self.steps_speed = 0
                 
             else:

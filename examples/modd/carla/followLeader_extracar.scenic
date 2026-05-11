@@ -35,7 +35,7 @@ from followCarBehaviorMODD import (
 
 #CONSTANTS
 EGO_MODEL = "vehicle.tesla.model3"
-LEADER_SPEED = Range(6,8) # TimeSeries(VerifaiRange(6,8))
+LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
 EGO_SPEED = 3
 THROTTLE_ACTION = 0.5
 EGO_TO_LEADER = Range(-15, -10)
