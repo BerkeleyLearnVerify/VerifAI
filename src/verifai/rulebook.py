@@ -9,7 +9,7 @@ import numpy as np
 from verifai.monitor import Monitor
 
 
-class Rulebook(ABC):
+class Rulebook(Monitor, ABC):
 
     def __init__(
         self,

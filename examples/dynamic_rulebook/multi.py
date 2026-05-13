@@ -17,11 +17,9 @@ import pandas as pd
 import numpy as np
 from dotmap import DotMap
 
-from verifai.samplers.scenic_sampler import ScenicSampler
-from verifai.scenic_server import ScenicServer
-from verifai.falsifier import generic_falsifier, generic_parallel_falsifier
-from verifai.monitor import multi_objective_monitor, specification_monitor
-from verifai.rulebook import Rulebook
+from verifai import (
+    Falsifier, ParallelFalsifier, Monitor, Rulebook, ScenicSampler
+)
 
 
 def announce(message):
@@ -147,14 +145,13 @@ def run_experiment(
         scenario_model=model,
         num_workers=num_workers,
     )
-    falsifier_class = generic_parallel_falsifier if parallel else generic_falsifier
+    falsifier_class = ParallelFalsifier if parallel else Falsifier
     falsifier = falsifier_class(
         monitor=rb,  ## modified
         sampler_type=s_type,
         sampler=sampler,
         falsifier_params=falsifier_params,
         server_options=server_options,
-        server_class=ScenicServer,
     )
     print(f"(multi.py) Sampler type: {falsifier.sampler_type}")
 
