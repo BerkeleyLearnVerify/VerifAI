@@ -11,10 +11,11 @@ log_file="result_${scenario}_${sampler_type}_${sampler_idx}_${use_dynamic_rulebo
 result_file="result_${scenario}_${sampler_type}_${sampler_idx}_${use_dynamic_rulebook}.txt"
 csv_file="result_${scenario}_${sampler_type}_${sampler_idx}_${use_dynamic_rulebook}"
 
-rm $scenario/outputs/$log_file
-rm $scenario/outputs/$result_file
-rm $scenario/outputs/$csv_file.*csv
-rm $scenario/outputs/$csv_file\_scatter.png
+mkdir -p $scenario/outputs
+rm -f $scenario/outputs/$log_file
+rm -f $scenario/outputs/$result_file
+rm -f $scenario/outputs/$csv_file.*csv
+rm -f $scenario/outputs/$csv_file\_scatter.png
 if [ "$use_dynamic_rulebook" = true ]; then
 
     for seed in $(seq 0 1);
