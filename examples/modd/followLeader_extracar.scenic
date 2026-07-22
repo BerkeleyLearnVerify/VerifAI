@@ -36,7 +36,7 @@ from followCarBehaviorMODD import (
 
 #CONSTANTS
 EGO_MODEL = "vehicle.tesla.model3"
-LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
+LEADER_SPEED = 7
 EGO_SPEED = 3
 THROTTLE_ACTION = 0.5
 EGO_TO_LEADER = Range(-15, -10)
@@ -58,21 +58,29 @@ if globalParameters.monitor != "":
 
 behavior EgoBehavior(target_speed = 10, controller_path = None, leaderCar=None, obstacleCar=None, monitor_model=None):
     if monitor_model is None:
-        do ControllerBehavior(target_speed, controller_path, leaderCar)
+        try:
+            do ControllerBehavior(target_speed, controller_path, leaderCar)
+        interrupt when self._lane is None:
+            take SetBrakeAction(1.0)
     else:
         try:
             do ControllerBehavior(target_speed=target_speed, controller_path=controller_path, leaderCar=leaderCar, obstacleCar=obstacleCar)
-        interrupt when not self.isSafe:
-            print("-- Monitor: Not safe! Switching to SafeBehavior.")
-            take SetBrakeAction(1.0)
-            do EgoBehavior2(target_speed = target_speed, controller_path = controller_path, leaderCar=leaderCar, obstacleCar=obstacleCar, monitor_model=monitor_model)
+        interrupt when not self.isSafe or self._lane is None:
+            if self._lane is None:
+                take SetBrakeAction(1.0)
+            else:
+                print("-- Monitor: Not safe! Switching to SafeBehavior.")
+                do EgoBehavior2(target_speed = target_speed, controller_path = controller_path, leaderCar=leaderCar, obstacleCar=obstacleCar, monitor_model=monitor_model)
 
 behavior EgoBehavior2(target_speed = 10, controller_path = None, leaderCar=None, obstacleCar=None, monitor_model=None):
     try:
-        do FollowCarBehaviorMODD(target_speed=target_speed, leaderCar=leader, monitor_model=monitor_model)
-    interrupt when self.isSafe:
-        print("-- Monitor: Safe! Switching back to CNN Controller.")
-        do EgoBehavior(target_speed=target_speed, controller_path=controller_path, leaderCar=leaderCar, obstacleCar=obstacleCar, monitor_model=monitor_model)
+        do FollowCarBehaviorMODD(target_speed=target_speed, leaderCar=leader, monitor_model=monitor_model, obstacleCar=obstacleCar)
+    interrupt when self.isSafe or self._lane is None:
+        if self._lane is None:
+            take SetBrakeAction(1.0)
+        else:
+            print("-- Monitor: Safe! Switching back to CNN Controller.")
+            do EgoBehavior(target_speed=target_speed, controller_path=controller_path, leaderCar=leaderCar, obstacleCar=obstacleCar, monitor_model=monitor_model)
 
 
 
@@ -83,7 +91,7 @@ behavior ControllerBehavior(target_speed = 10, controller_path = None, leaderCar
     past_speed = 0 # making an assumption here that the agent starts from zero speed
 
     original_target_speed = target_speed
-
+    
     current_lane = self.lane
     nearby_intersection = current_lane.centerline[-1]
 
@@ -137,7 +145,6 @@ behavior ControllerBehavior(target_speed = 10, controller_path = None, leaderCar
             current_speed = past_speed
 
         speed_error = target_speed - current_speed
-
 
         # compute throttle : Longitudinal Control
         throttle = _lon_controller.run_step(speed_error)

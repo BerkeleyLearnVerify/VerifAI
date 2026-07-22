@@ -11,27 +11,30 @@ import scenic.domains.driving.model as _model
 from scenic.domains.driving.roads import ManeuverType
 from scenic.domains.driving.behaviors import concatenateCenterlines
 
-LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
+target_speed_noise = TimeSeries(VerifaiRange(-1,1))
 EGO_BRAKING_THRESHOLD = 6
 
 def run_MODD(car, monitor_model, obstacle, leader, monitor_type="sklearn"):
-    current_lane = car.lane
-    nearby_intersection = current_lane.maneuvers[0].intersection
-    distIntersection = distance from car to nearby_intersection
-    distObstacle = distance from car to obstacle
-    visibleObstacle = int(car can see obstacle)
-    visibleLeader = int(car can see leader)
-
-    input_features = np.concatenate((car.weather, np.array([car.r,car.g,car.b, distIntersection, distObstacle, visibleObstacle, visibleLeader])))
-    input_features = np.expand_dims(input_features, axis=0)
-    if monitor_type == "sklearn":
-        car.isSafe = monitor_model.predict(input_features)[0]
+    if car._lane is None:
+        car.isSafe = 0
     else:
-        x = torch.Tensor(input_features).unsqueeze(0).cuda() 
-        car.isSafe = (torch.nn.Sigmoid()(monitor_model(x)).cpu().detach().numpy()[0][0]  > 0.65).astype(int)
+        current_lane = car.lane
+        nearby_intersection = current_lane.maneuvers[0].intersection
+        distIntersection = distance from car to nearby_intersection
+        distObstacle = distance from car to obstacle
+        visibleObstacle = int(car can see obstacle)
+        visibleLeader = int(car can see leader)
+
+        input_features = np.concatenate((car.weather, np.array([car.r,car.g,car.b, distIntersection, distObstacle, visibleObstacle, visibleLeader])))
+        input_features = np.expand_dims(input_features, axis=0)
+        if monitor_type == "sklearn":
+            car.isSafe = monitor_model.predict(input_features)[0]
+        else:
+            x = torch.Tensor(input_features).unsqueeze(0).cuda() 
+            car.isSafe = (torch.nn.Sigmoid()(monitor_model(x)).cpu().detach().numpy()[0][0]  > 0.65).astype(int)
 
 
-behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_oppositeTraffic=False, leaderCar=None, addNoise=False, monitor_model=None):
+behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_oppositeTraffic=False, leaderCar=None, addNoise=False, monitor_model=None, obstacleCar=None):
     """ 
     This implementation is heavily inspired by the FollowLaneBehavior.
     The main difference is that this behavior is used to follow a leaderCar with the addition of an ODD monitor.
@@ -44,6 +47,8 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
     :param addNoise: When true, random noise is added to the steering and the speed. 
     :param monitor_model: ODD monitor to be used by the ego car. If existing, it is used to identify check if it is safe enough for the system to stop using the safe controller.
     """
+    noise = target_speed_noise.getSample()
+    
 
     past_steer_angle = 0
     past_speed = 0 # making an assumption here that the agent starts from zero speed
@@ -60,9 +65,7 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
     intersection_passed = False
     entering_intersection = False # assumption that the agent is not instantiated within an intersection
     end_lane = None
-    if isinstance(target_speed, TimeSeriesParameter):
-        target_speed = target_speed.getSample()
-    original_target_speed = target_speed
+    original_target_speed = target_speed + noise
     TARGET_SPEED_FOR_TURNING = 3 # KM/H
     TRIGGER_DISTANCE_TO_SLOWDOWN = 20 # FOR TURNING AT INTERSECTIONS
 
@@ -82,7 +85,8 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
         steps_running = 0
 
     while True:
-
+        if self._lane is None:
+            continue
         if self.speed is not None:
             current_speed = self.speed
         else:
@@ -140,7 +144,6 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
                 target_speed = TARGET_SPEED_FOR_TURNING
 
                 trajectory = current_centerline
-                target_speed = target_speed
                 if isinstance(trajectory, PolylineRegion):
                     trajectory_centerline = trajectory
                 else:
@@ -175,7 +178,7 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
                         if leaderCar is None:
                             self.steps_speed += 1
                             if self.steps_speed > 20:
-                                original_target_speed = LEADER_SPEED.getSample()
+                                original_target_speed = target_speed + target_speed_noise.getSample()
                                 self.steps_speed = 0
                         else:
                             steps_running += 1
@@ -183,8 +186,8 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
                         if not leaderCar is None and not monitor_model is None and steps_running > 80:
                             # Input format: (weather, np.array([r,g,b, distIntersection, distObstacle, visibleObstacle, visibleLeader]))
                             distIntersection = distance from self to nearby_intersection
-                            distObstacle = distance from self to obstacle
-                            visibleObstacle = int(ego can see obstacle)
+                            distObstacle = distance from self to obstacleCar
+                            visibleObstacle = int(ego can see obstacleCar)
                             visibleLeader = int(ego can see leader)
 
                             input_features = np.concatenate((self.weather, np.array([self.r,self.g,self.b, distIntersection, distObstacle, visibleObstacle, visibleLeader])))
@@ -238,13 +241,13 @@ behavior FollowCarBehaviorMODD(target_speed = 10, laneToFollow=None, is_opposite
             if leaderCar is None:
                 self.steps_speed += 1
                 if self.steps_speed > 20:
-                    original_target_speed = LEADER_SPEED.getSample()
+                    original_target_speed = target_speed + target_speed_noise.getSample()
                     self.steps_speed = 0
                 
             else:
                 steps_running += 1
 
             if not leaderCar is None and monitor_model and steps_running > 80:
-                run_MODD(self, monitor_model, obstacle, leader)
+                run_MODD(self, monitor_model, obstacleCar, leaderCar)
 
 

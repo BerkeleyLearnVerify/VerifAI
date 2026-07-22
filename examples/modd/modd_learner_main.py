@@ -72,17 +72,21 @@ datagen_params = DotMap(
 
 if MODEL == "DT":
     base_model = DecisionTreeClassifier(max_depth=10)
+    monitor_type = "sklearn"
 
 if MODEL == "NN":
     nn = MLPClassifier(solver='adam', alpha=1e-5,
                     hidden_layer_sizes=(100,100), max_iter=100, random_state=42, verbose=1)
     base_model = Pipeline([('scaler', StandardScaler()), ('nn', nn)])
+    monitor_type = "sklearn"
 
 if MODEL == "LR":   
     base_model = LogisticRegression(verbose=1)
+    monitor_type = "sklearn"
 
 if MODEL == "NN_TORCH":
     base_model = MLP()
+    monitor_type = "torch"
 
 trainer_params = DotMap(
     model=base_model,
@@ -111,6 +115,7 @@ eval_params = DotMap(
     scenes_save_dir=os.path.join(os.path.dirname(__file__), "out/scene_timeseries"),
     datagen_nomon_save_dir=os.path.join(os.path.dirname(__file__), "out/eval_samples_timeseries_nomonitor"),
     save_model_path=trainer_params.save_model_path,
+    monitor_type=monitor_type,
     verbosity=VERBOSITY,
 )
 
@@ -142,7 +147,9 @@ server_options = DotMap(maxSteps=300,
                                       "verbosity": 3, 
                                       "timeBound": 300, 
                                       "controller": os.path.join(os.path.dirname(__file__), 'models/controller_cte_dist_130.pth')},
-                        eval_params={"seed": 42, 
+                        eval_params={"monitor" : trainer_params.save_model_path,
+                                     "monitor_type" : monitor_type,
+                                     "seed": 42, 
                                      "render" : 0, 
                                      "verbosity": 3, 
                                      "timeBound": 300, 
@@ -201,6 +208,3 @@ print('Training results:')
 print(modd.training_results)
 print('Evaluation results:')
 print(modd.evaluation_results)
-
-
-

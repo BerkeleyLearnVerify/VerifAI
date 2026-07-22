@@ -30,8 +30,6 @@ class GenericEvaluator(Evaluator):
 
     def sample_simulations(self, num_simulations, num_steps, save_datagen_path, save_scenes_path):
         i = 0
-        print(save_datagen_path)
-        print(save_scenes_path)
         self.total_sample_time = 0
         self.total_simulate_time = 0
         self.sampling_params.server.maxSteps = num_steps
@@ -84,9 +82,9 @@ class GenericEvaluator(Evaluator):
                         with open(filename, 'wb') as filehandler: 
                             pickle.dump(self.samples, filehandler)
 
-                except TerminationException:
+                except Exception as e:
                     if self.eval_params.verbosity >= 1:
-                        print("Sampler has generated all possible samples")
+                        print(f'  Failed to create simulation: {e}')
                     break
                 except KeyboardInterrupt:
                     break

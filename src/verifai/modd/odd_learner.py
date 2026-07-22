@@ -18,7 +18,7 @@ class ODDLearner(ABC):
         self.sampling_params = sampling_params
         self.global_params = global_params      
 
-    def run(self):
+    def generate_monitor(self):
         pass
 
 

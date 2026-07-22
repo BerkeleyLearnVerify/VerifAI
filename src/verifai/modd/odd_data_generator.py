@@ -67,9 +67,9 @@ class GenericDataGenerator(DataGenerator):
                         print(f"Saving in {save_path}training_{i}.pkl")
                         with open(os.path.join(save_path + os.sep, f"training_{i}.pkl"), 'wb') as filehandler:
                             pickle.dump(self.samples, filehandler)
-                except TerminationException:
-                    if self.datagen_params.verbosity >= 1:
-                        print("Sampler has generated all possible samples")
+                except Exception as e:
+                    if self.eval_params.verbosity >= 1:
+                        print(f'  Failed to create simulation: {e}')
                     break
                 except KeyboardInterrupt:
                     break
