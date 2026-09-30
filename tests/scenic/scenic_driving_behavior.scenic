@@ -1,7 +1,7 @@
 param map = localPath('Town01.xodr')
 model scenic.simulators.newtonian.driving_model
 
-foo = TimeSeries(VerifaiRange(0,0.01))
+foo = Series(VerifaiRange(0,0.01))
 
 behavior TestBehavior():
     lastVal = None

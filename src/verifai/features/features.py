@@ -996,7 +996,7 @@ class Feature:
             rep += f', distanceMetric={self.distanceMetric}'
         return rep + ')'
 
-class TimeSeriesFeature(Feature):
+class SeriesFeature(Feature):
     """A feature with a value at each timestep of a simulation."""
     @staticmethod
     def _timeExpandDomain(domain, timeBound):
@@ -1163,11 +1163,11 @@ class FeatureSpace:
         self.features = tuple(self.featureNamed.values())
 
         self.staticFeatureNamed = OrderedDict({name: feat for name, feat in self.featureNamed.items()
-                                               if not isinstance(feat, TimeSeriesFeature)})
+                                               if not isinstance(feat, SeriesFeature)})
         self.dynamicFeatureNamed = OrderedDict({name: feat for name, feat in self.featureNamed.items()
-                                               if isinstance(feat, TimeSeriesFeature)})
+                                               if isinstance(feat, SeriesFeature)})
 
-        self.hasTimeSeries = len(self.dynamicFeatureNamed) > 0
+        self.hasSeries = len(self.dynamicFeatureNamed) > 0
 
         self.makeStaticPoint = namedtuple('StaticSpacePoint', self.staticFeatureNamed)
         self.makeDynamicPoint = namedtuple('DynamicSpacePoint', self.dynamicFeatureNamed)
@@ -1176,7 +1176,7 @@ class FeatureSpace:
         self.timeBound = timeBound
 
         if len(self.dynamicFeatureNamed) > 0 and self.timeBound == 0:
-            raise ValueError("must specify timeBound when creating a FeatureSpace with a TimeSeriesFeature")
+            raise ValueError("must specify timeBound when creating a FeatureSpace with a SeriesFeature")
 
     @cached_property
     def domains(self):
@@ -1186,7 +1186,7 @@ class FeatureSpace:
         lists, plus a dict mapping each (flattened) point in that Domain to the
         corresponding Domain of other features. If the FeatureSpace has no
         feature lists, then returns (None, dom) where dom is the fixed Domain
-        of all features. If any Features are TimeSeriesFeatures then they are
+        of all features. If any Features are SeriesFeatures then they are
         expanded to a max of timeBound.
         """
         fixedDomains = {}
@@ -1248,7 +1248,7 @@ class FeatureSpace:
             else:
                 domain.flattenOnto(value, flattened)
 
-        if self.hasTimeSeries:
+        if self.hasSeries:
             duration = len(point.dynamicSamples)
             flattened.append(duration)
 
@@ -1293,11 +1293,11 @@ class FeatureSpace:
         Also an upper bound on the length of the vector returned by flatten
         by default, when fixedDimension=False."""
         dim = 0
-        if self.hasTimeSeries:
+        if self.hasSeries:
             dim += 1 # Timesteps
         for feature in self.features:
             domain = feature.domain
-            timeMult = self.timeBound if isinstance(feature, TimeSeriesFeature) else 1
+            timeMult = self.timeBound if isinstance(feature, SeriesFeature) else 1
             if feature.lengthDomain:
                 dim += 1    # dimension storing length of the feature list
                 dim += timeMult * feature.maxLength * domain.flattenedDimension
@@ -1486,7 +1486,7 @@ class FeatureSpace:
 
         staticSample = self.makeStaticPoint(*staticValues)
 
-        if self.hasTimeSeries:
+        if self.hasSeries:
             duration = next(iterator)
 
             dynamicValuesList = [[] for _ in range(duration)]

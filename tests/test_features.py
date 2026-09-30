@@ -90,7 +90,7 @@ def test_fs_flatten_fixed_dimension2():
 def test_fs_flatten_fixed_dimension_dynamic():
     space = FeatureSpace({
         'a': Feature(DiscreteBox([0, 12])),
-        'b': TimeSeriesFeature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2)))
+        'b': SeriesFeature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2)))
         },
         timeBound=5
     )
@@ -132,7 +132,7 @@ def test_fs_flatten_fixed_dimension_dynamic():
 def test_fs_utilities():
     space = FeatureSpace({
         'a': Feature(DiscreteBox([0, 12])),
-        'b': TimeSeriesFeature(Box((0, 1)), lengthDomain=DiscreteBox((1, 2)))
+        'b': SeriesFeature(Box((0, 1)), lengthDomain=DiscreteBox((1, 2)))
         },
         timeBound=5
     )

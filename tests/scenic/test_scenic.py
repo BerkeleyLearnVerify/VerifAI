@@ -194,7 +194,7 @@ def test_driving_dynamic_behavior(pathToLocalFile):
 
 double_access_scenario = """
 model scenic.simulators.newtonian.model
-foo = TimeSeries(VerifaiRange(0, 0.01))
+foo = Series(VerifaiRange(0, 0.01))
 behavior TestBehavior():
     while True:
         foo.getSample()
@@ -204,7 +204,7 @@ ego = new Object with behavior TestBehavior()
 """
 
 def test_double_time_series_access():
-    with pytest.raises(RuntimeError, match=r"Attempted `getSample` for a TimeSeries external parameter twice in one timestep."):
+    with pytest.raises(RuntimeError, match=r"Attempted `getSample` for a Series external parameter twice in one timestep."):
         sampler = ScenicSampler.fromScenicCode(
                 double_access_scenario,
                 model='scenic.simulators.newtonian.model',

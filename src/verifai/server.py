@@ -219,8 +219,8 @@ class Server:
                 sampler_params=params
             )
 
-        if self.sample_space.hasTimeSeries:
-            raise ValueError("Sample space for `Server` cannot contain `TimeSeriesFeature`")
+        if self.sample_space.hasSeries:
+            raise ValueError("Sample space for `Server` cannot contain `SeriesFeature`")
 
     def listen(self):
         client_socket, addr = self.socket.accept()
