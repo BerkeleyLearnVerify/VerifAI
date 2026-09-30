@@ -11,7 +11,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
-from verifai.features import FilteredDomain, TimeSeriesFeature, Sample
+from verifai.features import FilteredDomain, SeriesFeature, Sample
 from verifai.features.features import _PrecomputedSample
 from verifai.samplers.domain_sampler import SplitSampler, TerminationException
 from verifai.samplers.rejection import RejectionSampler
@@ -237,7 +237,7 @@ class LateFeatureSampler(FeatureSampler):
     
     LateFeatureSampler works as follows:
         1. Sample lengths of feature lists.
-        2. Expand TimeSeriesFeatures into flattened features of length
+        2. Expand SeriesFeatures into flattened features of length
            space.timeBound.
         3. Sample from the resulting fixed-dimensional Domains.
 
@@ -287,7 +287,7 @@ class LateFeatureSampler(FeatureSampler):
         static_point = self.space.makeStaticPoint(*[v[1] for v in static_features])
 
         dynamic_points = []
-        if self.space.hasTimeSeries:
+        if self.space.hasSeries:
             for t in range(self.space.timeBound):
                 raw_point_list = []
 

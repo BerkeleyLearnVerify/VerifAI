@@ -3,15 +3,15 @@ import itertools
 import os.path
 
 from verifai.features import (Struct, Array, Box, DiscreteBox,
-                              Feature, TimeSeriesFeature, FeatureSpace)
+                              Feature, SeriesFeature, FeatureSpace)
 from verifai.samplers import RandomSampler, FeatureSampler
 
 def test_feature_sampling():
     space = FeatureSpace({
         'a': Feature(DiscreteBox([0, 12])),
         'b': Feature(Box((0, 1)), lengthDomain=DiscreteBox((0, 2))),
-        'c': TimeSeriesFeature(Box((2,5))),
-        'd': TimeSeriesFeature(Box((5,6)), lengthDomain=DiscreteBox((0,2)))
+        'c': SeriesFeature(Box((2,5))),
+        'd': SeriesFeature(Box((5,6)), lengthDomain=DiscreteBox((0,2)))
         }, timeBound=10)
     sampler = FeatureSampler.randomSamplerFor(space)
 

@@ -10,7 +10,7 @@ import scenic.domains.driving.model as _model
 from scenic.domains.driving.roads import ManeuverType
 from scenic.domains.driving.behaviors import concatenateCenterlines
 
-LEADER_SPEED = TimeSeries(VerifaiRange(6,8))
+LEADER_SPEED = Series(VerifaiRange(6,8))
 EGO_BRAKING_THRESHOLD = 6
 
 def run_MODD(car, monitor_model, obstacle, leader, monitor_type="sklearn"):
