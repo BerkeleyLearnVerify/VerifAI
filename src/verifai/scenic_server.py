@@ -3,7 +3,7 @@
 import time
 
 from dotmap import DotMap
-import progressbar
+import tqdm
 
 try:
     import ray
@@ -203,11 +203,9 @@ class ParallelScenicServer(ScenicServer):
         samples = []
         infos = []
         if self.n_iters is not None:
-            bar = progressbar.ProgressBar(max_value=self.n_iters)
+            bar = tqdm.tqdm(total=self.n_iters)
         else:
-            widgets = ['Scenes generated: ', progressbar.Counter('%(value)d'),
-               ' (', progressbar.Timer(), ')']
-            bar = progressbar.ProgressBar(widgets=widgets)
+            bar = tqdm.tqdm()
         for i in range(self.total_workers):
             next_sample, info = self._generate_next_sample(i)
             samples.append(next_sample)
@@ -222,7 +220,7 @@ class ParallelScenicServer(ScenicServer):
             results.append((sample, rho))
             info = infos[index]
             self.sampler.scenario.externalSampler.update(sample, info, rho)
-            bar.update(len(results))
+            bar.update()
             if len(results) == 1:
                 t0 = time.time()
             elapsed = time.time() - t0
@@ -237,4 +235,5 @@ class ParallelScenicServer(ScenicServer):
             infos[index] = info
             futures[index] = sim.simulate.remote(next_sample)
 
+        bar.close()
         return results

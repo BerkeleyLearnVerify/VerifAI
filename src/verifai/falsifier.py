@@ -6,7 +6,7 @@ from verifai.monitor import Monitor, MultiObjectiveMonitor, to_monitor
 from verifai.rulebook import Rulebook
 from verifai.error_table import ErrorTable
 import numpy as np
-import progressbar
+import tqdm
 from statsmodels.stats.proportion import proportion_confint
 import time
 
@@ -160,11 +160,9 @@ class Falsifier:
 
         if self.verbosity >= 1:
             if self.n_iters is not None:
-                bar = progressbar.ProgressBar(max_value=self.n_iters)
+                bar = tqdm.tqdm(total=self.n_iters)
             else:
-                widgets = ['Samples generated: ', progressbar.Counter('%(value)d'),
-                ' (', progressbar.Timer(), ')']
-                bar = progressbar.ProgressBar(widgets=widgets)
+                bar = tqdm.tqdm()
 
         try:
             while True:
@@ -177,13 +175,13 @@ class Falsifier:
                         print("Sampler has generated all possible samples")
                     break
                 if self.verbosity >= 2:
-                    print("Sample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
+                    print("\nSample no: ", i, "\nSample: ", sample, "\nRho: ", rho)
                 self.samples[i] = sample
                 server_samples.append(sample)
                 rhos.append(rho)
                 i += 1
                 if self.verbosity >= 1:
-                    bar.update(i)
+                    bar.update()
                 if i == 1:
                     t0 = time.time()
                 if self.n_iters is not None and i == self.n_iters:
@@ -192,7 +190,7 @@ class Falsifier:
                     break
         finally:
             if self.verbosity >= 1:
-                bar.finish()
+                bar.close()
             self.server.terminate()
         for sample, rho in zip(server_samples, rhos):
             ce = False
